@@ -167,7 +167,7 @@ class FakeBehavior {
     this.__idWhitelist = null
 
     // individually settable services
-    const services = ['DocumentApp', 'DriveApp', 'SpreadsheetApp', 'SlidesApp', 'Docs', 'Sheets', 'Drive', 'Slides']
+    const services = ['DocumentApp', 'DriveApp', 'SpreadsheetApp', 'SlidesApp', 'Docs', 'Sheets', 'Drive', 'Slides', 'FormApp', 'Forms']
     this.__sandboxService = {}
     services.forEach(f => this.__sandboxService[f] = newFakeSandboxService(this, f))
 
@@ -267,6 +267,7 @@ class FakeBehavior {
       Sheets: "SpreadsheetApp",
       Docs: "DocumentApp",
       Slides: "SlidesApp",
+      Forms: "FormApp",
     };
     const effectiveServiceName = serviceMapping[serviceName] || serviceName;
     const serviceBehavior = this.sandboxService[effectiveServiceName];
