@@ -38,6 +38,8 @@ import { testDocsFootnotes } from "./testdocsfootnotes.js";
 import { testDocsListItems } from "./testdocslistitems.js";
 import { testSlidesAdv } from "./testslidesadv.js";
 import { testSlides } from "./testslides.js";
+import { testForms } from "./testforms.js";
+import { testFormsAdv } from "./testformsadv.js";
 import { testSheetsText } from "./testsheetstext.js";
 import { testSheetsRange } from "./testsheetsrange.js";
 import { testDocsImages } from "./testdocsimages.js";
@@ -60,6 +62,10 @@ const testFakes = () => {
   testSlides(pack);
   console.log("\n----Test slidesadv----");
   testSlidesAdv(pack);
+  console.log("\n----Test forms----");
+  testForms(pack);
+  console.log("\n----Test formsadv----");
+  testFormsAdv(pack);
   console.log("\n----Test docsadv----");
   testDocsAdv(pack);
   console.log("\n----Test docs----");
@@ -118,7 +124,8 @@ const testFakes = () => {
       getSheetsPerformance()
     );
     console.log("...cumulative docs cache performance", getDocsPerformance());
-    console.log("...cumulative docs cache performance", getSlidesPerformance());
+    console.log("...cumulative slides cache performance", getSlidesPerformance());
+    console.log("...cumulative forms cache performance", getFormsPerformance());
   }
 
   // all tests cumulative unit report

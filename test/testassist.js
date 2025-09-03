@@ -6,7 +6,8 @@ let __mfolder = null
 export const getDrivePerformance = Drive.__getDrivePerformance;
 export const getSheetsPerformance = Sheets.__getSheetsPerformance;
 export const getDocsPerformance = Docs.__getDocsPerformance;
-export const getSlidesPerformance = Slides.__getSlidesPerformance
+export const getSlidesPerformance = Slides.__getSlidesPerformance;
+export const getFormsPerformance = Forms.__getFormsPerformance;
 
 export const cachePerformance = () => {
   if (ScriptApp.isFake) {
@@ -14,6 +15,7 @@ export const cachePerformance = () => {
     console.log('...cumulative docs cache performance', getDocsPerformance());
     console.log('...cumulative sheets cache performance', getSheetsPerformance());
     console.log('...cumulative slides cache performance', getSlidesPerformance());
+    console.log('...cumulative forms cache performance', getFormsPerformance());
   }
 }
 export const wrapupTest = (func) => {

@@ -162,9 +162,7 @@ export const advClassMaker = (props) => {
 
   // it seems that the properties are not defined until they are set, so we can simply start with an empty object
   const ob = {}
-  if (!props.length) {
-    return notYetImplemented()
-  }
+
   // camel
   const capped = props.map(Utils.capital)
   const done = new Set()

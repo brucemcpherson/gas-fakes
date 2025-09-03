@@ -42,6 +42,8 @@
     "testsheetsdata": "cp mainlocal.js main.js &&  node --env-file=.env ./test/testsheetsdata.js execute",
     "testdocsadv": "cp mainlocal.js main.js &&  node --env-file=.env ./test/testdocsadv.js execute",
     "testslidesadv": "cp mainlocal.js main.js &&  node --env-file=.env ./test/testslidesadv.js execute",
+    "testforms": "cp mainlocal.js main.js &&  node --env-file=.env ./test/testforms.js execute",
+    "testformsadv": "cp mainlocal.js main.js &&  node --env-file=.env ./test/testformsadv.js execute",
     "testdocs": "cp mainlocal.js main.js &&  node --env-file=.env ./test/testdocs.js execute",
     "testslides": "cp mainlocal.js main.js &&  node --env-file=.env ./test/testslides.js execute",
     "testdocsnext": "cp mainlocal.js main.js &&  node --env-file=.env ./test/testdocsnext.js execute",

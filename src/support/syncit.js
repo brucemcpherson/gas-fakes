@@ -9,6 +9,7 @@ import { mergeParamStrings } from './utils.js'
 import { improveFileCache, checkResponse, getFromFileCache } from "./filecache.js"
 import { checkResponseCacher } from './fetchcacher.js';
 import { docsCacher } from "./docscacher.js"
+import { formsCacher } from './formscacher.js';
 import { slidesCacher } from './slidescacher.js';
 import { sheetsCacher } from './sheetscacher.js';
 import is from '@sindresorhus/is';
@@ -342,6 +343,7 @@ const fxFetch = (url, options, responseFields) => {
 const fxSheets = (args) => fxGeneric({ ...args, serviceName: 'Sheets', cacher: sheetsCacher, idField: 'spreadsheetId' });
 const fxSlides = (args) => fxGeneric({ ...args, serviceName: 'Slides', cacher: slidesCacher, idField: 'presentationId' });
 const fxDocs = (args) => fxGeneric({ ...args, serviceName: 'Docs', cacher: docsCacher, idField: 'documentId' });
+const fxForms = (args) => fxGeneric({ ...args, serviceName: 'Forms', cacher: formsCacher, idField: 'formId' });
 
 export const Syncit = {
   fxFetch,
@@ -357,4 +359,5 @@ export const Syncit = {
   fxSlides,
   fxRefreshToken,
   fxDocs,
+  fxForms,
 }
