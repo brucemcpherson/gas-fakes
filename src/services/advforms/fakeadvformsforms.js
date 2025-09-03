@@ -48,4 +48,28 @@ export class FakeAdvFormsForms extends FakeAdvResource {
     gError(response, 'forms.forms', 'get');
     return data;
   }
+
+  /**
+   * Applies one or more updates to the form.
+   * @param {object} resource The batch update request.
+   * @param {string} formId The ID of the form.
+   * @returns {object} The batch update response.
+   */
+  batchUpdate(resource, formId) {
+    const { nargs, matchThrow } = signatureArgs(arguments, 'Forms.Forms.batchUpdate');
+    if (nargs !== 2) matchThrow('Invalid number of arguments provided. Expected 2');
+    if (!is.object(resource)) {
+      matchThrow('API call to forms.forms.batchUpdate failed with error: Invalid JSON payload received.');
+    }
+    if (!is.string(formId)) {
+      matchThrow('API call to forms.forms.batchUpdate failed with error: Invalid formId provided.');
+    }
+    ScriptApp.__behavior.isAccessible(formId, 'Forms', 'write');
+    const { response, data } = this._call('batchUpdate', {
+      formId,
+      requestBody: resource,
+    });
+    gError(response, 'forms.forms', 'batchUpdate');
+    return data;
+  }
 }

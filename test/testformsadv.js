@@ -24,9 +24,9 @@ export const testFormsAdv = (pack) => {
     Reflect.ownKeys(Forms)
       .filter(f => is.string(f) && f.match(/^new/))
       .forEach(f => {
-        t.true(is.function(Forms[f]), `check ${f} is a function`)
-        const ob = Forms[f]()
-        console.log (f)
+        t.true(is.function(Forms[f]), `check ${f} is a function`);
+        const method = Forms[f];
+        const ob = method();
         t.true(Reflect.ownKeys(ob).every(g => is.function(ob[g])), `all Forms.${f}().subprops are functions`)
       })
     t.is(is(Forms.Forms), "Object")
@@ -70,10 +70,11 @@ export const testFormsAdv = (pack) => {
     const updateRequest = Forms.newRequest().setUpdateFormInfo(
       Forms.newUpdateFormInfoRequest()
         .setInfo(updateInfo)
-        .setUpdateMask("info.title")
+        .setUpdateMask("title")
     );
 
     const batchRequest = Forms.newBatchUpdateFormRequest()
+      .setIncludeFormInResponse(true)
       .setRequests([updateRequest]);
 
     // execute the batch update

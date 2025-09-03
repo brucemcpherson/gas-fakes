@@ -25,8 +25,9 @@ export const testSlidesAdv = (pack) => {
     Reflect.ownKeys(Slides)
       .filter(f => is.string(f) && f.match(/^new/))
       .forEach(f => {
-        t.true(is.function(Slides[f]), `check ${f} is a function`)
-        const ob = Slides[f]()
+        t.true(is.function(Slides[f]), `check ${f} is a function`);
+        const method = Slides[f];
+        const ob = method();
         t.true(Reflect.ownKeys(ob).every(g => is.function(ob[g])), "all Slides.newsubprops are functions")
       })
     t.is(is(Slides.Presentations), "Object")

@@ -8,6 +8,7 @@ export * from '../sxauth.js';
 export * from '../sxdrive.js';
 export * from '../sxsheets.js';
 export * from '../sxdocs.js';
+export * from '../sxforms.js';
 export * from '../sxslides.js';
 export * from '../sxzip.js';
 export * from '../sxfetch.js';

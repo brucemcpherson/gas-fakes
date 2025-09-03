@@ -56,8 +56,9 @@ export const testDocsAdv = (pack) => {
     Reflect.ownKeys(Docs)
       .filter(f => is.string(f) && f.match(/^new/))
       .forEach(f => {
-        t.true(is.function(Docs[f]), `check ${f} is a function`)
-        const ob = Docs[f]()
+        t.true(is.function(Docs[f]), `check ${f} is a function`);
+        const method = Docs[f];
+        const ob = method();
         t.true(Reflect.ownKeys(ob).every(g => is.function(ob[g])), "all Docs.newsubprops are functions")
       })
 
