@@ -3,12 +3,19 @@ let __mss = null
 let __mdoc = null
 let __mfolder = null
 
-export const getDrivePerformance = Drive.__getDrivePerformance;
-export const getSheetsPerformance = Sheets.__getSheetsPerformance;
-export const getDocsPerformance = Docs.__getDocsPerformance;
-export const getSlidesPerformance = Slides.__getSlidesPerformance;
-export const getFormsPerformance = Forms.__getFormsPerformance;
+export let getDrivePerformance
+export let getSheetsPerformance
+export let getDocsPerformance
+export let getSlidesPerformance
+export let getFormsPerformance
 
+if (ScriptApp.isFake) {
+  getDrivePerformance = Drive.__getDrivePerformance;
+  getSheetsPerformance = Sheets.__getSheetsPerformance;
+  getDocsPerformance = Docs.__getDocsPerformance;
+  getSlidesPerformance = Slides.__getSlidesPerformance;
+  getFormsPerformance = Forms.__getFormsPerformance;
+}
 export const cachePerformance = () => {
   if (ScriptApp.isFake) {
     console.log('...cumulative drive cache performance', getDrivePerformance());

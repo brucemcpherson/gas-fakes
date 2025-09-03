@@ -4,7 +4,7 @@
   },
   "dependencies": {
     "@mcpher/fiddler": "^1.0.1",
-    "@mcpher/gas-fakes": "^1.0.17",
+    "@mcpher/gas-fakes": "^1.0.18",
     "@mcpher/unit": "^1.1.10"
   },
   "type": "module",
@@ -13,7 +13,7 @@
     "testnpm": "cp ../mainnpm.js ../main.js &&  node --env-file=../.env ./test.js"
   },
   "name": "test-gas-fakes",
-  "version": "1.0.17",
+  "version": "1.0.19",
   "license": "MIT",
   "main": "test.js",
   "description": "test A proof of concept implementation of Apps Script Environment on Node",

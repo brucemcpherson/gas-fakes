@@ -3,6 +3,9 @@ import * as Enums from '../enums/formsenums.js';
 import { newFakeForm } from './fakeform.js';
 import { Auth } from '../../support/auth.js';
 import { Url } from '../../support/url.js';
+import { signatureArgs } from '../../support/helpers.js'
+import { Utils } from '../../support/utils.js';
+const { is } = Utils
 
 export const newFakeFormApp = (...args) => {
   return Proxies.guard(new FakeFormApp(...args));
@@ -34,15 +37,28 @@ class FakeFormApp {
    * @param {string} title The title of the new form.
    * @returns {import('./fakeform.js').FakeForm} The new form.
    */
-  create(title) {
-    // use the advanced service which handles synchronization
-    const form = Forms.Forms.create({
+  create(title, isPublished) {
+
+    // In the live environment, FormApp.create(title) sets the Drive file name
+    const { nargs, matchThrow } = signatureArgs(arguments, 'FormApp.create');
+    if (nargs < 1 || nargs > 2 || !is.nonEmptyString(title) || (nargs === 2 && !is.boolean(isPublished))) {
+      matchThrow('Invalid number of arguments provided. Expected 1-2')
+    }
+    // this will set the title
+    // in app script though https://issuetracker.google.com/issues/442747794
+    
+    const resource = Forms.Form.create({
       info: {
-        title: title,
-      },
-    });
-    ScriptApp.__behavior.addFile(form.formId);
-    return newFakeForm(form);
+        title
+      }
+    })
+    // the Drive filename at this point is actually "Untitled form"
+    // but apps script behavior is to set that to the given title 
+    const formId = resource.formId
+    ScriptApp.__behavior.addFile(formId)
+    // so now we need to rename it
+    DriveApp.getFileById(resource.formId).setName(resource.info.title);
+    return newFakeForm(resource);
   }
 
   /**
@@ -68,7 +84,7 @@ class FakeFormApp {
       throw new Error(`Access to form "${id}" is denied by sandbox rules.`);
     }
     // use the advanced service which handles synchronization
-    const form = Forms.Forms.get(id);
+    const form = Forms.Form.get(id);
     return newFakeForm(form);
   }
 

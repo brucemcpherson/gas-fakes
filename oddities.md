@@ -689,6 +689,63 @@ If you create a blank document, there are 2 children
 
 DocumentApp.getNumChildren() returns the value 1 and ignores the initial section break element
 
+### Forms
+
+There isn't an Apps Script Forms advanced service, but for the sake of consistency I'm creating one in gas-fakes for FormApp to use. 
+
+#### Discrepancy between `FormApp.create(title)` and Forms API behavior regarding form title and file name
+
+#### Summary
+
+There is a significant and counter-intuitive discrepancy between the documented behavior of `FormApp.create(title)` in Google Apps Script and the constraints of the underlying Google Forms API. `FormApp.create(title)` sets the Google Drive *file name* to the provided `title`, but leaves the form's internal title (retrieved by `form.getTitle()`) blank.
+
+This makes it impossible to accurately emulate the Apps Script behavior using the public Forms API, as the API requires a non-empty title for both creation and updates.
+
+#### Live Apps Script Behavior
+
+When the following Apps Script code is executed:
+
+```javascript
+function testFormCreation() {
+  const formName = "foo-form";
+  const form = FormApp.create(formName);
+  const id = form.getId();
+  
+  console.log('Internal form title:', form.getTitle()); // Logs: "" (an empty string)
+  
+  const file = DriveApp.getFileById(id);
+  console.log('Drive file name:', file.getName());   // Logs: "foo-form"
+  
+  // cleanup
+  file.setTrashed(true);
+}
+```
+
+The output demonstrates that `FormApp.create()` uses the argument to set the Drive file name, but the form's own title property remains empty.
+
+#### The Problem with API Emulation
+
+This behavior is problematic to replicate with the v1 Google Forms API for the following reasons:
+
+1.  **Creation**: The `forms.create` method requires a non-empty `info.title`. This title is then used to set both the initial internal title and the `documentTitle` (the Drive file name). There is no way to create a form with a specific file name but a blank internal title in a single step.
+
+2.  **Updating**: The logical next step to emulate the behavior would be to:
+    a. Create the form with `info.title` set to the desired file name.
+    b. Immediately issue a `batchUpdate` request to set `info.title` to an empty string (`""`).
+
+However, the `batchUpdate` request fails. The Forms API rejects an attempt to set `info.title` to an empty string, returning a `400 Bad Request` with the error message: `info.title was not provided`.
+
+#### Conclusion
+
+This disconnect means:
+- The behavior of `FormApp.create()` is inconsistent with other `create()` methods in the Apps Script ecosystem (like `DocumentApp` or `SpreadsheetApp`), which set both the file name and the internal title.
+- It is impossible for developers using the public Forms API to create a form that matches the state of one created by `FormApp.create()`.
+
+
+The expected behavior would be for `FormApp.create(title)` to set both the Drive file name and the internal form title, or for the API to allow setting the title to an empty string via an update.
+
+https://issuetracker.google.com/issues/442747794
+
 ### Enums
 
 All Apps Script enums are imitated using a seperate class 'newFakeGasenum()'. A complete write up of that is in [fakegasenum](https://github.com/brucemcpherson/fakegasenum). The same functionality is also available as an Apps Script library if you'd like to make your own enums over on GAS just like you find in Apps Script.

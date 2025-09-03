@@ -4,12 +4,12 @@
 import { Proxies } from '../../support/proxies.js';
 import { advClassMaker } from '../../support/helpers.js';
 import { formsCacher } from '../../support/formscacher.js';
-import { FakeAdvFormsForms } from './fakeadvformsforms.js';
+import { newFakeAdvFormsForm } from './fakeadvformsform.js';
 
 class FakeAdvForms {
   constructor() {
     this.__fakeObjectType = "Forms"
-    this.Forms = Proxies.guard(new FakeAdvFormsForms(this));
+
 
     const propLists = {
       // Top-level batch update request
@@ -203,6 +203,9 @@ class FakeAdvForms {
     return 'v1'
   }
 
+  get Form() {
+    return newFakeAdvFormsForm(this)
+  }
   __addAllowed(id) {
     if (ScriptApp.__behavior.sandBoxMode) {
       ScriptApp.__behavior.addFile(id);

@@ -15,6 +15,7 @@ export class FakeForm {
    */
   constructor(resource) {
     this.__resource = resource;
+
   }
   saveAndClose() {
     // this is a no-op in fake environment since it is stateless
@@ -28,18 +29,41 @@ export class FakeForm {
   }
 
   /**
-   * Gets the name of the form.
-   * @returns {string} The form name.
+   * Gets the title of the form.
+   * @returns {string} The form title.
    */
-  getName() {
+  getTitle() {
     return this.__resource.info.title;
   }
 
   /**
-   * Gets the URL of the form.
+   * Sets the title of the form.
+   * @param {string} title The new title for the form.
+   * @returns {FakeForm} The form, for chaining.
+   */
+  setTitle(title) {
+    const updateInfo = Forms.newFormInfo().setTitle(title);
+    const updateRequest = Forms.newRequest().setUpdateFormInfo(
+      Forms.newUpdateFormInfoRequest()
+        .setInfo(updateInfo)
+        .setUpdateMask("title")
+    );
+    const batchRequest = Forms.newBatchUpdateFormRequest()
+      .setRequests([updateRequest]);
+
+    Forms.Form.batchUpdate(batchRequest, this.getId());
+
+    // Update the local resource to reflect the change immediately
+    this.__resource.info.title = title;
+
+    return this;
+  }
+
+  /**
+   * Gets the URL to edit the form.
    * @returns {string} The form URL.
    */
-  getUrl() {
+  getEditUrl() {
     return `https://docs.google.com/forms/d/${this.getId()}/edit`;
   }
 

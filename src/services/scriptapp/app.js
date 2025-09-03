@@ -73,7 +73,8 @@ const checkScopesMatch = (required) => {
     const ignores = [
       "https://www.googleapis.com/auth/script.external_request",
       "https://www.googleapis.com/auth/documents",
-      "https://www.googleapis.com/auth/presentations"
+      "https://www.googleapis.com/auth/presentations",
+      "https://www.googleapis.com/auth/forms"
     ]
     const hasIgnore = ignores.includes(s)
     if (hasIgnore) {
