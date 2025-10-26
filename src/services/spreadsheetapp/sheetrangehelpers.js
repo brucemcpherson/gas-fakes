@@ -1,5 +1,5 @@
 import { Utils } from '../../support/utils.js'
-
+import { cliLogger } from '../../support/clilogger.js';
 const { is, hexToRgb } = Utils
 
 export const bandingThemeMap = {
@@ -135,7 +135,7 @@ export const isThemeColor = (color) =>{
 // Make a gridrange from a range
 export const makeGridRange = (range) => {
   if (!isRange(range)) {
-    console.log(range)
+    cliLogger.error(range)
     throw new Error(`expected a range but got ${typeof range}`)
   }
   return {

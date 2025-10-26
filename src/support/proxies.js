@@ -74,7 +74,7 @@ const registerProxy = (name, getApp) => {
   serviceRegistry.add(name);
   const value = new Proxy({}, getAppHandler(getApp, name))
   // add it to the global space to mimic what apps script does
-  // console.log (`setting ${name} to global`)
+
   Object.defineProperty(globalThis, name, {
     value,
     enumerable: true,

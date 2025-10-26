@@ -48,7 +48,6 @@ class FakeAdvDocuments extends FakeAdvResource {
 
     // Invalidate the cache for this document since we are updating it.
     docsCacher.clear(documentId);
-    // console.log (JSON.stringify(requests))
     const { response, data } = this._call("batchUpdate", {
       documentId,
       requestBody: requests

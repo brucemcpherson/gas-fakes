@@ -4,7 +4,7 @@ import { getElementProp } from './elementhelpers.js';
 import { Utils } from '../../support/utils.js';
 import { newFakeFootnote } from './fakefootnote.js';
 import { defaultDocumentStyleRequests, unpackDocumentTab } from './elementblasters.js';
-
+import { cliLogger } from '../../support/clilogger.js';
 const { is } = Utils;
 
 export const newShadowDocument = (...args) => {
@@ -91,7 +91,6 @@ class ShadowDocument {
       __twig: footnoteSectionTree,
     };
     this.__elementMap.set(footnoteSectionName, footnoteSectionElement);
-    // console.log('named ranges after document fetch', JSON.stringify(currentNr))
 
     // maps all the elements to their named range
     const mapElements = (element, branch, segmentId, knownType = null) => {
@@ -127,7 +126,7 @@ class ShadowDocument {
       }
 
       if (!is.integer(element.endIndex) || !is.integer(element.startIndex)) {
-        console.log(element);
+        cliLogger.error(element);
         throw new Error(`failed to find endindex/startindex for ${type}`);
       }
       // For an empty document, we use static, non-API names to avoid re-indexing issues.

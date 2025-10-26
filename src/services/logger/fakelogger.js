@@ -1,6 +1,6 @@
 import { format } from 'util';
 import { Proxies } from '../../support/proxies.js';
-
+import { cliLogger } from '../../support/clilogger.js';
 
 // --- Cloud Logging Integration ---
 // instead of using the node client for this, which is out of date and uses conflicting version of google-auth-library
@@ -126,7 +126,7 @@ const writeToCloudOrConsole = (message, loggerInstance) => {
       message: message,
       severity: 'INFO',
     };
-    console.log(JSON.stringify(logEntry));
+    cliLogger.log(JSON.stringify(logEntry));
   }
 
   // Write to Cloud Logging if CLOUD or BOTH is specified and client is ready.
@@ -189,7 +189,7 @@ const writeToCloudOrConsole = (message, loggerInstance) => {
       headers,
     })
     if (response.getResponseCode() !== 200) {
-      console.log ('logging failure', response.getContentText())
+      cliLogger.error ('logging failure', response.getContentText())
     }
  
   }

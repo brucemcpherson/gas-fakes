@@ -5,7 +5,7 @@ import { Utils } from '../../support/utils.js'
 import { storeModels } from './gasflex.js'
 import { newCacheDropin } from '@mcpher/gas-flex-cache'
 import { notYetImplemented } from '../../support/helpers.js'
-import { file } from 'googleapis/build/src/apis/file/index.js'
+import { cliLogger } from '../../support/clilogger.js';
 const { is } = Utils
 
 /**
@@ -185,7 +185,7 @@ class FakeCacheService {
 export const newFakeService = (kind) => {
   kind = validateProp (kind, ServiceKind, 'service_kind')
   const w = whichCache ()
-  console.log (`...${kind} store service is using store type ${w.type} as backend`)
+  cliLogger.log (`...${kind} store service is using store type ${w.type} as backend`)
   return Proxies.guard(kind === ServiceKind.CACHE ? new FakeCacheService(w.type) : new FakePropertiesService(w.type))
 }
 

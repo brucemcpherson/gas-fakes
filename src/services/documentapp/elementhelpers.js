@@ -5,7 +5,7 @@
 
 import { Utils } from "../../support/utils.js";
 const { is } = Utils
-
+import { cliLogger } from '../../support/clilogger.js';
 
 // figures out what kind of element this is from the properties present
 export const getElementProp = (se) => {
@@ -38,7 +38,6 @@ export const getElementProp = (se) => {
     return { prop: 'body', type: 'BODY_SECTION' };
   }
 
-  console.log(se);
   throw new Error('couldnt establish structural element type');
 }
 
@@ -220,7 +219,7 @@ export const findItem = (elementMap, type, startIndex, segmentId) => {
     return f.__type === type && f.startIndex === startIndex;
   });
   if (!item) {
-    console.log(elementMap.values())
+    cliLogger.error(elementMap.values())
     throw new Error(`Couldnt find element ${type} at ${startIndex} in segment ${segmentId || 'body'}`)
   }
   return item

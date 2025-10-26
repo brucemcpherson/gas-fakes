@@ -2,7 +2,7 @@ import { Worker } from 'worker_threads';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'node:fs';
-
+import { cliLogger } from '../../support/clilogger.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -61,7 +61,7 @@ worker.stderr.pipe(process.stderr);
 // It's crucial to listen for errors, otherwise a crash on worker startup
 // will cause the main thread to hang indefinitely on Atomics.wait().
 worker.on('error', (error) => {
-  console.error('Worker thread encountered a fatal error:', error);
+  cliLogger.error('Worker thread encountered a fatal error:', error);
   // Unblock any pending Atomics.wait() call to prevent a deadlock.
   Atomics.store(control, CONTROL_INDICES.STATUS, 0); // Set status to "free"
   Atomics.notify(control, 0);
@@ -70,10 +70,10 @@ worker.on('error', (error) => {
 });
 
 worker.on('exit', (code) => {
-   console.error('Worker exited unexpectedly with code:', code);
+   cliLogger.error('Worker exited unexpectedly with code:', code);
   // This handles cases where the worker exits unexpectedly.
   if (code !== 0) {
-    console.error(`Worker thread stopped with exit code ${code}`);
+    cliLogger.error(`Worker thread stopped with exit code ${code}`);
     Atomics.store(control, CONTROL_INDICES.STATUS, 0); // Unblock main thread
     Atomics.notify(control, 0);
   }
@@ -92,7 +92,7 @@ worker.unref();
  * whether normally or via signals like Ctrl+C.
  */
 function cleanup() {
-  console.log('...terminating worker thread');
+  cliLogger.log('...terminating worker thread');
   worker.terminate();
 }
 

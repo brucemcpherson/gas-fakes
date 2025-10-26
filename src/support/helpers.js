@@ -1,7 +1,7 @@
 import {Utils} from './utils.js'
 const {is, capital} = Utils
 import { Proxies } from './proxies.js'
-
+import { cliLogger } from './clilogger.js';
 /**
  * @constant
  * @type {string}
@@ -142,7 +142,7 @@ export const signatureArgs = (received, method, objectType = 'Object') => {
   try {
     passedTypes = args.map(f=>is.null(f) ? 'null' : is(f)).map(f=>f==='null'? f :capital(f)).map(f=>f==='Object' ? objectType : f)
   } catch (err) {
-    console.log ("...warning failed signature check- probably an unsupported probe. probe of an enum - ignoring", args)
+    cliLogger.warn ("...warning failed signature check- probably an unsupported probe. probe of an enum - ignoring", args)
     passedTypes=[]
   }
   const matchThrow = (mess = method) => {
@@ -171,7 +171,7 @@ export const advClassMaker = (props) => {
   capped.map((f, i) => {
 
     if (done.has(f)) {
-      console.log('....WARNING duplicate property  in advClassMaker', f)
+      cliLogger.warn('....WARNING duplicate property  in advClassMaker', f)
     }
     done.add(f)
     ob['get' + f] = () => ob[props[i]]

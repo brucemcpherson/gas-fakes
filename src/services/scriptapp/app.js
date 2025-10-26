@@ -9,6 +9,7 @@ import { Auth } from '../../support/auth.js'
 import { Proxies } from '../../support/proxies.js'
 import { newFakeBehavior } from './behavior.js'
 import { newCacheDropin , getUserIdFromToken} from '@mcpher/gas-flex-cache'
+import { cliLogger } from '../../support/clilogger.js';
 /**
  * fake ScriptApp.getOAuthToken 
  * @return {string} token
@@ -79,7 +80,7 @@ const checkScopesMatch = (required) => {
     ]
     const hasIgnore = ignores.includes(s)
     if (hasIgnore) {
-      console.log('...ignoring requested scope for adc as google blocks it outside apps script' + s)
+      cliLogger.log('...ignoring requested scope for adc as google blocks it outside apps script' + s)
     }
     // if drive is authorized and drive.readonly is required that's okay too
     // if drive.readonly is authorized and drive is requested thats not

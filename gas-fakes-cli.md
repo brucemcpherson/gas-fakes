@@ -45,6 +45,7 @@ Options:
   -g, --gfsettings <path>   provide path to your gasfakes.json file for script options. (default: "./gasfakes.json")
   -s, --script <string>     provide Google Apps Script as a string. When this is used, the option --filename is ignored.
   -x, --sandbox             run Google Apps Script in a sandbox.
+  -q, --quiet               suppress all console output from gas-fakes and the executed script. (default: false)
   -w, --whitelist <string>  whitelist of file IDs. Set the file IDs in comma-separated list. In this case, the files of the file IDs are used for both read and write. When this is used, the script is run in a sandbox.
   -j, --json <string>       JSON string including parameters for managing a sandbox. Enclose it with ' or ". When this is used, the option --whitelist is ignored. When this is used, the script is run in a sandbox.
   -d, --display             display the created script for executing with gas-fakes. Default is false. (default: false)

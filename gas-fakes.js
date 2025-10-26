@@ -12,8 +12,11 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import z from "zod";
 import { exec } from "child_process";
 import { promisify } from "util";
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const pjson = require('./package.json');
+const version = pjson.version;
 
-const version = "0.0.3";
 
 const program = new Command();
 
@@ -44,6 +47,11 @@ program
   )
   .option("-x, --sandbox", "run Google Apps Script in a sandbox.")
   .option(
+    "-q, --quiet",
+    "suppress all info and logging console output from gas-fakes.",
+    false
+  )
+  .option(
     "-w, --whitelist <string>",
     "whitelist of file IDs. Set the file IDs in comma-separated list. In this case, the files of the file IDs are used for both read and write. When this is used, the script is run in a sandbox."
   )
@@ -69,6 +77,7 @@ program
         display,
         env,
         gfsettings,
+        quiet,
       } = options;
       const obj = { sandbox: !!sandbox, display };
 
@@ -79,16 +88,22 @@ program
         process.exit();
       }
 
+      // Determine if we are in quiet mode from CLI flag or environment variable.
+      const isQuiet = quiet || Boolean(process.env.QUIET) || process.env.QUIET === "true";
+      // if its arrived via a awitch set it for inheritance
+      process.env.QUIET=isQuiet
+
       if (env) {
         const envPath = path.resolve(process.cwd(), env);
-        console.log("...using env file in", envPath);
+        if (!isQuiet)console.log("...using env file in", envPath);
+        // always force quiet to true to avoid getting dotenv advertising messages
         dotenv.config({ path: envPath, quiet: true });
       }
 
       // note this must come after any env file fiddling.
       if (gfsettings) {
         const gfPath = path.resolve(process.cwd(), gfsettings);
-        console.log("...using gasfakes settings file in", gfPath);
+        if (!isQuiet)console.log("...using gasfakes settings file in", gfPath);
         obj.gfSettings = gfPath;
         // override whatever is in env
         process.env.GF_SETTINGS_PATH = gfPath;
@@ -117,6 +132,8 @@ program
           process.exit();
         }
       }
+
+
       loadScript(obj);
     }
   });
@@ -136,8 +153,10 @@ function __getImportScript(o) {
     console.error("error: Google Apps Script was not found.");
     process.exit();
   }
-  let gasScriptStr = "";
+
   const gasScriptAr = [];
+
+
   if (json_sandbox) {
     gasScriptAr.push(
       `const behavior = ScriptApp.__behavior;`,

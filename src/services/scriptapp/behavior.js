@@ -1,6 +1,6 @@
 import { Proxies } from '../../support/proxies.js'
 import { Utils } from '../../support/utils.js'
-
+import { cliLogger } from '../../support/clilogger.js';
 const { is } = Utils
 const checkArgs = (actual, expect = "boolean") => {
   if (!is[expect](actual)) {
@@ -250,7 +250,7 @@ class FakeBehavior {
         throw new Error(`Invalid sandbox id parameter (${id}) - must be a non-empty string`);
       }
       if (!this.isKnown(id)) {
-        console.log(`...adding file ${id} to sandbox allowed list`);
+        cliLogger.log(`...adding file ${id} to sandbox allowed list`);
         this.__createdIds.add(id);
       }
     }
@@ -344,7 +344,7 @@ class FakeBehavior {
   trash() {
     // this is where we would trash all the created files
     if (!this.__cleanup) {
-      console.log('...skipping cleaning up sandbox files')
+      cliLogger.log('...skipping cleaning up sandbox files')
       return [];
     }
 
@@ -357,14 +357,14 @@ class FakeBehavior {
       }
       if (d) {
         d.setTrashed(true);
-        console.log(`...trashed file ${d.getName()} (${id})`);
+        cliLogger.log(`...trashed file ${d.getName()} (${id})`);
         acc.push(id);
       }
       return acc;
     }, []);
 
     this.__createdIds.clear();
-    console.log(`...trashed ${trashed.length} sandboxed files`);
+    cliLogger.log(`...trashed ${trashed.length} sandboxed files`);
     return trashed;
   }
   isKnown(id) {

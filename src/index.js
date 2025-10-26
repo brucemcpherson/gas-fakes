@@ -1,3 +1,10 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const pjson = require('../package.json');
+process.env.GAS_FAKES_VERSION = pjson.version;
+import { cliLogger , isQuiet} from './support/clilogger.js'
+cliLogger.log ('...gas-fakes version', process.env.GAS_FAKES_VERSION)
+
 import './services/scriptapp/app.js'
 
 import './services/driveapp/app.js'
@@ -24,3 +31,4 @@ import './services/slidesapp/app.js'
 import './services/mimetype/app.js'
 // should be last
 import './services/stores/app.js'
+
