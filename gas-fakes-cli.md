@@ -34,10 +34,16 @@ First, create a `.env` file to store your project configuration:
 gas-fakes init
 ```
 
-Next, authorize the tool. This command will guide you through the process of logging into your Google account and setting up the necessary credentials:
+Next, authorize the tool (OAuth2). This command will guide you through the process of logging into your Google account and setting up the necessary credentials:
 
 ```bash
 gas-fakes auth
+```
+
+or, when you use the service account, use the following command.
+
+```bash
+gas-fakes authsa
 ```
 
 If you need to enable the required Google APIs for your project, you can do so with the following command. This will ensure that all necessary services are accessible. Please check how to use this command using the help message as follows.
@@ -76,17 +82,15 @@ Options:
   --wt, --whitelistReadWriteTrash <string>  Comma-separated file IDs for read/write/trash access (enables sandbox).
   -j, --json <string>                       JSON string for advanced sandbox configuration (overrides whitelist flags).
   -d, --display                             Display the generated script before execution. (default: false)
-  -a, --args <string>                       Arguments for the function of Google Apps Script. Provide it as a JSON string. The name of the argument is "args" as
-                                            a fixed name. For example, when the function of GAS is `function sample(args) { script }`, you can provide the
-                                            arguments like `-a '{"key": "value"}'`. (default: null)
-  -l, --libraries <string...>               Libraries. You can run the Google Apps Script with libraries. When you use 2 libraries "Lib1" and "Lib" which are
-                                            the identifiers of library, provide '--libraries "Lib1@{filename}" --libraries "Lib2@{file URL}"'. (default: null)
+  -a, --args <string>                       Arguments for the GAS function (JSON string). Name must be "args". (default: null)
+  -l, --libraries <string...>               Libraries in format "Identifier@Source" (Source can be file path, URL, or Drive ID). (default: null)
   -h, --help                                display help for command
 
 Commands:
-  init [options]                            Initializes the configuration by creating or updating the .env file.
-  auth                                      Runs the Google Cloud authentication and authorization flow.
-  enableAPIs [options]                      Enables or disables required Google Cloud APIs for the project.
+  init [options]                            Initializes the configuration (.env).
+  auth                                      Runs the Google Cloud authentication flow.
+  authsa                                    Sets up a Service Account for Google Cloud and Domain-Wide Delegation.
+  enableAPIs [options]                      Enables or disables required Google Cloud APIs.
   mcp [options]                             Launch gas-fakes as an MCP server.
 ```
 

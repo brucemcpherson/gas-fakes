@@ -4,7 +4,7 @@ const require = createRequire(import.meta.url);
 const pjson = require("../../package.json");
 
 export const VERSION = pjson.version;
-export const CLI_VERSION = "0.0.20";
+export const CLI_VERSION = "0.0.21";
 export const MCP_VERSION = "0.0.7";
 
 /**
@@ -47,7 +47,7 @@ export function spawnCommand(command, args) {
         resolve(stdout.trim());
       } else {
         reject(
-          new Error(stderr.trim() || `Command failed with exit code ${code}`)
+          new Error(stderr.trim() || `Command failed with exit code ${code}`),
         );
       }
     });
@@ -62,7 +62,7 @@ export async function checkForGcloudCli() {
     await spawnCommand("gcloud", ["--version"]);
   } catch (error) {
     console.error(
-      "\n[Error] Google Cloud SDK (gcloud CLI) not found or failed to run."
+      "\n[Error] Google Cloud SDK (gcloud CLI) not found or failed to run.",
     );
     console.error("Please install it by following the official instructions:");
     console.error("https://cloud.google.com/sdk/gcloud");

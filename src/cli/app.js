@@ -9,6 +9,7 @@ import {
   authenticateUser,
   enableGoogleAPIs,
 } from "./setup.js";
+import { setupServiceAccount } from "./setup-sa.js";
 import { startMcpServer } from "./mcp.js";
 
 export async function main() {
@@ -20,7 +21,7 @@ export async function main() {
     .version(
       VERSION,
       "-v, --version",
-      "Display the current version of gas-fakes"
+      "Display the current version of gas-fakes",
     );
 
   // --- Main Execution Command ---
@@ -29,45 +30,45 @@ export async function main() {
     .option("-f, --filename <string>", "Path to the Google Apps Script file.")
     .option(
       "-s, --script <string>",
-      "A string containing the Google Apps Script."
+      "A string containing the Google Apps Script.",
     )
     .option("-e, --env <path>", "Path to a custom .env file.", "./.env")
     .option(
       "-g, --gfsettings <path>",
       "Path to a gasfakes.json settings file.",
-      "./gasfakes.json"
+      "./gasfakes.json",
     )
     .option("-x, --sandbox", "Run the script in a basic sandbox.")
     .option(
       "-w, --whitelistRead <string>",
-      "Comma-separated file IDs for read-only access (enables sandbox)."
+      "Comma-separated file IDs for read-only access (enables sandbox).",
     )
     .option(
       "--ww, --whitelistReadWrite <string>",
-      "Comma-separated file IDs for read/write access (enables sandbox)."
+      "Comma-separated file IDs for read/write access (enables sandbox).",
     )
     .option(
       "--wt, --whitelistReadWriteTrash <string>",
-      "Comma-separated file IDs for read/write/trash access (enables sandbox)."
+      "Comma-separated file IDs for read/write/trash access (enables sandbox).",
     )
     .option(
       "-j, --json <string>",
-      "JSON string for advanced sandbox configuration (overrides whitelist flags)."
+      "JSON string for advanced sandbox configuration (overrides whitelist flags).",
     )
     .option(
       "-d, --display",
       "Display the generated script before execution.",
-      false
+      false,
     )
     .option(
       "-a, --args <string>",
       `Arguments for the GAS function (JSON string). Name must be "args".`,
-      null
+      null,
     )
     .option(
       "-l, --libraries <string...>",
       `Libraries in format "Identifier@Source" (Source can be file path, URL, or Drive ID).`,
-      null
+      null,
     )
     .action(async (options) => {
       const { filename, script, env, gfsettings } = options;
@@ -100,7 +101,7 @@ export async function main() {
             options.args
               .replace(/\\\s*?\n/g, "\\n")
               .replace(/\n/g, "\\n")
-              .replace(/\r/g, "\\r")
+              .replace(/\r/g, "\\r"),
           );
         } catch (err) {
           console.error("Error: Invalid JSON provided to --args option.");
@@ -133,6 +134,13 @@ export async function main() {
     .command("auth")
     .description("Runs the Google Cloud authentication flow.")
     .action(authenticateUser);
+
+  program
+    .command("authsa")
+    .description(
+      "Sets up a Service Account for Google Cloud and Domain-Wide Delegation.",
+    )
+    .action(setupServiceAccount);
 
   program
     .command("enableAPIs")
