@@ -16,7 +16,7 @@ import { newFakeProtection } from "./fakeprotection.js";
 import { newFakeOverGridImage } from "./fakeovergridimage.js";
 
 import { XMLParser } from "fast-xml-parser";
-import {slogger } from "../../support/slogger.js";
+import { slogger } from "../../support/slogger.js";
 const { is, isEnum } = Utils;
 
 export const newFakeSheet = (properties, parent) => {
@@ -1075,12 +1075,14 @@ export class FakeSheet {
     const unzipped = Utilities.unzip(blob);
     const xmlObj = unzipped.reduce((o, b) => {
       const filename = b.getName();
-      const parser = new XMLParser({ ignoreAttributes: false });
-      try {
-        const p = parser.parse(b.getDataAsString());
-        o[filename] = p;
-      } catch (err) {
-          slogger.error(err)
+      if (filename.endsWith('.xml') || filename.endsWith('.rels')) {
+        const parser = new XMLParser({ ignoreAttributes: false });
+        try {
+          const p = parser.parse(b.getDataAsString());
+          o[filename] = p;
+        } catch (err) {
+          slogger.error(`Error parsing ${filename}: ${err.message}`);
+        }
       }
       return o;
     }, {});

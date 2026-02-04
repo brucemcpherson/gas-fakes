@@ -20,7 +20,10 @@ export const testSession = (pack) => {
   unit.section("session properties", t => {
     t.is(Session.getActiveUser().toString(), fixes.EMAIL)
     t.is(Session.getActiveUser().getEmail(), fixes.EMAIL)
-    t.is(Session.getEffectiveUser().getEmail(), fixes.EMAIL)
+    t.true(is.nonEmptyString(Session.getEffectiveUser().getEmail()))
+    t.is(Session.getEffectiveUser().getEmail(), fixes.EMAIL, {
+      description: 'note that this coould be the service account if running in fakes, so we will skip'
+    })
     // The locale can vary by environment (e.g., 'C.UTF-8' in some containers).
     // Instead of asserting a specific locale, we'll just check that it returns a non-empty string.
     // The original test was: t.is(Session.getActiveUserLocale().replace(/_.*/, ''), fixes.TEST_LOCALE.replace(/_.*/, ''))

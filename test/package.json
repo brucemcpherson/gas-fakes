@@ -4,7 +4,7 @@
   },
   "dependencies": {
     "@mcpher/fiddler": "^1.0.1",
-    "@mcpher/gas-fakes": "file:../",
+    "@mcpher/gas-fakes": "^2.0.2",
     "@mcpher/unit": "^1.1.10",
     "@sindresorhus/is": "^7.0.1"
   },

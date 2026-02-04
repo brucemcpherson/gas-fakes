@@ -36,5 +36,5 @@ export const testFixes = {
   "API_URL": "http:\/\/suggestqueries.google.com\/complete\/search?client=chrome&hl=en&q=trump",
   "API_TYPE": "text\/javascript",
   "CLEAN": true,
-  "PREFIX": Drive.isFake ? "--f" : "--g",
+  "PREFIX": ScriptApp.isFake ? "--f" : "--g",
 }

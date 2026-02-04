@@ -174,12 +174,15 @@ const writeToCloudOrConsole = (message, loggerInstance) => {
     loggerInstance.__cloudLogLink = base + encodedQueryParam + `?project=${projectId}`;
 
     const apiBase = 'https://logging.googleapis.com/v2/entries:write'
+    // Log the actual entry with its logName
+    metadata.logName = `projects/${projectId}/logs/${logName.replace('/', '%2F')}`
+
     const payload = JSON.stringify({
       entries: [
         metadata
       ]
     })
-    const token = ScriptApp.getOAuthToken()
+    const token = ScriptApp.__getSourceOAuthToken()
     const headers = {
       Authorization: `Bearer ${token}`,
       'content-type': "application/json",
@@ -189,9 +192,9 @@ const writeToCloudOrConsole = (message, loggerInstance) => {
       headers,
     })
     if (response.getResponseCode() !== 200) {
-      console.error ('logging failure', response.getContentText())
+      console.error('logging failure', response.getContentText())
     }
- 
+
   }
 
 };

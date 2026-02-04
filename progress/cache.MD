@@ -9,13 +9,13 @@ A reference to a particular cache.
 | Method | Description | Return Type | Return Description | Status | Implementation |
 |--- |--- |--- |--- |--- |--- |
 | [get(String)](https://developers.google.com/apps-script/reference/cache/cache#get(String)) | Gets the cached value for the given key, or null if none is found. | String | the cached value, or null if none was found | completed | [link](../src/services/stores/fakestores.js#L117) |
-| [getAll(String)](https://developers.google.com/apps-script/reference/cache/cache#getAll(String)) | Returns a JavaScript Object containing all key/value pairs found in the cache for an array of keys. | Object | a JavaScript Object containing the key/value pairs for all keys found in the cache | in progress | [link](../src/services/stores/fakestores.js#L329) |
-| [put(String,String,Integer)](https://developers.google.com/apps-script/reference/cache/cache#put(String,String,Integer)) |  |  |  | completed | [link](../src/services/stores/fakestores.js#L340) |
-| [put(String,String)](https://developers.google.com/apps-script/reference/cache/cache#put(String,String)) |  |  |  | completed | [link](../src/services/stores/fakestores.js#L340) |
-| [putAll(Object,Integer)](https://developers.google.com/apps-script/reference/cache/cache#putAll(Object,Integer)) |  |  |  | in progress | [link](../src/services/stores/fakestores.js#L345) |
-| [putAll(Object)](https://developers.google.com/apps-script/reference/cache/cache#putAll(Object)) | Adds a set of key/value pairs to the cache. |  |  | in progress | [link](../src/services/stores/fakestores.js#L345) |
-| [remove(String)](https://developers.google.com/apps-script/reference/cache/cache#remove(String)) | Removes an entry from the cache using the given key. |  |  | completed | [link](../src/services/stores/fakestores.js#L354) |
-| [removeAll(String)](https://developers.google.com/apps-script/reference/cache/cache#removeAll(String)) | Removes a set of entries from the cache. |  |  | in progress | [link](../src/services/stores/fakestores.js#L359) |
+| [getAll(String)](https://developers.google.com/apps-script/reference/cache/cache#getAll(String)) | Returns a JavaScript Object containing all key/value pairs found in the cache for an array of keys. | Object | a JavaScript Object containing the key/value pairs for all keys found in the cache | in progress | [link](../src/services/stores/fakestores.js#L331) |
+| [put(String,String,Integer)](https://developers.google.com/apps-script/reference/cache/cache#put(String,String,Integer)) |  |  |  | completed | [link](../src/services/stores/fakestores.js#L342) |
+| [put(String,String)](https://developers.google.com/apps-script/reference/cache/cache#put(String,String)) |  |  |  | completed | [link](../src/services/stores/fakestores.js#L342) |
+| [putAll(Object,Integer)](https://developers.google.com/apps-script/reference/cache/cache#putAll(Object,Integer)) |  |  |  | in progress | [link](../src/services/stores/fakestores.js#L347) |
+| [putAll(Object)](https://developers.google.com/apps-script/reference/cache/cache#putAll(Object)) | Adds a set of key/value pairs to the cache. |  |  | in progress | [link](../src/services/stores/fakestores.js#L347) |
+| [remove(String)](https://developers.google.com/apps-script/reference/cache/cache#remove(String)) | Removes an entry from the cache using the given key. |  |  | completed | [link](../src/services/stores/fakestores.js#L356) |
+| [removeAll(String)](https://developers.google.com/apps-script/reference/cache/cache#removeAll(String)) | Removes a set of entries from the cache. |  |  | in progress | [link](../src/services/stores/fakestores.js#L361) |
 
 ## Class: [CacheService](https://developers.google.com/apps-script/reference/cache/cache-service)
 

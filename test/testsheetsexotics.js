@@ -21,13 +21,18 @@ export const testSheetsExotics = (pack) => {
     const { ss, sheet } = maketss(t.options.description, toTrash, fixes);
 
     // getActiveSpreadsheet should return the container-bound spreadsheet by default
+    // note that it will be null if running on live apps script as a standalone script
     const activeSs = SpreadsheetApp.getActiveSpreadsheet();
-    t.not(activeSs, null, "should get an active spreadsheet");
-    t.is(
-      activeSs.getId(),
-      fixes.TEST_AIRPORTS_ID,
-      "should get the container-bound spreadsheet"
-    );
+    if (activeSs) {
+      t.not(activeSs, null, "should get an active spreadsheet");
+      t.is(
+        activeSs.getId(),
+        fixes.TEST_AIRPORTS_ID,
+        "should get the container-bound spreadsheet"
+      );
+    } else {
+      console.log('...skipping active spreadsheet check (not a container-bound script)')
+    }
 
     // test setActiveSpreadsheet
     SpreadsheetApp.setActiveSpreadsheet(ss);

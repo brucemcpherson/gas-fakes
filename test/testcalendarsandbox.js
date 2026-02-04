@@ -53,7 +53,7 @@ export const testCalendarSandbox = (pack) => {
         t.truthy(restrictedCal, 'Should create restricted calendar');
 
         // Clear the session tracking to simulate external calendars
-        behavior.__createdCalendarIds.clear();
+        behavior.resetCalendar();
 
         // Set up whitelist
         calendarSettings.calendarWhitelist = [
@@ -105,7 +105,7 @@ export const testCalendarSandbox = (pack) => {
         const writableName = writableCal.getName();
 
         // Clear session tracking
-        behavior.__createdCalendarIds.clear();
+        behavior.resetCalendar();
 
         // Set up whitelist with different permissions
         calendarSettings.calendarWhitelist = [
@@ -151,7 +151,7 @@ export const testCalendarSandbox = (pack) => {
         const { cal: testCal, calName: testName } = maketcal(toTrash, fixes, { nameSuffix: 'sandbox-A' });
 
         // Clear session and set up whitelist
-        behavior.__createdCalendarIds.clear();
+        behavior.resetCalendar();
         calendarSettings.calendarWhitelist = [
           { name: testName, read: true, write: true }
         ];
@@ -279,41 +279,41 @@ export const testCalendarSandbox = (pack) => {
         // Setup: Create a calendar and an event to test with
         const { cal, calName } = maketcal(toTrash, fixes, { nameSuffix: 'sandbox-A' });
         const event = cal.createEvent('Test Event', new Date(), new Date(new Date().getTime() + 3600000));
-        
+
         // Clear session tracking so we rely on whitelist
-        behavior.__createdCalendarIds.clear();
-        
+        behavior.resetCalendar();
+
         // 1. Test Event Modification Permissions
         // Make calendar read-only
         calendarSettings.calendarWhitelist = [
-            { name: calName, read: true, write: false }
+          { name: calName, read: true, write: false }
         ];
-        
+
         try {
-            event.setTitle('New Title');
-            t.fail('Should not allow setting title on read-only calendar event');
-        } catch(e) {
-            t.truthy(e.message.includes('denied'), 'Should throw access denied for setTitle');
+          event.setTitle('New Title');
+          t.fail('Should not allow setting title on read-only calendar event');
+        } catch (e) {
+          t.truthy(e.message.includes('denied'), 'Should throw access denied for setTitle');
         }
-        
+
         // Make calendar writable
         calendarSettings.calendarWhitelist = [
-            { name: calName, read: true, write: true }
+          { name: calName, read: true, write: true }
         ];
-        
+
         event.setTitle('New Title');
         t.is(event.getTitle(), 'New Title', 'Should allow setting title on writable calendar event');
 
         // 2. Test Guest Whitelist (Gmail integration)
         gmailSettings.emailWhitelist = ['friend@example.com'];
-        
+
         try {
-            event.addGuest('stranger@example.com');
-            t.fail('Should not allow adding non-whitelisted guest');
-        } catch(e) {
-            t.truthy(e.message.includes('Gmail sandbox whitelist'), 'Should throw error for non-whitelisted guest');
+          event.addGuest('stranger@example.com');
+          t.fail('Should not allow adding non-whitelisted guest');
+        } catch (e) {
+          t.truthy(e.message.includes('Gmail sandbox whitelist'), 'Should throw error for non-whitelisted guest');
         }
-        
+
         event.addGuest('friend@example.com');
         // Verify guest added (fake implementation might just update resource, assumes API success)
         // We can't easily check attendees on fake event object unless we implemented getGuestList or check internal resource
@@ -322,15 +322,15 @@ export const testCalendarSandbox = (pack) => {
         // 3. Test Usage Limits on Events
         calendarSettings.usageLimit = { write: 2 };
         calendarSettings.resetUsageCount();
-        
+
         event.setDescription('Desc 1'); // write 1
         event.setLocation('Loc 1');    // write 2
-        
+
         try {
-            event.setTitle('Fail Title'); // write 3
-            t.fail('Should enforce write usage limit on event');
-        } catch(e) {
-            t.truthy(e.message.includes('usage limit'), 'Should throw usage limit error for event modification');
+          event.setTitle('Fail Title'); // write 3
+          t.fail('Should enforce write usage limit on event');
+        } catch (e) {
+          t.truthy(e.message.includes('usage limit'), 'Should throw usage limit error for event modification');
         }
 
       } finally {
@@ -343,7 +343,7 @@ export const testCalendarSandbox = (pack) => {
     });
 
   } else {
-    console.log ('...skipping sandbox tests in live apps script environment');
+    console.log('...skipping sandbox tests in live apps script environment');
   }
 
   // delete test calendars

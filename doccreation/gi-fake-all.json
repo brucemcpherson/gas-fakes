@@ -1199,7 +1199,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of files that remained in a previous iterator when the continuation token\n    was generated.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L129"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L137"
           },
           {
             "method": "continueFolderIterator(String)",
@@ -1208,7 +1208,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "A collection of folders that remained in a previous iterator when the continuation\n    token was generated.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L132"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L140"
           },
           {
             "method": "createFile(BlobSource)",
@@ -1217,7 +1217,7 @@
             "returnType": "File",
             "returnDescription": "The new file.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L109"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L117"
           },
           {
             "method": "createFile(String,String)",
@@ -1226,7 +1226,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L109"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L117"
           },
           {
             "method": "createFile(String,String,String)",
@@ -1235,7 +1235,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L109"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L117"
           },
           {
             "method": "createFolder(String)",
@@ -1244,7 +1244,7 @@
             "returnType": "Folder",
             "returnDescription": "The new folder.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L116"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L124"
           },
           {
             "method": "createShortcut(String)",
@@ -1271,7 +1271,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L148"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L156"
           },
           {
             "method": "getFileById(String)",
@@ -1280,7 +1280,7 @@
             "returnType": "File",
             "returnDescription": "The file with the given ID.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L44"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L46"
           },
           {
             "method": "getFileByIdAndResourceKey(String,String)",
@@ -1289,7 +1289,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L125"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L133"
           },
           {
             "method": "getFiles()",
@@ -1298,7 +1298,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of all files in the user's Drive.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L58"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L66"
           },
           {
             "method": "getFilesByName(String)",
@@ -1307,7 +1307,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of all files in the user's Drive that have the given name.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L76"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L84"
           },
           {
             "method": "getFilesByType(String)",
@@ -1316,7 +1316,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of all files in the user's Drive that have the given MIME\n    type.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L101"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L109"
           },
           {
             "method": "getFolderById(String)",
@@ -1325,7 +1325,7 @@
             "returnType": "Folder",
             "returnDescription": "The folder with the given ID.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L49"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L54"
           },
           {
             "method": "getFolderByIdAndResourceKey(String,String)",
@@ -1334,7 +1334,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L122"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L130"
           },
           {
             "method": "getFolders()",
@@ -1343,7 +1343,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "A collection of all folders in the user's Drive.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L66"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L74"
           },
           {
             "method": "getFoldersByName(String)",
@@ -1352,7 +1352,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "A collection of all folders in the user's Drive that have the given name.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L75"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L83"
           },
           {
             "method": "getRootFolder()",
@@ -1361,7 +1361,7 @@
             "returnType": "Folder",
             "returnDescription": "The root folder of the user's Drive.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L33"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L35"
           },
           {
             "method": "getStorageLimit()",
@@ -1370,7 +1370,7 @@
             "returnType": "Integer",
             "returnDescription": "The number of bytes the user is allowed to store in Drive.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L142"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L150"
           },
           {
             "method": "getStorageUsed()",
@@ -1379,7 +1379,7 @@
             "returnType": "Integer",
             "returnDescription": "The number of bytes the user is currently storing in Drive.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L145"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L153"
           },
           {
             "method": "getTrashedFiles()",
@@ -1388,7 +1388,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of files in the trash.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L135"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L143"
           },
           {
             "method": "getTrashedFolders()",
@@ -1397,7 +1397,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "A collection of folders in the trash.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L138"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L146"
           },
           {
             "method": "searchFiles(String)",
@@ -1406,7 +1406,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of all files in the user's Drive that match the search\n    criteria.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L88"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L96"
           },
           {
             "method": "searchFolders(String)",
@@ -1415,7 +1415,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "A collection of all folders in the user's Drive that match the search\n    criteria.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L92"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L100"
           }
         ]
       },
@@ -1739,7 +1739,7 @@
             "returnType": "String",
             "returnDescription": "The script project's ID.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/scriptapp/app.js#L120"
+            "implementationLink": "src/services/scriptapp/app.js#L124"
           },
           {
             "method": "getService()",
@@ -1811,7 +1811,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/scriptapp/app.js#L40"
+            "implementationLink": "src/services/scriptapp/app.js#L43"
           },
           {
             "method": "requireScopes(AuthMode,String)",
@@ -1820,7 +1820,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/scriptapp/app.js#L47"
+            "implementationLink": "src/services/scriptapp/app.js#L50"
           }
         ]
       },
@@ -2422,7 +2422,7 @@
             "returnType": "User",
             "returnDescription": "the current user",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/session/fakesession.js#L9"
+            "implementationLink": "src/services/session/fakesession.js#L12"
           },
           {
             "method": "getActiveUserLocale()",
@@ -2431,7 +2431,7 @@
             "returnType": "String",
             "returnDescription": "a string that represents the user's language setting",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/session/fakesession.js#L22"
+            "implementationLink": "src/services/session/fakesession.js#L25"
           },
           {
             "method": "getEffectiveUser()",
@@ -2440,7 +2440,7 @@
             "returnType": "User",
             "returnDescription": "the user under whose authority the script is running",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/session/fakesession.js#L16"
+            "implementationLink": "src/services/session/fakesession.js#L19"
           },
           {
             "method": "getScriptTimeZone()",
@@ -2449,7 +2449,7 @@
             "returnType": "String",
             "returnDescription": "the time zone of the script",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/session/fakesession.js#L32"
+            "implementationLink": "src/services/session/fakesession.js#L47"
           },
           {
             "method": "getTemporaryActiveUserKey()",
@@ -2458,7 +2458,7 @@
             "returnType": "String",
             "returnDescription": "the temporary active user key",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/session/fakesession.js#L40"
+            "implementationLink": "src/services/session/fakesession.js#L55"
           }
         ]
       },
@@ -22116,7 +22116,7 @@
             "returnType": "Object",
             "returnDescription": "a JavaScript Object containing the key/value pairs for all keys found in the cache",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L329"
+            "implementationLink": "src/services/stores/fakestores.js#L331"
           },
           {
             "method": "put(String,String)",
@@ -22125,7 +22125,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/stores/fakestores.js#L340"
+            "implementationLink": "src/services/stores/fakestores.js#L342"
           },
           {
             "method": "put(String,String,Integer)",
@@ -22134,7 +22134,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/stores/fakestores.js#L340"
+            "implementationLink": "src/services/stores/fakestores.js#L342"
           },
           {
             "method": "putAll(Object)",
@@ -22143,7 +22143,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L345"
+            "implementationLink": "src/services/stores/fakestores.js#L347"
           },
           {
             "method": "putAll(Object,Integer)",
@@ -22152,7 +22152,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L345"
+            "implementationLink": "src/services/stores/fakestores.js#L347"
           },
           {
             "method": "remove(String)",
@@ -22161,7 +22161,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/stores/fakestores.js#L354"
+            "implementationLink": "src/services/stores/fakestores.js#L356"
           },
           {
             "method": "removeAll(String)",
@@ -22170,7 +22170,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L359"
+            "implementationLink": "src/services/stores/fakestores.js#L361"
           }
         ]
       },
@@ -22357,7 +22357,7 @@
             "returnType": "Properties",
             "returnDescription": "this Properties store, for chaining",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L276"
+            "implementationLink": "src/services/stores/fakestores.js#L278"
           },
           {
             "method": "deleteProperty(String)",
@@ -22366,7 +22366,7 @@
             "returnType": "Properties",
             "returnDescription": "this Properties store, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/stores/fakestores.js#L284"
+            "implementationLink": "src/services/stores/fakestores.js#L286"
           },
           {
             "method": "getKeys()",
@@ -22375,7 +22375,7 @@
             "returnType": "String[]",
             "returnDescription": "an array of all keys in the current Properties store",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L288"
+            "implementationLink": "src/services/stores/fakestores.js#L290"
           },
           {
             "method": "getProperties()",
@@ -22384,7 +22384,7 @@
             "returnType": "Object",
             "returnDescription": "a copy of all key-value pairs in the current Properties store",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L271"
+            "implementationLink": "src/services/stores/fakestores.js#L273"
           },
           {
             "method": "getProperty(String)",
@@ -22393,7 +22393,7 @@
             "returnType": "String",
             "returnDescription": "the value associated with the given key in the current Properties store",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/stores/fakestores.js#L299"
+            "implementationLink": "src/services/stores/fakestores.js#L301"
           },
           {
             "method": "setProperties(Object)",
@@ -22402,7 +22402,7 @@
             "returnType": "Properties",
             "returnDescription": "this Properties store, for chaining",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L304"
+            "implementationLink": "src/services/stores/fakestores.js#L306"
           },
           {
             "method": "setProperties(Object,Boolean)",
@@ -22411,7 +22411,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L304"
+            "implementationLink": "src/services/stores/fakestores.js#L306"
           },
           {
             "method": "setProperty(String,String)",
@@ -22420,7 +22420,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/stores/fakestores.js#L313"
+            "implementationLink": "src/services/stores/fakestores.js#L315"
           }
         ]
       },
@@ -54668,7 +54668,7 @@
             "returnType": "Slide",
             "returnDescription": "The new slide that is inserted.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepresentation.js#L92"
+            "implementationLink": "src/services/slidesapp/fakepresentation.js#L98"
           },
           {
             "method": "insertSlide(Integer,Layout)",
@@ -54677,7 +54677,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepresentation.js#L92"
+            "implementationLink": "src/services/slidesapp/fakepresentation.js#L98"
           },
           {
             "method": "insertSlide(Integer,PredefinedLayout)",
@@ -54686,7 +54686,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepresentation.js#L92"
+            "implementationLink": "src/services/slidesapp/fakepresentation.js#L98"
           },
           {
             "method": "insertSlide(Integer,Slide)",
@@ -54695,7 +54695,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepresentation.js#L92"
+            "implementationLink": "src/services/slidesapp/fakepresentation.js#L98"
           },
           {
             "method": "insertSlide(Integer,Slide,SlideLinkingMode)",
@@ -54704,7 +54704,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepresentation.js#L92"
+            "implementationLink": "src/services/slidesapp/fakepresentation.js#L98"
           },
           {
             "method": "removeEditor(String)",
@@ -56165,7 +56165,7 @@
             "returnType": "Slide",
             "returnDescription": "The duplicated slide.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L198"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L215"
           },
           {
             "method": "getBackground()",
@@ -56435,7 +56435,7 @@
             "returnType": "Line",
             "returnDescription": "The inserted line.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L169"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L179"
           },
           {
             "method": "insertLine(LineCategory,ConnectionSite,ConnectionSite)",
@@ -56444,7 +56444,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L169"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L179"
           },
           {
             "method": "insertLine(LineCategory,Number,Number,Number,Number)",
@@ -56453,7 +56453,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L169"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L179"
           },
           {
             "method": "insertPageElement(PageElement)",
@@ -56471,7 +56471,7 @@
             "returnType": "Shape",
             "returnDescription": "The inserted shape.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L110"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L115"
           },
           {
             "method": "insertShape(ShapeType)",
@@ -56480,7 +56480,7 @@
             "returnType": "Shape",
             "returnDescription": "The inserted shape.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L110"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L115"
           },
           {
             "method": "insertShape(ShapeType,Number,Number,Number,Number)",
@@ -56489,7 +56489,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L110"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L115"
           },
           {
             "method": "insertSheetsChart(EmbeddedChart)",

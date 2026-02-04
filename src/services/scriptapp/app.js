@@ -8,19 +8,22 @@ import { Syncit } from '../../support/syncit.js'
 import { Auth } from '../../support/auth.js'
 import { Proxies } from '../../support/proxies.js'
 import { newFakeBehavior } from './behavior.js'
-import { newCacheDropin , getUserIdFromToken} from '@mcpher/gas-flex-cache'
-import {slogger } from "../../support/slogger.js";
+import { newCacheDropin } from '@mcpher/gas-flex-cache'
+import { slogger } from "../../support/slogger.js";
 /**
  * fake ScriptApp.getOAuthToken 
  * @return {string} token
  */
 const getOAuthToken = () => {
-  if (Auth.isTokenExpired()) {
-    const { accessToken, tokenInfo } = Syncit.fxRefreshToken();
-    Auth.setAccessToken(accessToken);
-    Auth.setTokenInfo(tokenInfo); // This will also update the expiry time
-  }
-  return Auth.getAccessToken();
+  return Syncit.fxGetAccessToken(Auth)
+}
+
+/**
+ * gets the token of the person running the script
+ * @return {string} token
+ */
+const getSourceOAuthToken = () => {
+  return Syncit.fxGetSourceAccessTokenInfo(Auth).token
 }
 
 
@@ -66,7 +69,7 @@ const checkScopesMatch = (required) => {
   const scopes = Auth.getTokenScopes()
 
   // now we're syncronous all the way
-  const tokened = new Set(scopes.split(" "))
+  const tokened = new Set((typeof scopes === 'string' ? scopes : "").split(" "))
 
   // see which ones are missing
   const missing = required.filter(s => {
@@ -115,6 +118,7 @@ if (typeof globalThis[name] === typeof undefined) {
 
       _app = {
         getOAuthToken,
+        __getSourceOAuthToken: getSourceOAuthToken,
         requireAllScopes,
         requireScopes,
         getScriptId: Auth.getScriptId,
@@ -122,14 +126,15 @@ if (typeof globalThis[name] === typeof undefined) {
           return Auth.getProjectId()
         },
         get __userId() {
-          return Auth.getUserId()
+          // this is actually the active user/ not the effective user
+          return Auth.getActiveUser().id
         },
         AuthMode: {
           FULL: 'FULL'
         },
         __behavior: newFakeBehavior(),
         __newCacheDropin: newCacheDropin,
-        __getUserIdFromToken: getUserIdFromToken
+        __proxies: Proxies
       }
 
 

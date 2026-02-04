@@ -983,9 +983,13 @@ patchStream(process.stdout);
 patchStream(process.stderr);
 ````
 
+### Active user -vs effective user when using workload identity/service account
+
+When using workload identity/service account, the active user is the user being impersonated by the service account, but the effective user is the user that the service account itself. In ADC mode, the effective user would be the same as the active user as you are not running with a service account. This distinction is important as the access token generated is from the effective user's scoped permissions.
+
 #### Google-auth-library changes
 
-Another issue with 10.4, is we now get this error "Method doesn't allow unregistered callers (callers without established identity)". I believe this is to do with the use of certain scopes being restricted. We are using ADC for authentication, but we can full it into thinking it's using an internal OAuth client by creating one in the console, then injecting its credentials into the file used by ADC. For a full explanation on setting this up see  this write up on setting up [getting started](GETTING_STARTED.md)
+Another issue with 10.4, is we now get this error "Method doesn't allow unregistered callers (callers without established identity)". I believe this is to do with the use of certain scopes being restricted. When we are using ADC for authentication, but we can full it into thinking it's using an internal OAuth client by creating one in the console, then injecting its credentials into the file used by ADC. For a full explanation on setting this up see  this write up on setting up [getting started](GETTING_STARTED.md)
 
 ## Testing
 
@@ -995,16 +999,16 @@ If you want to play with the testing suite , then take a look at the [collaborat
 
 - [getting started](GETTING_STARTED.md) - how to handle authentication for restricted scopes.
 - [readme](README.md)
+- [gas fakes cli](gas-fakes-cli.md)
+- [running gas-fakes on google cloud run](cloud-run.md)
 - [initial idea and thoughts](https://ramblings.mcpher.com/a-proof-of-concept-implementation-of-apps-script-environment-on-node/)
 - [Inside the volatile world of a Google Document](https://ramblings.mcpher.com/inside-the-volatile-world-of-a-google-document/)
 - [Apps Script Services on Node – using apps script libraries](https://ramblings.mcpher.com/apps-script-services-on-node-using-apps-script-libraries/)
 - [Apps Script environment on Node – more services](https://ramblings.mcpher.com/apps-script-environment-on-node-more-services/)
 - [Turning async into synch on Node using workers](https://ramblings.mcpher.com/turning-async-into-synch-on-node-using-workers/)
 - [All about Apps Script Enums and how to fake them](https://ramblings.mcpher.com/all-about-apps-script-enums-and-how-to-fake-them/)
-- [Russian version](README.RU.md) ([credit Alex Ivanov](https://github.com/oshliaer)) - needs updating
 - [colaborators](collaborators.md) - additional information for collaborators
 - [oddities](oddities.md) - a collection of oddities uncovered during this project
-- [gemini](gemini-observations.md) - some reflections and experiences on using gemini to help code large projects
 - [named colors](named-colors.md)
 - [sandbox](sandbox.md)
 - [using apps script libraries with gas-fakes](libraries.md)
@@ -1013,7 +1017,6 @@ If you want to play with the testing suite , then take a look at the [collaborat
 - [named range identity](named-range-identity.md)
 - [adc and restricted scopes](https://ramblings.mcpher.com/how-to-allow-access-to-sensitive-scopes-with-application-default-credentials/)
 - [push test pull](pull-test-push.md)
-- [gas fakes cli](gas-fakes-cli.md)
 - [sharing cache and properties between gas-fakes and live apps script](https://ramblings.mcpher.com/sharing-cache-and-properties-between-gas-fakes-and-live-apps-script/)
 - [gas-fakes-cli now has built in mcp server and gemini extension](https://ramblings.mcpher.com/gas-fakes-cli-now-has-built-in-mcp-server-and-gemini-extension/)
 - [gas-fakes CLI: Run apps script code directly from your terminal](https://ramblings.mcpher.com/gas-fakes-cli-run-apps-script-code-directly-from-your-terminal/)

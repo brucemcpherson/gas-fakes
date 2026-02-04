@@ -65,11 +65,33 @@ import { testLock } from './testlock.js';
 import { testGmail } from "./testgmail.js";
 import { testSandboxGmail } from "./testsandboxgmail.js";
 
-const testFakes = () => {
+export const testFakes = () => {
   const pack = initTests();
   const { unit } = pack;
 
-  // add one of these for each service being tested
+  console.log("\n----Test ScriptApp----");
+  testScriptApp(pack);
+  console.log("\n----Test docsadv----");
+  testDocsAdv(pack);
+  console.log("\n----Test docs----");
+  testDocs(pack);
+  console.log("\n----Test docs images----");
+  testDocsImages(pack);
+  console.log("\n----Test docs next----");
+  testDocsNext(pack);
+  console.log("\n----Test docs list items----");
+  testDocsListItems(pack);
+  console.log("\n----Test Enums----");
+  testEnums(pack);
+  console.log("\n----Test Sheets text----");
+  testSheetsText(pack);
+
+  console.log("\n----Test SheetsExotics----");
+  testSheetsExotics(pack);
+
+  console.log("\n----Test Logger----");
+  testLogger(pack);
+
   console.log("\n----Test lock----");
   testLock(pack);
   console.log("\n----Test mimetype----");
@@ -123,20 +145,8 @@ const testFakes = () => {
   console.log("\n----Test formsadv----");
   testFormsAdv(pack);
 
-  console.log("\n----Test docsadv----");
-  testDocsAdv(pack);
-  console.log("\n----Test docs----");
-  testDocs(pack);
-  console.log("\n----Test docs images----");
-  testDocsImages(pack);
-  console.log("\n----Test docs next----");
-  testDocsNext(pack);
-  console.log("\n----Test docs list items----");
-  testDocsListItems(pack);
-  console.log("\n----Test Enums----");
-  testEnums(pack);
-  console.log("\n----Test Sheets text----");
-  testSheetsText(pack);
+
+
   console.log("\n----Test Sheets Data----");
   testSheetsData(pack);
   console.log("\n----Test Sheets DataValidations----");
@@ -153,8 +163,7 @@ const testFakes = () => {
   testSheetsValues(pack);
   console.log("\n----Test SheetsDeveloper----");
   testSheetsDeveloper(pack);
-  console.log("\n----Test SheetsExotics----");
-  testSheetsExotics(pack);
+
   console.log("\n----Test Fiddler----");
   testFiddler(pack);
   console.log("\n----Test Drive----");
@@ -167,10 +176,8 @@ const testFakes = () => {
   testUtilities(pack);
   console.log("\n----Test Stores----");
   testStores(pack);
-  console.log("\n----Test Logger----");
-  testLogger(pack);
-  console.log("\n----Test ScriptApp----");
-  testScriptApp(pack);
+
+
   console.log("\n----Test Sheets Range----");
   testSheetsRange(pack);
   console.log("\n----TEST FILES COMPLETE----");
@@ -192,7 +199,7 @@ const testFakes = () => {
     console.log("...cumulative docs cache performance", getDocsPerformance());
     console.log("...cumulative slides cache performance", getSlidesPerformance());
     console.log("...cumulative forms cache performance", getFormsPerformance());
-    console.log("...cumulative calendar cache performance", getCalendarPerformance ());
+    console.log("...cumulative calendar cache performance", getCalendarPerformance());
   }
   // final cleanup of all files created during the test run
   if (ScriptApp.isFake) {

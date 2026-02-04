@@ -6,11 +6,8 @@
  * - arguments and returns must be serializable ie. primitives or plain objects
  */
 
-import { responseSyncify } from './auth.js';
-import { syncWarn, syncError } from './workersync/synclogger.js';
+import { sxRetry } from './sxretry.js';
 import { getSlidesApiClient } from '../services/advslides/slapis.js';
-
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
  * sync a call to slides api
@@ -25,37 +22,9 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 export const sxSlides = async (Auth, { prop, method, params, options = {} }) => {
 
   const apiClient = getSlidesApiClient();
+  const tag = `sxSlides for ${prop}.${method}`;
 
-  const maxRetries = 7;
-  let delay = 1777;
-
-  for (let i = 0; i < maxRetries; i++) {
-    let response;
-    let error;
-
-    try {
-      const callish = apiClient[prop];
-      response = await callish[method](params, options);
-    } catch (err) {
-      error = err;
-      response = err.response;
-    }
-
-    const isRetryable = [429, 500, 503].includes(response?.status) || error?.code == 429;
-
-    if (isRetryable && i < maxRetries - 1) {
-      // add a random jitter to avoid thundering herd
-      const jitter = Math.floor(Math.random() * 1000);
-      syncWarn(`Retryable error on Slides API call ${prop}.${method} (status: ${response?.status}). Retrying in ${delay + jitter}ms...`);
-      await sleep(delay + jitter);
-      delay *= 2;
-      continue;
-    }
-
-    if (error || isRetryable) {
-      syncError(`Failed in sxSlides for ${prop}.${method}`, error);
-      return { data: null, response: responseSyncify(response) };
-    }
-    return { data: response.data, response: responseSyncify(response) };
-  }
+  return sxRetry(Auth, tag, async () => {
+    return apiClient[prop][method](params, options);
+  });
 };

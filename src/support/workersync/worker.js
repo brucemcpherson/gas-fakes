@@ -45,7 +45,7 @@ async function writeResult(result) {
     Atomics.store(control, CONTROL_INDICES.DATA_SIZE, encodedResult.length); // data size
     Atomics.store(control, CONTROL_INDICES.IS_ERROR, 0); // success flag
     Atomics.store(control, CONTROL_INDICES.RESULT_TYPE, 0); // result type: buffer
- 
+
   }
 }
 
@@ -115,22 +115,19 @@ parentPort.on('message', async (task) => {
       // sxInit is special: it creates the auth state and returns serializable info.
       result = await asyncFn(...task.args);
 
-
-      // The projectId is already discovered and set within the initial `sxInit` -> `setAuth` call.
-      // This subsequent call is redundant, so it is removed for clarity.
-      // Auth.setProjectId(result.projectId);
-      await Auth.setAuth(result.scopes);
-      Auth.setAccessToken(result.accessToken);
-      Auth.setSettings(result.settings);
-      Auth.setClasp(result.clasp);
-      Auth.setManifest(result.manifest);
+      // await Auth.setAuth(result.scopes);
+      //Auth.setSettings(result.settings);
+      //Auth.setClasp(result.clasp);
+      //Auth.setManifest(result.manifest);
+      //Auth.setActiveUser(result.activeUser);
+      //Auth.setEffectiveUser(result.effectiveUser);
 
     } else {
       // All other sx* functions receive the worker's Auth object as their first argument.
       if (!Auth.getProjectId()) {
         throw new Error('[Worker] Not initialized. fxInit must be called first.');
       }
-      result = await asyncFn(Auth,...task.args);
+      result = await asyncFn(Auth, ...task.args);
 
     }
 

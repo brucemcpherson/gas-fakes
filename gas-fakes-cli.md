@@ -1,4 +1,4 @@
-# A Developer's Guide to the `gas-fakes` CLI
+# <img src="./logo.png" alt="gas-fakes logo" width="50" align="top">  A Developer's Guide to the `gas-fakes` CLI
 
 ## Introduction
 
@@ -7,6 +7,8 @@ The `gas-fakes` library is a powerful tool for safely executing Google Apps Scri
 Until now, `gas-fakes` has primarily been used as a library within Node.js scripts. Recognizing the potential for broader application and improved developer experience, a command-line interface (CLI) tool has been created. This CLI tool simplifies the use of `gas-fakes` and can also be used as an MCP (Model Context Protocol) server. This functionality is motivated by the idea that it will enhance its application, especially for tasks like conversational automation of Google Workspace when integrated with tools like the Gemini CLI.
 
 ## Getting Started
+
+See the [Getting Started](https://github.com/brucemcpherson/gas-fakes/blob/main/GETTING_STARTED.md) for more information on getting started with authentication.
 
 ### 1. Installation
 
@@ -18,15 +20,12 @@ npm install -g @mcpher/gas-fakes
 
 ### 2. Authentication
 
-You can choose between two methods for authentication:
+See the [Getting Started](https://github.com/brucemcpherson/gas-fakes/blob/main/GETTING_STARTED.md) for more information on authentication.
 
-#### 1. Manual Setup
 
-After installation, you will need to authorize the tool to access your Google account. Detailed instructions for setting up authentication can be found in the official documentation: [Getting Started - Step 2: Set up authentication](https://github.com/brucemcpherson/gas-fakes/blob/main/GETTING_STARTED.md#step-2-set-up-authentication-shells-and-environment).
+#### Setup with the gas-fakes Command-Line Tool
 
-#### 2. Setup with the gas-fakes Command-Line Tool
-
-Alternatively, you can use the `gas-fakes` command-line interface (CLI) to assist with the setup. Before you begin, please have your Google Cloud Project ID ready.
+Ayou can use the `gas-fakes` command-line interface (CLI) to assist with the setup. Before you begin, please have your Google Cloud Project ID ready.
 
 First, create a `.env` file to store your project configuration:
 
@@ -71,6 +70,7 @@ Usage: gas-fakes [options] [command]
 Execute a Google Apps Script file or string.
 
 Options:
+  --at,--auth-type <string>                 The authentication type to use. ("adc" or "dwd", default: "dwd")
   -v, --version                             Display the current version of gas-fakes
   -f, --filename <string>                   Path to the Google Apps Script file.
   -s, --script <string>                     A string containing the Google Apps Script.
@@ -602,16 +602,16 @@ const tools = [
 
 - [getting started](GETTING_STARTED.md) - how to handle authentication for restricted scopes.
 - [readme](README.md)
+- [gas fakes cli](gas-fakes-cli.md)
+- [running gas-fakes on google cloud run](cloud-run.md)
 - [initial idea and thoughts](https://ramblings.mcpher.com/a-proof-of-concept-implementation-of-apps-script-environment-on-node/)
 - [Inside the volatile world of a Google Document](https://ramblings.mcpher.com/inside-the-volatile-world-of-a-google-document/)
 - [Apps Script Services on Node – using apps script libraries](https://ramblings.mcpher.com/apps-script-services-on-node-using-apps-script-libraries/)
 - [Apps Script environment on Node – more services](https://ramblings.mcpher.com/apps-script-environment-on-node-more-services/)
 - [Turning async into synch on Node using workers](https://ramblings.mcpher.com/turning-async-into-synch-on-node-using-workers/)
 - [All about Apps Script Enums and how to fake them](https://ramblings.mcpher.com/all-about-apps-script-enums-and-how-to-fake-them/)
-- [Russian version](README.RU.md) ([credit Alex Ivanov](https://github.com/oshliaer)) - needs updating
 - [colaborators](collaborators.md) - additional information for collaborators
 - [oddities](oddities.md) - a collection of oddities uncovered during this project
-- [gemini](gemini-observations.md) - some reflections and experiences on using gemini to help code large projects
 - [named colors](named-colors.md)
 - [sandbox](sandbox.md)
 - [using apps script libraries with gas-fakes](libraries.md)
@@ -620,7 +620,6 @@ const tools = [
 - [named range identity](named-range-identity.md)
 - [adc and restricted scopes](https://ramblings.mcpher.com/how-to-allow-access-to-sensitive-scopes-with-application-default-credentials/)
 - [push test pull](pull-test-push.md)
-- [gas fakes cli](gas-fakes-cli.md)
 - [sharing cache and properties between gas-fakes and live apps script](https://ramblings.mcpher.com/sharing-cache-and-properties-between-gas-fakes-and-live-apps-script/)
 - [gas-fakes-cli now has built in mcp server and gemini extension](https://ramblings.mcpher.com/gas-fakes-cli-now-has-built-in-mcp-server-and-gemini-extension/)
 - [gas-fakes CLI: Run apps script code directly from your terminal](https://ramblings.mcpher.com/gas-fakes-cli-run-apps-script-code-directly-from-your-terminal/)

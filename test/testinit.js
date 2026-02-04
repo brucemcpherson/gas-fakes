@@ -1,14 +1,10 @@
 
 // all these imports 
 // this is loaded by npm, but is a library on Apps Script side
+import '@mcpher/gas-fakes';
 import { Exports as unitExports } from '@mcpher/unit'
 import { testFixes } from './testfixes.js'
 
-// all the fake services are here
-//import '@mcpher/gas-fakes/main.js'
-
-import '@mcpher/gas-fakes';
-import { Proxies } from '../src/support/proxies.js';
 
 export const initTests = () => {
 
@@ -35,6 +31,7 @@ export const initTests = () => {
   // if we in fake mode, we'll operate in sandbox mode by default
   if (ScriptApp.isFake) {
     const behavior = ScriptApp.__behavior;
+    const proxies = ScriptApp.__proxies;
     behavior.sandboxMode = true;
     console.log('...operating in sandbox mode - only files created in this instance of gas-fakes are accessible')
     behavior.strictSandbox = true;
@@ -44,7 +41,7 @@ export const initTests = () => {
     // This prevents crashes in services that check for their sandbox config
     // before a test has had a chance to set it up.
     console.log('...proactively initializing sandbox service behaviors');
-    Proxies.getRegisteredServices().forEach(serviceName => {
+    proxies.getRegisteredServices().forEach(serviceName => {
       // Just accessing the property is enough to trigger the lazy-creation
       // of the default sandbox behavior object for that service.
       // This ensures `ScriptApp.__behavior.sandboxService[serviceName]` is never undefined.

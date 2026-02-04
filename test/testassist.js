@@ -1,4 +1,6 @@
 import is from '@sindresorhus/is';
+// import { signatureArgs, notYetImplemented } from '../src/support/helpers.js';
+
 let __mss = null
 let __mdoc = null
 let __mfolder = null
@@ -63,19 +65,19 @@ export const trasher = (toTrash) => {
 
   try {
     toTrash.forEach(f => {
-      if (typeof f. adeleteCalendar === 'function') {
+      if (typeof f.deleteCalendar === 'function') {
         console.log('deleting temp calendar', f.getId());
         try {
           f.deleteCalendar();
         } catch (e) {
-          console.log('...failed to delete calendar', f.getId(), e.message);
+          console.log('...warning:failed to delete calendar', f.getId(), e.message);
         }
       } else {
         console.log('trashing temp file', f.getId());
         try {
           f.setTrashed(true);
         } catch (e) {
-          console.log('...failed to trash file', f.getId(), e.message);
+          console.log('...warning:failed to trash file', f.getId(), e.message);
         }
       }
     });
@@ -123,7 +125,7 @@ export const maketcal = (toTrash, fixes, { nameSuffix = 'default', clear = true 
         if (existing.length > 1) {
           console.log('...cleaning up duplicate calendars for', calName);
           for (let i = 1; i < existing.length; i++) {
-             try { existing[i].deleteCalendar(); } catch(e) { console.log('failed to delete duplicate', e.message); }
+            try { existing[i].deleteCalendar(); } catch (e) { console.log('failed to delete duplicate', e.message); }
           }
         }
         console.log('...found existing calendar', cal.getName(), cal.getId());
@@ -150,11 +152,10 @@ export const maketcal = (toTrash, fixes, { nameSuffix = 'default', clear = true 
   } finally {
     if (behavior) behavior.sandboxMode = originalMode;
   }
-  
-  // If we are in sandbox mode (or were), we want this calendar to be accessible
-  // as if it were created in this session.
-  if (behavior && originalMode && cal) {
-      behavior.addCalendarId(cal.getId());
+
+  // Ensure this calendar is accessible in sandbox mode
+  if (behavior && cal) {
+    behavior.addCalendarId(cal.getId(), true);
   }
 
   // Register for cleanup
@@ -194,6 +195,7 @@ export const maketdoc = (toTrash, fixes, { clear = true, forceNew = false } = {}
     // in case there had been a save and close some point
     __mdoc = DocumentApp.openById(__mdoc.getId());
     console.log('...re-opened doc', __mdoc.getName(), __mdoc.getId());
+    if (ScriptApp.isFake) ScriptApp.__behavior.addFile(__mdoc.getId(), true);
     reuse = true;
   }
 
@@ -226,6 +228,9 @@ export const maketss = (sheetName, toTrash, fixes, { clearContents = true, clear
     __mss = SpreadsheetApp.create(aname)
     moveToTestFolder(__mss.getId())
     console.log('...created ss', __mss.getName(), __mss.getId())
+  } else {
+    // re-register with sandbox if it's a fake
+    if (ScriptApp.isFake) ScriptApp.__behavior.addFile(__mss.getId(), true)
   }
   // no need to do this as sandbox mode will take care of it
   if (!ScriptApp.isFake && fixes.CLEAN && !toTrash.find(f => f.getId() == __mss.getId())) {
@@ -447,7 +452,7 @@ const compareMixedValues = (a, b) => {
     return (a === b) ? 0 : (a ? 1 : -1); 
   }
 */
-   // *** THE FIX IS HERE (Explicit Boolean Comparison) ***
+  // *** THE FIX IS HERE (Explicit Boolean Comparison) ***
   if (typeof a === 'boolean' && typeof b === 'boolean') {
     if (a === b) return 0;
     // In ascending sort, FALSE is less than TRUE.
@@ -475,10 +480,10 @@ export const sort2d = (spec, arr) => {
       const ascending = (typeof s === 'object' && s !== null) ? s.ascending !== false : true;
       let result = compareMixedValues(a[index], b[index]);
       if (!ascending) {
-          result = -result;
+        result = -result;
       }
       if (result !== 0) {
-          return result;
+        return result;
       }
     }
     return 0;

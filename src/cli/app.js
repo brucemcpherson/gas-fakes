@@ -1,4 +1,4 @@
-import { Command } from "commander";
+import { Command, Option } from "commander";
 import dotenv from "dotenv";
 import path from "path";
 import { VERSION, buildSandboxConfig } from "./utils.js";
@@ -128,6 +128,14 @@ export async function main() {
     .command("init")
     .description("Initializes the configuration (.env).")
     .option("-e, --env <path>", "Path to a custom .env file.")
+    .addOption(
+      new Option(
+        "--at,--auth-type <string>",
+        "Use Domain Wide Delegation (dwd) or Application Default Credentials (adc) for authentication (default)."
+      )
+        .choices(["dwd", "adc"])
+        .default("dwd")
+    )
     .action(initializeConfiguration);
 
   program

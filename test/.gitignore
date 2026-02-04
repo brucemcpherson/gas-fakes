@@ -1,0 +1,4 @@
+private/
+node_modules/
+.env*
+.env.yaml

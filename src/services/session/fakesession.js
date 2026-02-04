@@ -1,10 +1,13 @@
-import { newFakeUser} from '../common/fakeuser.js'
-import { Auth } from '../../support/auth.js'
+import { newFakeUser } from '../common/fakeuser.js'
 import { Proxies } from '../../support/proxies.js'
-
+import { Syncit } from '../../support/syncit.js'
+import { Auth } from '../../support/auth.js'
 class FakeSession {
-  constructor () { 
-    this._activeUser = newFakeUser (Auth.getTokenInfo())
+  constructor() {
+    // Active user is the impersonated user (the one we're acting as)
+    this._activeUser = newFakeUser(Syncit.fxGetAccessTokenInfo().tokenInfo)
+    // Effective user is also the impersonated user in this context
+    this._effectiveUser = newFakeUser(Syncit.fxGetAccessTokenInfo().tokenInfo)
   }
   getActiveUser() {
     return this._activeUser
@@ -14,15 +17,27 @@ class FakeSession {
    * @returns {string}
    */
   getEffectiveUser() {
-    return this.getActiveUser()
+    return this._effectiveUser
   }
   /**
    * @returns {string}
    */
   getActiveUserLocale() {
-    const lang = process.env.LANG || ''
+    const lang =
+      process.env.LANG ||
+      process.env.LANGUAGE ||
+      process.env.LC_ALL ||
+      process.env.LC_MESSAGES ||
+      (function () {
+        try {
+          return Intl.DateTimeFormat().resolvedOptions().locale
+        } catch (e) {
+          return 'en'
+        }
+      })() ||
+      'en'
     // it'll be a format like en_US.UTF-8 so we need to drop the encoding to be like apps script
-    return lang.replace(/\_.*/,'')
+    return lang.split(/[._-]/)[0]
   }
   /**
    * this'll come from the manifest on Node (on Apps Script it'll be where the user is running from)
@@ -42,4 +57,4 @@ class FakeSession {
   }
 }
 
-export const newFakeSession = (...args) => Proxies.guard (new FakeSession(...args))
+export const newFakeSession = (...args) => Proxies.guard(new FakeSession(...args))

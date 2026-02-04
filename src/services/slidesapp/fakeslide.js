@@ -91,11 +91,16 @@ export class FakeSlide {
    */
   remove() {
     const presentationId = this.__presentation.getId();
-    Slides.Presentations.batchUpdate([{
-      deleteObject: {
-        objectId: this.getObjectId()
-      }
-    }], presentationId);
+    try {
+      Slides.Presentations.batchUpdate([{
+        deleteObject: {
+          objectId: this.getObjectId()
+        }
+      }], presentationId);
+    } catch (err) {
+      // If not found, it's already deleted (perhaps on a previous timeouted attempt)
+      if (!err?.message?.includes('not found')) throw err;
+    }
   }
 
   /**
@@ -111,8 +116,10 @@ export class FakeSlide {
     // Default size and position if not provided
     // shapeType should be string e.g. TEXT_BOX
     const presentationId = this.__presentation.getId();
-    const result = Slides.Presentations.batchUpdate([{
+    const objectId = `shape_${Math.random().toString(36).substring(2, 11)}`;
+    const requests = [{
       createShape: {
+        objectId,
         shapeType: shapeType,
         elementProperties: {
           pageObjectId: this.getObjectId(),
@@ -129,10 +136,13 @@ export class FakeSlide {
           }
         }
       }
-    }], presentationId);
+    }];
 
-    // The result contains the new object ID
-    const newObjectId = result.replies[0].createShape.objectId;
+    try {
+      Slides.Presentations.batchUpdate(requests, presentationId);
+    } catch (err) {
+      if (!err?.message?.includes('already exists')) throw err;
+    }
 
     // We assume the shape is added to the slide and we can retrieve it
     // Wait, we need to return a FakeShape.
@@ -152,7 +162,7 @@ export class FakeSlide {
     // So subsequent access should be fresh.
 
     const elements = this.getPageElements();
-    const newElement = elements.find(e => e.getObjectId() === newObjectId);
+    const newElement = elements.find(e => e.getObjectId() === objectId);
     if (!newElement) throw new Error('New shape not found');
     return newElement.asShape();
   }
@@ -168,8 +178,10 @@ export class FakeSlide {
    */
   insertLine(lineCategory, left = 0, top = 0, width = 100, height = 100) {
     const presentationId = this.__presentation.getId();
-    const result = Slides.Presentations.batchUpdate([{
+    const objectId = `line_${Math.random().toString(36).substring(2, 11)}`;
+    const requests = [{
       createLine: {
+        objectId,
         lineCategory: lineCategory,
         elementProperties: {
           pageObjectId: this.getObjectId(),
@@ -186,28 +198,41 @@ export class FakeSlide {
           }
         }
       }
-    }], presentationId);
+    }];
 
-    const newObjectId = result.replies[0].createLine.objectId;
+    try {
+      Slides.Presentations.batchUpdate(requests, presentationId);
+    } catch (err) {
+      if (!err?.message?.includes('already exists')) throw err;
+    }
+
     const elements = this.getPageElements();
-    const newElement = elements.find(e => e.getObjectId() === newObjectId);
+    const newElement = elements.find(e => e.getObjectId() === objectId);
     if (!newElement) throw new Error('New line not found');
     return newElement.asLine();
   }
 
   duplicate() {
     const presentationId = this.__presentation.getId();
-    const result = Slides.Presentations.batchUpdate([{
+    const objectId = `slide_${Math.random().toString(36).substring(2, 11)}`;
+    const requests = [{
       duplicateObject: {
-        objectId: this.getObjectId()
+        objectId: this.getObjectId(),
+        objectIds: {
+          [this.getObjectId()]: objectId
+        }
       }
-    }], presentationId);
+    }];
 
-    // The result contains the new object ID
-    const newObjectId = result.replies[0].duplicateObject.objectId;
+    try {
+      Slides.Presentations.batchUpdate(requests, presentationId);
+    } catch (err) {
+      if (!err?.message?.includes('already exists')) throw err;
+    }
+
     // We need to get the updated presentation to find the new slide resource
     const updatedPresentation = Slides.Presentations.get(presentationId);
-    const newSlideResource = updatedPresentation.slides.find(s => s.objectId === newObjectId);
+    const newSlideResource = updatedPresentation.slides.find(s => s.objectId === objectId);
     return newFakeSlide(newSlideResource, this.__presentation);
   }
 

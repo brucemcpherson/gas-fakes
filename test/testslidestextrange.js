@@ -1,5 +1,5 @@
 
-import is from '@sindresorhus/is';
+
 import '@mcpher/gas-fakes';
 import { initTests } from './testinit.js';
 import { wrapupTest, trasher } from './testassist.js';

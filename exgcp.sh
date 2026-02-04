@@ -17,13 +17,13 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 # Read the GCP_PROJECT_ID, remove quotes, and handle potential carriage returns
-GCP_PROJECT_ID_VALUE=$(grep -E '^GCP_PROJECT_ID=' "$ENV_FILE" | cut -d '=' -f2 | tr -d '"\r')
+GOOGLE_CLOUD_PROJECT_VALUE=$(grep -E '^GOOGLE_CLOUD_PROJECT=' "$ENV_FILE" | cut -d '=' -f2 | tr -d '"\r')
 GEMINI_API_KEY_VALUE=$(grep -E '^GEMINI_API_KEY=' "$ENV_FILE" | cut -d '=' -f2 | tr -d '"\r')
 GEMINI_MODEL_VALUE=$(grep -E '^GEMINI_MODEL=' "$ENV_FILE" | cut -d '=' -f2 | tr -d '"\r')
 OMDB_API_KEY_VALUE=$(grep -E '^OMDB_API_KEY=' "$ENV_FILE" | cut -d '=' -f2 | tr -d '"\r')
 # Check if a value was extracted
-if [ -z "$GCP_PROJECT_ID_VALUE" ]; then
-  echo "Error: GCP_PROJECT_ID not found or is empty in $ENV_FILE."
+if [ -z "$GOOGLE_CLOUD_PROJECT_VALUE" ]; then
+  echo "Error: GOOGLE_CLOUD_PROJECT not found or is empty in $ENV_FILE."
   return 1
 fi
 
@@ -49,6 +49,6 @@ else
 fi  
 
 # Export the variable for the current session
-export GOOGLE_CLOUD_PROJECT="$GCP_PROJECT_ID_VALUE"
+export GOOGLE_CLOUD_PROJECT="$GOOGLE_CLOUD_PROJECT_VALUE"
 
 echo "exported: GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT"

@@ -6,11 +6,8 @@
  * - arguments and returns must be serializable ie. primitives or plain objects
  */
 
-import { responseSyncify } from './auth.js';
-import { syncWarn, syncError } from './workersync/synclogger.js';
+import { sxRetry } from './sxretry.js';
 import { getCalendarApiClient } from '../services/advcalendar/clapis.js';
-
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
  * sync a call to calendar api
@@ -25,49 +22,18 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 export const sxCalendar = async (Auth, { prop, method, params, options = {} }) => {
 
   const apiClient = getCalendarApiClient();
-
-  const maxRetries = 7;
-  let delay = 1777;
+  const tag = `sxCalendar for ${prop}.${method}`;
 
   const { noLog404, ...validParams } = params || {};
 
-  for (let i = 0; i < maxRetries; i++) {
-    let response;
-    let error;
-
-    try {
-      const callish = apiClient[prop];
-      response = await callish[method](validParams, options);
-    } catch (err) {
-      error = err;
-      response = err.response;
-    }
-
-    const isRetryable = [429, 500, 503].includes(response?.status) ||
-      error?.code == 429 ||
-      (response?.status === 403 && (
-        error?.message?.toLowerCase().includes('usage limit') ||
-        error?.message?.toLowerCase().includes('rate limit') ||
-        error?.errors?.some(e => ['rateLimitExceeded', 'userRateLimitExceeded', 'calendarUsageLimitsExceeded'].includes(e.reason))
-      ));
-
-    if (isRetryable && i < maxRetries - 1) {
-      // add a random jitter to avoid thundering herd
-      const jitter = Math.floor(Math.random() * 1000);
-      syncWarn(`Retryable error on Calendar API call ${prop}.${method} (status: ${response?.status}). Retrying in ${delay + jitter}ms...`);
-      await sleep(delay + jitter);
-      delay *= 2;
-      continue;
-    }
-
-    if (error || isRetryable) {
+  return sxRetry(Auth, tag, async () => {
+    return apiClient[prop][method](validParams, options);
+  }, {
+    skipLog: (error, response) => {
       if (noLog404 && (response?.status === 404 || error?.code === 404 || response?.status === 400 || error?.code === 400)) {
-        // Suppress logging for expected 404s (or 400s which can happen if already deleted)
-      } else {
-        syncError(`Failed in sxCalendar for ${prop}.${method}`, error);
+        return true;
       }
-      return { data: null, response: responseSyncify(response) };
+      return false;
     }
-    return { data: response.data, response: responseSyncify(response) };
-  }
+  });
 };

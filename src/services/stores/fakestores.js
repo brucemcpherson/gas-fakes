@@ -6,7 +6,7 @@ import { storeModels } from './gasflex.js'
 import { newCacheDropin } from '@mcpher/gas-flex-cache'
 import { notYetImplemented } from '../../support/helpers.js'
 const { is } = Utils
-import {slogger } from "../../support/slogger.js";
+import { slogger } from "../../support/slogger.js";
 /**
  * what these props mean
  * store_type = currently upstash or file - it defines the back end and maps to env variable
@@ -87,7 +87,7 @@ const validateProp = (prop, vob, name = '') => {
 // this checks to see if we want to override a service with gas-flex-cache
 const whichCache = () => {
   // this will return the actual value of the enum, not the property name
-  const type = validateProp (process.env.STORE_TYPE || "file", StoreType, 'store_type')
+  const type = validateProp(process.env.STORE_TYPE || "file", StoreType, 'store_type')
   if (type === StoreType.UPSTASH) {
     const url = process.env.UPSTASH_REDIS_REST_URL
     const token = process.env.UPSTASH_REDIS_REST_TOKEN
@@ -136,7 +136,7 @@ class FakePropertiesService {
    * @returns {FakeProperties}
    */
   getScriptProperties() {
-     return selectCache(StoreDomain.SCRIPT, this.kind)
+    return selectCache(StoreDomain.SCRIPT, this.kind)
   }
 }
 
@@ -145,7 +145,7 @@ class FakePropertiesService {
  */
 class FakeCacheService {
   constructor(type) {
-    this.kind =  ServiceKind.CACHE
+    this.kind = ServiceKind.CACHE
     this.type = type
   }
 
@@ -164,7 +164,7 @@ class FakeCacheService {
    * @returns {FakeCache}
    */
   getUserCache() {
-    return selectCache(StoreDomain.USER, this.kind,DEFAULT_CACHE_EXPIRY)
+    return selectCache(StoreDomain.USER, this.kind, DEFAULT_CACHE_EXPIRY)
   }
 
   /**
@@ -172,7 +172,7 @@ class FakeCacheService {
    * @returns {FakeCache}
    */
   getScriptCache() {
-     return selectCache(StoreDomain.SCRIPT, this.kind, DEFAULT_CACHE_EXPIRY)
+    return selectCache(StoreDomain.SCRIPT, this.kind, DEFAULT_CACHE_EXPIRY)
   }
 }
 
@@ -182,28 +182,30 @@ class FakeCacheService {
  * @returns {FakePropertiesService | FakeCacheService}
  */
 export const newFakeService = (kind) => {
-  kind = validateProp (kind, ServiceKind, 'service_kind')
-  const w = whichCache ()
-  slogger.log (`...${kind} store service is using store type ${w.type} as backend`)
+  kind = validateProp(kind, ServiceKind, 'service_kind')
+  const w = whichCache()
+  slogger.log(`...${kind} store service is using store type ${w.type} as backend`)
   return Proxies.guard(kind === ServiceKind.CACHE ? new FakeCacheService(w.type) : new FakePropertiesService(w.type))
 }
 
 const selectCache = (domain, kind, defaultExpirationSeconds) => {
   // actually we might be overriding the type of service
-  domain = validateProp (domain, StoreDomain, 'store_domain')
+  domain = validateProp(domain, StoreDomain, 'store_domain')
   const which = whichCache()
   if (which.type === "UPSTASH") {
     const model = storeModels[domain]
     if (!model) {
-      throw new Error(`invalid store type model for ${cacheType}`) 
+      throw new Error(`invalid store type model for ${cacheType}`)
     }
-    return newCacheDropin ({ creds: {
-      ...model,
-      ...which,
-      type: "upstash",
-      kind: kind.toLowerCase(),
-      defaultExpirationSeconds
-    }})
+    return newCacheDropin({
+      creds: {
+        ...model,
+        ...which,
+        type: "upstash",
+        kind: kind.toLowerCase(),
+        defaultExpirationSeconds
+      }
+    })
   } else if (which.type === StoreType.FILE) {
     const store = kind === ServiceKind.CACHE ? FakeCache : FakeProperties
     return Proxies.guard(new store(domain))

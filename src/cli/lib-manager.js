@@ -8,7 +8,6 @@ async function getAccessToken(pattern) {
     // Authorization pattern 1
     const auth = await Auth.setAuth(
       ["https://www.googleapis.com/auth/drive.readonly"],
-      null,
       true
     );
     auth.cachedCredential = null;

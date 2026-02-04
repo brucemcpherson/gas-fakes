@@ -3,8 +3,8 @@
 // this is loaded by npm, but is a library on Apps Script side
 
 import '@mcpher/gas-fakes'
+import { getUserIdFromToken } from '@mcpher/gas-flex-cache'
 import { wrapupTest } from './testassist.js'
-import is from '@sindresorhus/is'
 import { initTests } from './testinit.js'
 
 // this can run standalone, or as part of combined tests if result of inittests is passed over
@@ -110,11 +110,13 @@ export const testStores = (pack) => {
 
     // --- FAKE ENVIRONMENT: Write data to Upstash ---
     if (inFake) {
-      // Get the appropriate service based on the store type
       const props = isUserStore ? PropertiesService.getUserProperties() : PropertiesService.getScriptProperties();
       const cache = isUserStore ? CacheService.getUserCache() : CacheService.getScriptCache();
-      const dope = props.externalService || null;
-      const isUpstash = dope && dope.type === "upstash";
+
+      // Check for Upstash configuration
+      const isUpstash = PropertiesService.type === "UPSTASH";
+      const scriptId = ScriptApp.getScriptId();
+      const userId = isUserStore ? getUserIdFromToken(ScriptApp.getOAuthToken()) : null;
 
       if (isUpstash) {
         // Write properties and cache entries
@@ -124,7 +126,7 @@ export const testStores = (pack) => {
         t.is(props.getProperty(propsKey), value, `[fake] should write to ${storeType} properties`);
         t.is(cache.get(cacheKey), value, `[fake] should write to ${storeType} cache`);
       } else {
-        console.log(`...skipping cross-store test for ${storeType} as Upstash is not configured in .env`);
+        console.log(`...[fake] skipping cross-store test for ${storeType} as STORE_TYPE is not UPSTASH (current: ${PropertiesService.type})`);
         t.skipFromHere = true
       }
     }
@@ -135,9 +137,12 @@ export const testStores = (pack) => {
       const crob = dope && JSON.parse(dope);
 
       if (crob) {
-        const creds = { ...crob, scriptId: ScriptApp.getScriptId() };
+        const scriptId = ScriptApp.getScriptId();
+        const userId = isUserStore ? getUserIdFromToken(ScriptApp.getOAuthToken()) : null;
+
+        const creds = { ...crob, scriptId };
         if (isUserStore) {
-          creds.userId = getUserIdFromToken(ScriptApp.getOAuthToken());
+          creds.userId = userId;
         }
 
         const props = newCacheDropin({ creds: { ...creds, kind: "property" } });

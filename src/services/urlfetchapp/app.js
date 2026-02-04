@@ -86,8 +86,8 @@ const fetch = (url, options = {}) => {
     'rawBody'
   ]
 
-  const response = Syncit.fxFetch(url, options, responseFields)
-  return responsify(response)
+  const { data } = Syncit.fxFetch(url, options, responseFields)
+  return responsify(data)
 }
 
 // this has been syncified
@@ -102,7 +102,7 @@ const fetchAll = (requests) => {
   ]
 
   const responses = Syncit.fxFetchAll(requests, responseFields)
-  return responses.map(r => responsify(r))
+  return responses.map(({ data }) => responsify(data))
 }
 
 

@@ -17,10 +17,10 @@ export class FakePresentation {
   constructor(resource) {
     this.__id = resource.presentationId;
   }
-  get __file () {
+  get __file() {
     return DriveApp.getFileById(this.__id);
   }
-  get __resource () {
+  get __resource() {
     return Slides.Presentations.get(this.__id);
   }
   saveAndClose() {
@@ -73,14 +73,20 @@ export class FakePresentation {
    * @returns {FakeSlide} The new slide.
    */
   appendSlide(layout) {
+    const objectId = `slide_${Math.random().toString(36).substring(2, 11)}`;
     const requests = [{
       createSlide: {
+        objectId,
         slideLayoutReference: layout ? { predefinedLayout: layout } : { predefinedLayout: 'BLANK' }
       }
     }];
-    const result = Slides.Presentations.batchUpdate(requests, this.getId());
-    const newObjectId = result.replies[0].createSlide.objectId;
-    return this.getSlideById(newObjectId);
+    try {
+      Slides.Presentations.batchUpdate(requests, this.getId());
+    } catch (err) {
+      // If it already exists, it means a previous attempt succeeded but timed out
+      if (!err?.message?.includes('already exists')) throw err;
+    }
+    return this.getSlideById(objectId);
   }
 
   /**
@@ -90,15 +96,20 @@ export class FakePresentation {
    * @returns {FakeSlide} The new slide.
    */
   insertSlide(index, layout) {
+    const objectId = `slide_${Math.random().toString(36).substring(2, 11)}`;
     const requests = [{
       createSlide: {
+        objectId,
         insertionIndex: index,
         slideLayoutReference: layout ? { predefinedLayout: layout } : { predefinedLayout: 'BLANK' }
       }
     }];
-    const result = Slides.Presentations.batchUpdate(requests, this.getId());
-    const newObjectId = result.replies[0].createSlide.objectId;
-    return this.getSlideById(newObjectId);
+    try {
+      Slides.Presentations.batchUpdate(requests, this.getId());
+    } catch (err) {
+      if (!err?.message?.includes('already exists')) throw err;
+    }
+    return this.getSlideById(objectId);
   }
 
   toString() {

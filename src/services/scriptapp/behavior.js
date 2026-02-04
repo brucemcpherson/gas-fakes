@@ -345,12 +345,33 @@ class FakeBehavior {
   get sandBoxMode() {
     return this.__sandboxMode;
   }
-  addFile(id) {
+  resetDrive() {
+    this.__createdIds.clear();
+    this.__allowedIds.clear();
+    return this;
+  }
+  resetGmail() {
+    this.__createdGmailIds.clear();
+    this.__allowedGmailIds.clear();
+    return this;
+  }
+  resetCalendar() {
+    this.__createdCalendarIds.clear();
+    this.__allowedCalendarIds.clear();
+    return this;
+  }
+  reset() {
+    this.resetDrive();
+    this.resetGmail();
+    this.resetCalendar();
+    return this;
+  }
+  addFile(id, force = false) {
     if (!is.nonEmptyString(id)) {
       throw new Error(`Invalid sandbox id parameter (${id}) - must be a non-empty string`);
     }
-    this.__createdIds.add(id);
-    if (this.sandboxMode) {
+    if (this.sandboxMode || force) {
+      this.__createdIds.add(id);
       if (!this.__allowedIds.has(id)) {
         slogger.log(`...adding file ${id} to sandbox allowed list`);
         this.__allowedIds.add(id);
@@ -358,12 +379,12 @@ class FakeBehavior {
     }
     return id
   }
-  addGmailId(id) {
+  addGmailId(id, force = false) {
     if (!is.nonEmptyString(id)) {
       throw new Error(`Invalid sandbox id parameter (${id}) - must be a non-empty string`);
     }
-    this.__createdGmailIds.add(id);
-    if (this.sandboxMode) {
+    if (this.sandboxMode || force) {
+      this.__createdGmailIds.add(id);
       if (!this.__allowedGmailIds.has(id)) {
         slogger.log(`...adding gmail id ${id} to sandbox allowed list`);
         this.__allowedGmailIds.add(id);
@@ -371,12 +392,12 @@ class FakeBehavior {
     }
     return id
   }
-  addCalendarId(id) {
+  addCalendarId(id, force = false) {
     if (!is.nonEmptyString(id)) {
       throw new Error(`Invalid sandbox id parameter (${id}) - must be a non-empty string`);
     }
-    this.__createdCalendarIds.add(id);
-    if (this.sandboxMode) {
+    if (this.sandboxMode || force) {
+      this.__createdCalendarIds.add(id);
       if (!this.__allowedCalendarIds.has(id)) {
         slogger.log(`...adding calendar id ${id} to sandbox allowed list`);
         this.__allowedCalendarIds.add(id);

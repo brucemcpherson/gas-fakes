@@ -11,7 +11,7 @@ The key principle is to use the exact same synchronous code you would write for 
 ## Prerequisites
 
 1.  **Node.js**: A current version of Node.js installed on your machine.
-2.  **Google Cloud Project**: You must have a Google Cloud Platform (GCP) project. You cannot use the Apps Script-managed cloud project. If you don't have one, create a new project and ensure it is associated with a Google Workspace organization if possible.
+3.  **Google Cloud Project**: You must have a Google Cloud Platform (GCP) project. You cannot use the Apps Script-managed cloud project. If you don't have one, create a new project and ensure it is associated with a Google Workspace organization if possible.
 
 ---
 
@@ -23,108 +23,58 @@ In your Node.js project directory, install `gas-fakes` from npm:
 npm i @mcpher/gas-fakes
 ```
 
-## Step 2: Set Up Authentication Shells and Environment
+## Step 2: Initialize gas-fakes
 
-Authentication is handled using Application Default Credentials (ADC), enhanced with an OAuth client to access restricted scopes.
+The `gas-fakes-cli` is the recommended way to set up your environment. It handles authentication, API enablement, and configuration.
 
-There are various ways to do this. 
+Run the initialization command:
 
-### Use the gas-fakes-cli (recommended)
+```bash
+gas-fakes init
+```
 
-The simplest and most complete way is to use the gas-fakes-cli, and available from v1.2.19
+### Authentication Types
 
-Install gas-fakes globally 
-- npm i -g @mcpher/gas-fakes
-- or use npx @mcpher/gas-fakes 
-  
-Then you can use these commands to guide you through the process:
+gas-fakes supports 2 kinds of authentication
+- Domain-Wide Delegation (DWD) - recommended for local development, production and cross-platform deployment
+- Application Default Credentials (ADC) - fall back method for local development only
 
-- gas-fakes init - to setup your intiialization choices
-- gas-fakes auth - to authorize
-- gas-fakes enableApis - to enable workspace apis
+Here are the key features of each:
 
+| Feature | Domain-Wide Delegation (DWD) | Application Default Credentials (ADC) |
+| :--- | :--- | :--- |
+| **Primary Use** | Production-ready, cross-platform deployment | Local development and quick start |
+| **Platform Support** | Universal (Local, Cloud Run, Kubernetes, Workload Identity) | Good for local, limited in some cloud environments |
+| **Security** | Secure service-account based impersonation | Direct user or service account permissions |
+| **Configuration** | `gas-fakes init --auth-type dwd` (Default). Automatic service account creation. | `gas-fakes init --auth-type adc`. Manual scope setup via env vars. |
+| **Admin action required** | **Yes**, requires admin action to enable DWD for the service account. | Normally none |
+| **Workspace Scopes** | Simplifies and streamlines restricted scope handling | Can involve complex restricted scope management |
+| **Consistency** | Identical artifacts across all environments | Variations between local and cloud artifacts |
 
-For more details see [gas-fakes-cli](gas-fakes-cli.md)
+### gas-fakes init --auth-type dwd (Default)
 
-### Alternative methods - may be deprecated in the future
+This is the recommended and default method. `gas-fakes` will automatically create a service account for you. This is a keyless method, which means that there is no need to download or manage secret service account credentials, is the most secure method and allows the use of workload identity in cloud run, kubernetes and other cloud platforms in addition to supporting local development. 
 
-If you really don't want to install and use gas-fakes-cli (or use npx gas-fakes), you can do one of these other methods.
+```bash
+gas-fakes init
+```
 
-1.  **Download Helper Scripts**: Get the `shells` folder from the `gas-fakes` repository and place it in your project's root directory.
+In this mode, the scopes required by your project are automatically detected from your `appsscript.json` manifest file oauthscopes section. However, you will need to perform a one-time admin action to enable Domain-Wide Delegation for this service account in the Google Workspace Admin Console.  The CLI will provide you with the necessary details (Client ID and Scopes) to complete this step.
 
-2.  **Create and Configure `.env` File**: You can create the environment file in one of two ways:
+### gas-fakes init --auth-type adc
 
-    *   **Interactive Setup **
-        Run the `setup.sh` script from within the `shells` directory. It will guide you through creating your `.env` file by asking for the necessary values. If an `.env` file already exists, it will use the existing values as defaults. This is similar, but less comprehensive than the gas-fakes-cli method.
-        ```sh
-        cd shells
-        ./setup.sh
-        ```
+This method is supported for cases where you do not have admin access to the Workspace admin console, and you only need to run gas-fakes locally. It relies on your local user credentials. Note that managing restricted/sensitive scopes need special workarounds in this mode. See [Restricted and sensitive scopes](https://ramblings.mcpher.com/how-to-allow-access-to-sensitive-scopes-with-application-default-credentials/) for more details.
 
-    *   **Manual Setup**
-        Alternatively, you can create a `.env` file in your project root manually. Here is an example with all possible variables:
-        ```env
-        # Google Cloud Project ID (required)
-        GCP_PROJECT_ID="your-gcp-project-id"
+```bash
+gas-fakes init --auth-type adc
+```
+In this mode, you provide the scopes required by your project via a the cli's init dialog.
 
-        # Path to OAuth client credentials for restricted scopes (optional, but recommended)
-        CLIENT_CREDENTIAL_FILE="private/your-credentials.json"
+## Step 3: Authorize and Enable APIs
 
-        # A test file ID for checking authentication (optional)
-        DRIVE_TEST_FILE_ID="some-drive-file-id-you-can-access"
+Once initialized, use the CLI to complete the authentication and enable the APIS. The CLI will guide you through the process. Note that the selections made in the init stage are persisted in your .env file, whichever method you chose, and used to direct the CLI to the correct authentication method.
 
-        # Storage configuration for PropertiesService and CacheService ('FILE' or 'UPSTASH')
-        # Defaults to 'FILE' if not set.
-        STORE_TYPE="UPSTASH"
-
-        # Logging destination for Logger.log() ('CONSOLE', 'CLOUD', 'BOTH', 'NONE')
-        # Defaults to 'CONSOLE' if not set.
-        LOG_DESTINATION="BOTH"
-
-        # Upstash credentials (only used if STORE_TYPE is 'UPSTASH')
-        UPSTASH_REDIS_REST_URL="https://your-instance.upstash.io"
-        UPSTASH_REDIS_REST_TOKEN="your-upstash-token"
-
-        # Whether to suppress messages from the gas-fakes API
-        QUIET="true"
-
-        ```
-
-## Step 3: Configure OAuth for Restricted Scopes - if you plan to use them
-
-Recent Google security policies require extra steps to access certain APIs (like Gmail etc.) with ADC. If you need to access these, you will need to create an OAuth client and mark it for "internal" use, otherwise the google auth login process will block your app.
-
-1.  **Go to OAuth Consent Screen**: In the Google Cloud Console, navigate to **APIs & Services -> OAuth consent screen** for your project.
-
-2.  **Configure Consent**:
-    *   Choose **Internal** for the User Type and click **Create**.
-    *   Give your app a name (e.g., "gas-fakes local dev"), provide a user support email, and add your own email as the developer contact. Click **Save and Continue**.
-
-3.  **Add Scopes**: On the "Scopes" page, click **Add or Remove Scopes**.
-    *   Scroll to the bottom and paste the full list of scopes your project will need into the text box under "Manually add scopes". This should be all the ones you plan to access, and should either match or be a superset of the ones in your .env file. The example below contains gmail.compose which would normally be blocked for Node access.
-    ```
-    https://www.googleapis.com/auth/userinfo.email,openid,https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/drive,https://www.googleapis.com/auth/spreadsheets,https://www.googleapis.com/auth/documents,https://www.googleapis.com/auth/gmail.labels,,https://www.googleapis.com/auth/gmail.compose
-    ```
-    *   Click **Add to Table**, then **Update**, and finally **Save and Continue**.
-
-4.  **Create OAuth Client ID**:
-    *   Navigate to **APIs & Services -> Credentials**.
-    *   Click **+ Create Credentials** and select **OAuth client ID**.
-    *   Set the Application type to **Desktop app**.
-    *   Give it a name (e.g., "gas-fakes desktop client").
-    *   Click **Create**. A popup will show your Client ID and Secret. Click **Download JSON** and save the file to a secure location in your project (e.g., a `private/` folder that is included in your `.gitignore`).
-
-5.  **Update `.env` with Credentials Path**: Add a new line to your `.env` file pointing to the JSON file you just downloaded.
-    Use your preferred method to update your .env file. Simplest is to rerun `gas-fakes init` which will prompt you through adding this value and your new restricted scopes(s)
-    ```
-    CLIENT_CREDENTIAL_FILE="private/your-downloaded-credentials-file.json"
-    ```
-
-## Step 4: Authorize Your Application
-
-Now, run the auth process again.
-
-1.  **Login with ADC**: This script initiates the Google login flow. It will open a browser window where you'll need to sign in and grant permission for the scopes you configured. 
+1.  **Authorize**:
     ```bash
     gas-fakes auth
     ```
@@ -135,11 +85,11 @@ Now, run the auth process again.
     gas-fakes enableAPIs
     ```
 
-## Step 5: Configure Your Project Files
+## Step 4: Configure Your Project Files
 
 `gas-fakes` reads local project files to understand your script's configuration.
 
-1.  **Manifest (`appsscript.json`)**: If you are syncing with a real Apps Script project via `clasp`, you will already have this file. If not, create one in your project root. `gas-fakes` reads the `oauthScopes` from this file to request the correct permissions.
+1.  **Manifest (`appsscript.json`)**: If you are syncing with a real Apps Script project via `clasp`, you will already have this file. If not, create one in your project root. `gas-fakes` reads the `oauthScopes` from this file to request the correct permissions. This is the same manifest you would use when running in live apps script.
 
 2.  **Settings (`gasfakes.json`)**: This optional file tells `gas-fakes` where to find things. If you don't provide one, it will be created with sensible defaults. For a detailed explanation of each property, see the Settings section in the main [readme](README.md)
 
@@ -154,7 +104,7 @@ Now, run the auth process again.
       "scriptId": "a-unique-id-for-your-local-project"
     }
     ```
-    *   `scriptId`: It's recommended to set a unique but static value here. This ensures that local data stores for `PropertiesService` and `CacheService` are persistent between runs.
+    *   `scriptId`: It's recommended to set a unique but static value here. This ensures that local data stores for `PropertiesService` and `CacheService` are persistent between runs. If you are runing the project in your apps script IDE as well as in gas-fakes you can make it the id of your live project. If a .clasp.json file is present gas-fakes will use the id from there. 
   
 
 ---
@@ -289,16 +239,16 @@ if (ScriptApp.isFake) {
 
 - [getting started](GETTING_STARTED.md) - how to handle authentication for restricted scopes.
 - [readme](README.md)
+- [gas fakes cli](gas-fakes-cli.md)
+- [running gas-fakes on google cloud run](cloud-run.md)
 - [initial idea and thoughts](https://ramblings.mcpher.com/a-proof-of-concept-implementation-of-apps-script-environment-on-node/)
 - [Inside the volatile world of a Google Document](https://ramblings.mcpher.com/inside-the-volatile-world-of-a-google-document/)
 - [Apps Script Services on Node – using apps script libraries](https://ramblings.mcpher.com/apps-script-services-on-node-using-apps-script-libraries/)
 - [Apps Script environment on Node – more services](https://ramblings.mcpher.com/apps-script-environment-on-node-more-services/)
 - [Turning async into synch on Node using workers](https://ramblings.mcpher.com/turning-async-into-synch-on-node-using-workers/)
 - [All about Apps Script Enums and how to fake them](https://ramblings.mcpher.com/all-about-apps-script-enums-and-how-to-fake-them/)
-- [Russian version](README.RU.md) ([credit Alex Ivanov](https://github.com/oshliaer)) - needs updating
 - [colaborators](collaborators.md) - additional information for collaborators
 - [oddities](oddities.md) - a collection of oddities uncovered during this project
-- [gemini](gemini-observations.md) - some reflections and experiences on using gemini to help code large projects
 - [named colors](named-colors.md)
 - [sandbox](sandbox.md)
 - [using apps script libraries with gas-fakes](libraries.md)
@@ -307,7 +257,6 @@ if (ScriptApp.isFake) {
 - [named range identity](named-range-identity.md)
 - [adc and restricted scopes](https://ramblings.mcpher.com/how-to-allow-access-to-sensitive-scopes-with-application-default-credentials/)
 - [push test pull](pull-test-push.md)
-- [gas fakes cli](gas-fakes-cli.md)
 - [sharing cache and properties between gas-fakes and live apps script](https://ramblings.mcpher.com/sharing-cache-and-properties-between-gas-fakes-and-live-apps-script/)
 - [gas-fakes-cli now has built in mcp server and gemini extension](https://ramblings.mcpher.com/gas-fakes-cli-now-has-built-in-mcp-server-and-gemini-extension/)
 - [gas-fakes CLI: Run apps script code directly from your terminal](https://ramblings.mcpher.com/gas-fakes-cli-run-apps-script-code-directly-from-your-terminal/)

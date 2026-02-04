@@ -3,7 +3,7 @@
 # Filter out specific keys from env file
 
 # Default keys to exclude (space-separated)
-DEFAULT_EXCLUDE="GCP_PROJECT_ID DRIVE_TEST_FILE_ID AC DEFAULT_SCOPES EXTRA_SCOPES LOG_DESTINATION"
+DEFAULT_EXCLUDE="GOOGLE_CLOUD_PROJECT GCP_PROJECT_ID DRIVE_TEST_FILE_ID AC DEFAULT_SCOPES EXTRA_SCOPES LOG_DESTINATION"
 
 
 # Check if exclude list is provided as argument

@@ -8,8 +8,7 @@
 import got from 'got';
 import { Auth } from './auth.js';
 import { syncError, syncLog } from './workersync/synclogger.js';
-import { homedir } from 'os';
-import { access, readFile, writeFile, mkdir } from 'fs/promises';
+import { readFile, writeFile, mkdir } from 'fs/promises';
 import path from 'path'
 
 
@@ -86,54 +85,58 @@ export const sxInit = async ({ manifestPath, claspPath, settingsPath, cachePath,
   // get the required scopes and set them
   const scopes = manifest.oauthScopes || []
 
-  // Initialize auth. This is async and will discover the project ID.
+  // Initialize auth. 
   const auth = await Auth.setAuth(scopes);
+
+  // static things we need to get into the main thread we can do now
   const projectId = Auth.getProjectId();
-  let accessToken = null
 
-  // need to handle an expired refresh token
-  try {
-    accessToken = await auth.getAccessToken()
-  } catch (error) {
-
-  }
-  let tokenInfo = null
-  try {
-    tokenInfo = await got(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${accessToken}`).json()
-  } catch (err) {
-    syncError(`Application default credentials needs attention`)
-    if (error.code === 400 && error.message.includes('invalid_grant')) {
-      // Log a specific, actionable error for the developer/operator
-      syncError("ADC 'invalid_grant' Error: The underlying Application Default Credentials have expired or been revoked.");
-      syncError("Helpful note: in your admin console under security/access amd data control there are a couple of settings to fiddle with token life")
-      syncError("Use your settaccount.sh to reauthenticate");
-      throw new Error('failed to get access token info : Use your settaccount.sh to reauthenticate')
-    }
-    throw error; // Re-throw any other errors
-  }
+  // the active user is the person we are (ADC) or pretending to be (Workload identity)
+  const [activeInfo, effectiveInfo] = await Promise.all([
+    Auth.getSourceAccessTokenInfo(),
+    Auth.getAccessTokenInfo()])
 
   /// these all jst exist in this sub process so we need to send them back to parent process
+  /// we'll send back the token, but it should be refreshed dynamically to handle expiry
+  const activeUser = {
+    id: activeInfo.tokenInfo.sub || activeInfo.tokenInfo.email || activeInfo.tokenInfo.user_id || 'unknown-active-user',
+    email: activeInfo.tokenInfo.email,
+    token: activeInfo.token
+  }
+  const effectiveUser = {
+    id: effectiveInfo.tokenInfo.sub || effectiveInfo.tokenInfo.email || effectiveInfo.tokenInfo.user_id || 'unknown-effective-user',
+    email: effectiveInfo.tokenInfo.email,
+    token: effectiveInfo.token
+  }
+
+  //syncLog(`[Auth] Active User TokenInfo: ${JSON.stringify(activeInfo.tokenInfo)}`)
+  //syncLog(`[Auth] Effective User TokenInfo: ${JSON.stringify(effectiveInfo.tokenInfo)}`)
+  // check that mandatory scopes have been allowed
+  const effectiveScopes = effectiveInfo.tokenInfo.scopes
+  // we strictly need the effective user ID (the one we are impersonating)
+  // but the active user (the SA) might not have a 'sub' on Cloud Run
+  if (!effectiveUser.id) {
+    const isOpenid = effectiveScopes.includes('openid')
+    throw new Error(`...unable to figure out effective user id - openid scope was ${isOpenid ? '' : 'not'} granted`)
+  }
+  if (!activeUser.email || !effectiveUser.email) {
+    const isEmail = effectiveScopes.includes('https://www.googleapis.com/auth/userinfo.email')
+    throw new Error(`...unable to figure out user email - userinfo.email scope was ${isEmail ? '' : 'not'} granted`)
+  }
+  const allowedScopes = new Set(effectiveScopes)
+  const missingScopes = scopes.filter(scope => !allowedScopes.has(scope))
+  if (missingScopes.length > 0) {
+    syncError(`...these scopes were asked for but not granted: ${missingScopes.join(', ')}`)
+  }
   return {
-    scopes,
+    // these will be the scopes we're allowed to get
+    scopes: effectiveScopes,
+    activeUser,
+    effectiveUser,
     projectId,
-    tokenInfo,
-    accessToken, // also return the token itself
     settings,
     manifest,
-    clasp
+    clasp,
   }
 }
 
-export const sxRefreshToken = async (Auth) => {
-  const auth = Auth.getAuth();
-  // force a refresh by clearing the cached credential
-  auth.cachedCredential = null;
-  const accessToken = await auth.getAccessToken();
-  const tokenInfo = await got(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${accessToken}`).json();
-
-  // update the worker's auth state
-  Auth.setAccessToken(accessToken);
-  Auth.setTokenInfo(tokenInfo);
-
-  return { accessToken, tokenInfo };
-};

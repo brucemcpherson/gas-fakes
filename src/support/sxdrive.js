@@ -7,92 +7,35 @@
  */
 
 import { responseSyncify } from './auth.js';
+import { sxRetry } from './sxretry.js';
 import intoStream from 'into-stream';
 import { getStreamAsBuffer } from 'get-stream';
 import { syncWarn, syncError, syncLog } from './workersync/synclogger.js';
 import { getDriveApiClient } from '../services/advdrive/drapis.js';
 import { translateFieldsToV2 } from './utils.js';
 
-
-/**
- * serializable reponse from a sync call
- * @typedef SxResponse
- * @property {number} status
- * @property {string} statusText
- * @property {string} responseUrl
- * @property {boolean} fromCache
- */
-
-/**
- * what's eventually returned from the sync call
- * @typedef SxResult
- * @property {*} data the data from the api call
- * @property {SxResponse} reponse the response from the api call
- */
-
-/**
- * serialized blob
- * @typedef SerializedBlob 
- * @property {string} name
- * @property {byte[]} bytes 
- */
-
-
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 export const sxDrive = async (Auth, { prop, method, params, options }) => {
 
   const apiClient = getDriveApiClient();
-  //syncLog(JSON.stringify ({ prop, method, params, options }))
-  const maxRetries = 7;
-  let delay = 1777;
+  const tag = `sxDrive for ${prop}.${method}`;
 
-  for (let i = 0; i < maxRetries; i++) {
-    let response;
-    let error;
+  return sxRetry(Auth, tag, async () => {
+    return apiClient[prop][method](params, options);
+  }, {
+    extraRetryCheck: (error, response) => {
+      // handle invalid field selection - sometimes old files dont support createdTime or modifiedTime
+      // we'll try to fallback to createdDate and modifiedDate
+      const isInvalidField = error?.message?.includes("Invalid field selection") && (params?.fields?.includes("createdTime") || params?.fields?.includes("modifiedTime"));
 
-    try {
-      const callish = apiClient[prop];
-      response = await callish[method](params, options);
-    } catch (err) {
-      error = err;
-      response = err.response;
+      if (isInvalidField) {
+        const fileId = params?.fileId ? ` for file ${params.fileId}` : "";
+        syncWarn(`Invalid field selection error on Drive API call ${prop}.${method}${fileId}. Retrying with v2 field names...`);
+        params.fields = translateFieldsToV2(params.fields);
+        return true;
+      }
+      return false;
     }
-
-    const isRetryable = [429, 500, 503].includes(response?.status) || error?.code == 429;
-
-    // handle invalid field selection - sometimes old files dont support createdTime or modifiedTime
-    // we'll try to fallback to createdDate and modifiedDate
-    const isInvalidField = error?.message?.includes("Invalid field selection") && (params?.fields?.includes("createdTime") || params?.fields?.includes("modifiedTime"));
-
-    if (isInvalidField && i < maxRetries - 1) {
-      const fileId = params?.fileId ? ` for file ${params.fileId}` : "";
-      syncWarn(`Invalid field selection error on Drive API call ${prop}.${method}${fileId}. Retrying with v2 field names...`);
-      params.fields = translateFieldsToV2(params.fields);
-      continue;
-    }
-
-    if (isRetryable && i < maxRetries - 1) {
-      // add a random jitter to avoid thundering herd
-      const jitter = Math.floor(Math.random() * 1000);
-      syncWarn(`Retryable error on Drive API call ${prop}.${method} (status: ${response?.status}). Retrying in ${delay + jitter}ms...`);
-      await sleep(delay + jitter);
-      delay *= 2;
-      continue;
-    }
-
-    if (error || isRetryable) {
-      syncError(`Failed in sxDrive for ${prop}.${method}`, error);
-      return {
-        data: null,
-        response: responseSyncify(response)
-      };
-    }
-    return {
-      data: response.data,
-      response: responseSyncify(response)
-    };
-  }
+  });
 };
 
 /**
