@@ -36,6 +36,15 @@ export const testFormResponse = (pack) => {
     const mcResp = mcItem.createResponse('Red');
     t.is(mcResp.getResponse(), 'Red', 'MultipleChoiceItem response value should match');
 
+    // ListItem
+    const listItem = form.addListItem().setTitle('Select Category');
+    listItem.setChoices([
+      listItem.createChoice('Category A'),
+      listItem.createChoice('Category B')
+    ]);
+    const listResp = listItem.createResponse('Category A');
+    t.is(listResp.getResponse(), 'Category A', 'ListItem response value should match');
+
     // ScaleItem
     const scaleItem = form.addScaleItem().setTitle('Rate');
     const scaleResp = scaleItem.createResponse(4);
