@@ -127,7 +127,7 @@ export const testGmail = (pack) => {
 
     // Deleting a non-existent label should throw an error
     const err = t.threw(() => GmailApp.deleteLabel(newLabel));
-    t.rxMatch(err.message, /(not found|invalid)/i, 'deleting an already deleted label should throw an error');
+    t.rxMatch(err?.message, /(not found|invalid)/i, 'deleting an already deleted label should throw an error');
   });
 
   unit.section("gmailapp getAliases", (t) => {

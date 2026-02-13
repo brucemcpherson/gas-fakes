@@ -4,6 +4,7 @@ import { newFakeFolderApp } from './fakefolderapp.js'
 import { notYetImplemented, isFolder } from '../../support/helpers.js'
 import { Proxies } from '../../support/proxies.js'
 import { Utils } from '../../support/utils.js'
+import { Access, Permission } from '../enums/driveenums.js'
 const { is } = Utils
 
 
@@ -157,10 +158,10 @@ export class FakeDriveApp {
     return notYetImplemented('enforceSingleParent')
   }
   get Access() {
-    return notYetImplemented('Access')
+    return Access
   }
   get Permission() {
-    return notYetImplemented('Permission')
+    return Permission
   }
 
 }

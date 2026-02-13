@@ -629,6 +629,15 @@ export class FakeForm {
   getPublishedUrl() {
     return `https://docs.google.com/forms/d/e/${this.getId()}/viewform`;
   }
+
+  /**
+   * Internal method to get the correct responder URI from the API resource.
+   * @returns {string} The responder URI.
+   */
+  __getResponderUri() {
+    return this.__resource.responderUri;
+  }
+
   /**
    * Gets the URL to respond to the form
    * https://github.com/brucemcpherson/gas-fakes/issues/111
@@ -643,6 +652,14 @@ export class FakeForm {
     }
     // apps script expects a url, but we return the published url and just ignore the url anyway
     return this.getPublishedUrl()
+  }
+
+  /**
+   * Creates a new response to the form.
+   * @returns {import('./fakeformresponse.js').FakeFormResponse} The newly created form response.
+   */
+  createResponse() {
+    return newFakeFormResponse(this, { answers: {} });
   }
 
   toString() {

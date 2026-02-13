@@ -37,15 +37,16 @@ export const sxRetry = async (Auth, tag, func, options = {}) => {
     }
 
     const redoCodes = [429, 500, 503, 408, 401]
+    const status = response?.status || response?.statusCode;
     const isRetryable = redoCodes.includes(error?.code) ||
-      redoCodes.includes(response?.status) ||
+      redoCodes.includes(status) ||
       error?.code === 'ETIMEDOUT' ||
       error?.code === 'ECONNRESET' ||
       error?.cause?.code === 'ETIMEDOUT' ||
       error?.cause?.code === 'ECONNRESET' ||
       error?.message?.includes('ETIMEDOUT') ||
       error?.message?.includes('ECONNRESET') ||
-      (response?.status === 403 && (
+      (status === 403 && (
         error?.message?.toLowerCase().includes('usage limit') ||
         error?.message?.toLowerCase().includes('rate limit') ||
         error?.errors?.some(e => ['rateLimitExceeded', 'userRateLimitExceeded', 'calendarUsageLimitsExceeded'].includes(e.reason))
@@ -53,14 +54,16 @@ export const sxRetry = async (Auth, tag, func, options = {}) => {
       extraRetryCheck(error, response);
 
     if (isRetryable && i < maxRetries - 1) {
-      const isAuthError = error?.code === 401 || response?.status === 401;
+      const isAuthError = error?.code === 401 || status === 401;
       if (isAuthError) {
+        // Only retry auth error once
+        if (i > 0) break;
         Auth.invalidateToken();
         syncWarn(`Authentication error (401) on ${tag}. Invalidated token and retrying immediately...`);
       } else {
         const jitter = Math.floor(Math.random() * 1000);
         const totalDelay = delay + jitter;
-        syncWarn(`Retryable error on ${tag} (status: ${response?.status || error?.code}). Retrying in ${totalDelay}ms...`);
+        syncWarn(`Retryable error on ${tag} (status: ${status || error?.code}). Retrying in ${totalDelay}ms...`);
         await sleep(totalDelay);
         delay *= 2;
       }
@@ -71,7 +74,7 @@ export const sxRetry = async (Auth, tag, func, options = {}) => {
       if (!skipLog(error, response)) {
         syncError(`Failed in ${tag}`, error);
       }
-      return { data: null, response: responseSyncify(response) };
+      return { data: error.data || null, response: responseSyncify(response) };
     }
 
     return { data: response.data, response: responseSyncify(response) };

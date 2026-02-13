@@ -333,6 +333,7 @@ export const responseSyncify = (result) => {
   if (!result) {
     return {
       status: 503, // Service Unavailable, a good representation for a worker-level failure
+      statusCode: 503,
       statusText: "Worker Error: No response object received from API call",
       error: {
         message: "Worker Error: No response object received from API call",
@@ -340,10 +341,15 @@ export const responseSyncify = (result) => {
     };
   }
   return {
-    status: result.status,
+    status: result.status || result.statusCode,
+    statusCode: result.status || result.statusCode,
     statusText: result.statusText,
-    responseUrl: result.request?.responseURL,
+    responseUrl: result.request?.responseURL || result.url,
     error: result.data?.error,
+    rawHeaders: result.rawHeaders,
+    headers: result.headers,
+    body: result.body,
+    rawBody: result.rawBody
   };
 };
 

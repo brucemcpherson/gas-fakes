@@ -12,8 +12,9 @@ const fixOptions = (options) => {
   if (options) {
     fixedOptions = { ...options }
     Object.keys(fixedOptions).forEach(k => {
-      if (k.match(/Content-Type/i)) {
-        fixedOptions.contentType = fixedOptions[k]
+      if (k.match(/Content-Type|contentType/i)) {
+        fixedOptions.headers = fixedOptions.headers || {}
+        fixedOptions.headers['Content-Type'] = fixedOptions[k]
         delete fixedOptions[k]
       }
       if (k.match(/payload/i)) {
@@ -25,6 +26,23 @@ const fixOptions = (options) => {
         delete fixedOptions[k]
       }
     })
+
+    // Apps Script UrlFetchApp behavior: 
+    // If the payload is an object and no content type is specified, 
+    // it defaults to application/x-www-form-urlencoded.
+    if (fixedOptions.body && typeof fixedOptions.body === 'object' && !fixedOptions.contentType) {
+      // If it's a Buffer or Stream, we shouldn't convert it. 
+      // But here we check for plain objects.
+      if (!(fixedOptions.body instanceof Buffer)) {
+        const params = new URLSearchParams();
+        for (const [key, value] of Object.entries(fixedOptions.body)) {
+          params.append(key, value);
+        }
+        fixedOptions.body = params.toString();
+        fixedOptions.headers = fixedOptions.headers || {};
+        fixedOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      }
+    }
   }
   return fixedOptions
 }
@@ -52,6 +70,17 @@ export const sxFetch = async (Auth, url, options, responseFields) => {
     const response = await got(url, {
       ...fixedOptions,
       responseType: 'buffer'
+    }).catch(err => {
+      if (err.response) {
+        const data = responseFields.reduce((p, c) => {
+          p[c] = err.response[c]
+          return p
+        }, {})
+        if (data.rawBody) data.rawBody = Array.from(data.rawBody);
+        if (data.body && Buffer.isBuffer(data.body)) data.body = Array.from(data.body);
+        err.data = data;
+      }
+      throw err;
     })
 
     // we cant return the response from this as it cant be serialized

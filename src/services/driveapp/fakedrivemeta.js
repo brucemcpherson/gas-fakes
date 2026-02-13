@@ -10,10 +10,12 @@
 
 import is from '@sindresorhus/is';
 import { isFolder, notYetImplemented, isFakeFolder, signatureArgs } from '../../support/helpers.js'
+import { Access, Permission } from '../enums/driveenums.js'
 import { getParentsIterator } from './driveiterators.js';
+import { getPermissionIterator } from '../../support/fileiterators.js';
 import { improveFileCache } from "../../support/filecache.js"
 import { getSharers } from '../../support/filesharers.js';
-import {slogger } from "../../support/slogger.js";
+import { slogger } from "../../support/slogger.js";
 /**
  * basic fake File meta data
  * these are shared between folders and files
@@ -34,13 +36,13 @@ export class FakeDriveMeta {
 
   __preventRootDamage = (operation) => {
     if (this.__isRoot) {
-      slogger.error (`Can't do ${operation} on root folder`)
+      slogger.error(`Can't do ${operation} on root folder`)
       throw new Error("Access denied: DriveApp")
     }
   }
-  get __isRoot () {
+  get __isRoot() {
     const parents = this.__getDecorated("parents")
-    return is.null (parents)
+    return is.null(parents)
   }
   /**
    * for enhancing the file with fields not retrieved by default
@@ -60,7 +62,7 @@ export class FakeDriveMeta {
     const newMeta = Drive.Files.get(this.getId(), { fields }, { allow404: false })
     // need to merge this with already known fields
     this.meta = { ...this.meta, ...newMeta }
-    improveFileCache (this.getId(), this.meta, fields)
+    improveFileCache(this.getId(), this.meta, fields)
     return this
   }
 
@@ -89,7 +91,7 @@ export class FakeDriveMeta {
   __updateMeta(prop, value, type, ...args) {
 
     // cant update any meta on root folder
-    this.__preventRootDamage (`set ${prop}`)
+    this.__preventRootDamage(`set ${prop}`)
     const { matchThrow } = signatureArgs(arguments, "update")
 
     if (!is[type](value)) {
@@ -99,9 +101,9 @@ export class FakeDriveMeta {
     file[prop] = value
 
     const data = Drive.Files.update(file, this.getId(), null, prop)
-    this.meta = {...this.meta, ...data}
-    improveFileCache (this.getId(), data)
-    
+    this.meta = { ...this.meta, ...data }
+    improveFileCache(this.getId(), data)
+
     return this
   }
 
@@ -206,14 +208,14 @@ export class FakeDriveMeta {
   moveTo(destination) {
     // prepare for any arg errors
     const { matchThrow } = signatureArgs(arguments, "moveTo", "DriveApp.Folder")
-   
+
     if (!isFakeFolder(destination)) {
       matchThrow()
     }
     // pick up parents for destination if not already known
     const newParent = destination.getId()
     if (!is.nonEmptyString(newParent)) {
-      throw new Error (`expected to find destination id as a string but got ${newParent}`)
+      throw new Error(`expected to find destination id as a string but got ${newParent}`)
     }
 
     // cant move the root folder
@@ -260,6 +262,84 @@ export class FakeDriveMeta {
    */
   setShareableByEditors(value) {
     return this.__updateMeta("writersCanShare", value, "boolean", arguments)
+  }
+
+  /**
+   * Sets the sharing permission and access for the Folder/File.
+   * @param {import('../enums/driveenums.js').Access} access the access level
+   * @param {import('../enums/driveenums.js').Permission} permission the permission level
+   * @returns {FakeDriveFile|FakeDriveFolder} this self
+   */
+  setSharing(access, permission) {
+    const { nargs, matchThrow } = signatureArgs(arguments, "setSharing");
+    if (nargs !== 2) matchThrow();
+
+    // Mapping Appsscript Access/Permission to Drive API role/type
+    // This is a simplified version, as setSharing usually affects "anyone" or "domain" permissions.
+    // In Drive API v3, it involves managing permissions with types 'anyone' or 'domain'.
+
+    // 1. Determine type based on access
+    let type;
+    let role;
+    let allowFileDiscovery = false;
+
+    if (access === Access.ANYONE || access === Access.ANYONE_WITH_LINK) {
+      type = 'anyone';
+      allowFileDiscovery = (access === Access.ANYONE);
+    } else if (access === Access.DOMAIN || access === Access.DOMAIN_WITH_LINK) {
+      type = 'domain';
+      allowFileDiscovery = (access === Access.DOMAIN);
+    } else if (access === Access.PRIVATE) {
+      // For PRIVATE, we typically remove any 'anyone' or 'domain' permissions.
+      const { permissions } = Drive.Permissions.list(this.getId());
+      permissions.forEach(p => {
+        if (p.type === 'anyone' || p.type === 'domain') {
+          Drive.Permissions.delete(this.getId(), p.id);
+        }
+      });
+      return this;
+    }
+
+    // 2. Determine role based on permission
+    if (permission === Permission.VIEW || permission === Permission.READ) {
+      role = 'reader';
+    } else if (permission === Permission.COMMENT) {
+      role = 'commenter';
+    } else if (permission === Permission.EDIT) {
+      role = 'writer';
+    } else {
+      throw new Error(`Unsupported permission level for setSharing: ${permission}`);
+    }
+
+    // 3. Find existing permission of this type or create new
+    const { permissions } = Drive.Permissions.list(this.getId(), {
+      fields: "permissions(id,role,type,allowFileDiscovery,domain)"
+    });
+    const existing = permissions.find(p => p.type === type);
+
+    if (existing) {
+      // If the identity fields (type, allowFileDiscovery, domain) have changed, we must delete and recreate
+      const domain = type === 'domain' ? Session.getActiveUser().getDomain() : undefined;
+      const identityChanged = existing.allowFileDiscovery !== allowFileDiscovery ||
+        (type === 'domain' && existing.domain !== domain);
+
+      if (identityChanged) {
+        Drive.Permissions.delete(this.getId(), existing.id);
+        const resource = { role, type, allowFileDiscovery };
+        if (type === 'domain') resource.domain = domain;
+        Drive.Permissions.create(resource, this.getId());
+      } else {
+        // Only role is writable in update
+        Drive.Permissions.update({ role }, this.getId(), existing.id);
+      }
+    } else {
+      const resource = { role, type, allowFileDiscovery };
+      if (type === 'domain') resource.domain = Session.getActiveUser().getDomain();
+      Drive.Permissions.create(resource, this.getId());
+    }
+
+    improveFileCache(this.getId(), null);
+    return this;
   }
 
   /**
@@ -320,12 +400,60 @@ export class FakeDriveMeta {
   // TODO-----------
 
   getSharingPermission() {
-    return notYetImplemented('getSharingPermission')
+    const pit = getPermissionIterator({ id: this.getId() });
+    let highest = Permission.NONE;
+
+    const rank = (p) => {
+      if (p === Permission.OWNER) return 6;
+      if (p === Permission.EDIT) return 5;
+      if (p === Permission.COMMENT) return 4;
+      if (p === Permission.VIEW || p === Permission.READ) return 3;
+      return 0;
+    }
+
+    while (pit.hasNext()) {
+      const p = pit.next();
+      let current = Permission.NONE;
+      if (p.type === 'anyone' || p.type === 'domain') {
+        if (p.role === 'owner') current = Permission.OWNER;
+        else if (p.role === 'writer') current = Permission.EDIT;
+        else if (p.role === 'commenter') current = Permission.COMMENT;
+        else if (p.role === 'reader') current = Permission.VIEW;
+
+        if (rank(current) > rank(highest)) {
+          highest = current;
+        }
+      }
+    }
+    return highest;
   }
 
-
   getSharingAccess() {
-    return notYetImplemented('getSharingAccess')
+    const pit = getPermissionIterator({ id: this.getId() });
+    let highest = Access.PRIVATE;
+
+    const rank = (a) => {
+      if (a === Access.ANYONE) return 4;
+      if (a === Access.ANYONE_WITH_LINK) return 3;
+      if (a === Access.DOMAIN) return 2;
+      if (a === Access.DOMAIN_WITH_LINK) return 1;
+      return 0;
+    }
+
+    while (pit.hasNext()) {
+      const p = pit.next();
+      let current = Access.PRIVATE;
+      if (p.type === 'anyone') {
+        current = p.allowFileDiscovery ? Access.ANYONE : Access.ANYONE_WITH_LINK;
+      } else if (p.type === 'domain') {
+        current = p.allowFileDiscovery ? Access.DOMAIN : Access.DOMAIN_WITH_LINK;
+      }
+
+      if (rank(current) > rank(highest)) {
+        highest = current;
+      }
+    }
+    return highest;
   }
 
 
@@ -333,9 +461,6 @@ export class FakeDriveMeta {
     return notYetImplemented('getResourceKey')
   }
 
-  setSharing() {
-    return notYetImplemented('setSharing')
-  }
   getSecurityUpdateEligible() {
     return notYetImplemented('getSecurityUpdateEligible')
   }

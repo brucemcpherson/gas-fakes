@@ -31,6 +31,21 @@ class FakeAdvDrivePermissions extends FakeAdvResource {
     return data;
   }
 
+  update(resource, fileId, permissionId, optionalArgs) {
+    const { nargs, matchThrow } = signatureArgs(arguments, "Drive.Permissions.update");
+    if (nargs < 3 || nargs > 4) matchThrow();
+
+    ScriptApp.__behavior.isAccessible(fileId, 'Drive', 'write');
+    const params = {
+      resource,
+      fileId,
+      permissionId,
+      ...(optionalArgs || {})
+    };
+    const { data } = this._call('update', params);
+    return data;
+  }
+
   delete(fileId, permissionId, optionalArgs) {
     const { nargs, matchThrow } = signatureArgs(arguments, "Drive.Permissions.delete");
     if (nargs < 2 || nargs > 3) matchThrow();

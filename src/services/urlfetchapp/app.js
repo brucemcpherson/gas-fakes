@@ -13,12 +13,23 @@ import { Proxies } from '../../support/proxies.js'
  * @return {FakeHTTPResponse} UrlFetchApp flavor 
  */
 const responsify = (response) => {
+  if (!response) {
+    // Return a dummy response that identifies as an error
+    return {
+      getAllHeaders: () => ({}),
+      getResponseCode: () => 500,
+      getContentText: () => "UrlFetchApp: No response data available.",
+      getHeaders: () => ({}),
+      getBlob: () => null,
+      getContent: () => []
+    }
+  }
 
   // getAllHeaders()	Object	Returns an attribute/value map of headers for the HTTP response, with headers that have multiple values returned as arrays.
   const getAllHeaders = () => fixHeaders(response)
 
   // getResponseCode()	Integer	Get the HTTP status code (200 for OK, etc.) of an HTTP response
-  const getResponseCode = () => response.statusCode
+  const getResponseCode = () => response.statusCode || response.status || 500
 
   // getContentText()	String	Gets the content of an HTTP response encoded as a string.
   const getContentText = () => blobify(response).getDataAsString()
