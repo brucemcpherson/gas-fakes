@@ -914,6 +914,29 @@ This has been confirmed through experimentation and is a known limitation.
 
 Because `gas-fakes` relies exclusively on public APIs, it is impossible to emulate the live behavior of `setPublished()`. To accurately reflect this limitation of the public API, the `setPublished()` method in the fake `FormApp` service throws a "not yet implemented" error. This prevents developers from writing code that works in the local fake environment but would fail if migrated to a context that uses the public API directly.
 
+#### Inability to Programmatically Submit Responses (`submit`)
+
+A major gap exists between the Apps Script `FormApp` service and the public Google Forms API v1 regarding the ability to submit responses.
+
+##### Live Apps Script Behavior
+
+In Apps Script, `FormResponse.submit()` allows a response to be programmatically submitted to a form. This works even if the form is restricted to a specific domain or requires a login, as the `FormApp` service appears to have internal, privileged access to the form's backend.
+
+##### The Problem with API Emulation
+
+The public Google Forms API v1 provides **no endpoint** to submit a response. It is strictly a management and retrieval API (allowing you to read form structure, watch for responses, or read existing responses).
+
+##### `gas-fakes` Workaround
+
+To provide a working `submit()` method, `gas-fakes` uses a "web submission hack":
+1. It identifies the public form submission URL (e.g., swapping `/viewform` for `/formResponse`).
+2. It captures the current sharing state of the form file.
+3. It **temporarily** makes the form public (`ANYONE_WITH_LINK` / `VIEW`).
+4. It uses `UrlFetchApp.fetch` to perform a `POST` request with the response payload.
+5. It immediately restores the form's original sharing permissions.
+
+This workaround bypasses the API limitation but introduces a brief (milliseconds) "security hole" where the form is public. This is a clear case of a missing capability in the public API compared to the Apps Script environment.
+
 ### item ids Forms API -vs- FormApp
 
 The Forms API returns item ids as hex strings, while Apps Script FormApp returns them as numbers. This leads to all kinds of complications when using the API and Apps Script interoperably. gas-fakes attempts to bridge this gap by providing returning all Ids from the FormApp emulation as numbers, and converting them to and from hex strings when interacting with the Forms API. This was very tricky as there are all kinds od ids embedded in the forms API responses and requests. It's possible I've missed some so if you get apis errors about id types/mismatches please raise an issue in the repo.
