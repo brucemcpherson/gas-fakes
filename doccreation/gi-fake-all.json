@@ -43,7 +43,7 @@
             "returnType": "File",
             "returnDescription": "This File, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L383"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L508"
           },
           {
             "method": "addEditor(User)",
@@ -52,7 +52,7 @@
             "returnType": "File",
             "returnDescription": "This File, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L383"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L508"
           },
           {
             "method": "addEditors(String)",
@@ -61,7 +61,7 @@
             "returnType": "File",
             "returnDescription": "This File, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L397"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L522"
           },
           {
             "method": "addViewer(String)",
@@ -70,7 +70,7 @@
             "returnType": "File",
             "returnDescription": "This File, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L362"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L487"
           },
           {
             "method": "addViewer(User)",
@@ -79,7 +79,7 @@
             "returnType": "File",
             "returnDescription": "This File, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L362"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L487"
           },
           {
             "method": "addViewers(String)",
@@ -88,7 +88,7 @@
             "returnType": "File",
             "returnDescription": "This File, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L362"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L487"
           },
           {
             "method": "getAccess(String)",
@@ -97,7 +97,7 @@
             "returnType": "Permission",
             "returnDescription": "The permissions granted to the user.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L348"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L473"
           },
           {
             "method": "getAccess(User)",
@@ -106,7 +106,7 @@
             "returnType": "Permission",
             "returnDescription": "The permissions granted to the user.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L348"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L473"
           },
           {
             "method": "getAs(String)",
@@ -133,7 +133,7 @@
             "returnType": "Date",
             "returnDescription": "the date the File was created",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L147"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L149"
           },
           {
             "method": "getDescription()",
@@ -142,7 +142,7 @@
             "returnType": "String",
             "returnDescription": "the description for the File",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L141"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L143"
           },
           {
             "method": "getDownloadUrl()",
@@ -160,7 +160,7 @@
             "returnType": "User[]",
             "returnDescription": "If the user has edit access for this File, returns the list of\n    editors. If the user doesn't have edit access, returns an empty array.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L189"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L191"
           },
           {
             "method": "getId()",
@@ -178,7 +178,7 @@
             "returnType": "Date",
             "returnDescription": "the date the File was last updated",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L137"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L139"
           },
           {
             "method": "getMimeType()",
@@ -205,7 +205,7 @@
             "returnType": "User",
             "returnDescription": "The file owner.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L170"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L172"
           },
           {
             "method": "getParents()",
@@ -214,7 +214,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "a collection of folders that are immediate parents of the File",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L13"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L14"
           },
           {
             "method": "getResourceKey()",
@@ -223,7 +223,7 @@
             "returnType": "String",
             "returnDescription": "The resource key of the File.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L332"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L460"
           },
           {
             "method": "getSecurityUpdateEligible()",
@@ -232,7 +232,7 @@
             "returnType": "Boolean",
             "returnDescription": "Whether the resource key requirement can be applied for the File.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L339"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L464"
           },
           {
             "method": "getSecurityUpdateEnabled()",
@@ -241,7 +241,7 @@
             "returnType": "Boolean",
             "returnDescription": "Whether the resource key requirement is enabled for this File.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L342"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L467"
           },
           {
             "method": "getSharingAccess()",
@@ -249,8 +249,8 @@
             "description": "Gets which class of users can access the File, besides any individual\nusers who have been explicitly given access.",
             "returnType": "Access",
             "returnDescription": "which class of users can access the File",
-            "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L327"
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L431"
           },
           {
             "method": "getSharingPermission()",
@@ -258,8 +258,8 @@
             "description": "Gets the permission granted to those users who can access the File,\nbesides any individual users who have been explicitly given access.",
             "returnType": "Permission",
             "returnDescription": "the permissions granted to users who can access the File",
-            "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L322"
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L402"
           },
           {
             "method": "getSize()",
@@ -268,7 +268,7 @@
             "returnType": "Integer",
             "returnDescription": "the number of bytes used to store the File in Drive",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L150"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L152"
           },
           {
             "method": "getTargetId()",
@@ -313,7 +313,7 @@
             "returnType": "String",
             "returnDescription": "the URL that can be used to view this File in a Google App like\n    Drive or Docs",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L197"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L199"
           },
           {
             "method": "getViewers()",
@@ -322,7 +322,7 @@
             "returnType": "User[]",
             "returnDescription": "If the user has edit access for this File, returns the list of\n    viewers and commenters. If the user doesn't have edit access, returns an empty array.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L181"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L183"
           },
           {
             "method": "isShareableByEditors()",
@@ -331,7 +331,7 @@
             "returnType": "Boolean",
             "returnDescription": "true if users with edit permissions are allowed to share with other users or\n    change the permissions; false if not",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L269"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L349"
           },
           {
             "method": "isStarred()",
@@ -340,7 +340,7 @@
             "returnType": "Boolean",
             "returnDescription": "true if the File is starred in the user's Drive; false if not",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L129"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L131"
           },
           {
             "method": "isTrashed()",
@@ -349,7 +349,7 @@
             "returnType": "Boolean",
             "returnDescription": "true if the File is in the trash of the user's Drive;\n    false if not",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L133"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L135"
           },
           {
             "method": "makeCopy()",
@@ -394,7 +394,7 @@
             "returnType": "File",
             "returnDescription": "This File, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L206"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L208"
           },
           {
             "method": "removeCommenter(String)",
@@ -421,7 +421,7 @@
             "returnType": "File",
             "returnDescription": "This File, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L376"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L501"
           },
           {
             "method": "removeEditor(User)",
@@ -430,7 +430,7 @@
             "returnType": "File",
             "returnDescription": "This File, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L376"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L501"
           },
           {
             "method": "removeViewer(String)",
@@ -439,7 +439,7 @@
             "returnType": "File",
             "returnDescription": "This File for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L390"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L515"
           },
           {
             "method": "removeViewer(User)",
@@ -448,7 +448,7 @@
             "returnType": "File",
             "returnDescription": "This File for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L390"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L515"
           },
           {
             "method": "revokePermissions(String)",
@@ -457,7 +457,7 @@
             "returnType": "File",
             "returnDescription": "This File, for chaining.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L353"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L478"
           },
           {
             "method": "revokePermissions(User)",
@@ -466,7 +466,7 @@
             "returnType": "File",
             "returnDescription": "This File, for chaining.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L353"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L478"
           },
           {
             "method": "setContent(String)",
@@ -484,7 +484,7 @@
             "returnType": "File",
             "returnDescription": "this File, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L244"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L246"
           },
           {
             "method": "setName(String)",
@@ -493,7 +493,7 @@
             "returnType": "File",
             "returnDescription": "this File, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L252"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L254"
           },
           {
             "method": "setOwner(String)",
@@ -502,7 +502,7 @@
             "returnType": "File",
             "returnDescription": "this File, for chaining",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L358"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L483"
           },
           {
             "method": "setOwner(User)",
@@ -511,7 +511,7 @@
             "returnType": "File",
             "returnDescription": "this File, for chaining",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L358"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L483"
           },
           {
             "method": "setSecurityUpdateEnabled(Boolean)",
@@ -520,7 +520,7 @@
             "returnType": "File",
             "returnDescription": "This File, for chaining.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L345"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L470"
           },
           {
             "method": "setShareableByEditors(Boolean)",
@@ -529,7 +529,7 @@
             "returnType": "File",
             "returnDescription": "this File, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L261"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L263"
           },
           {
             "method": "setSharing(Access,Permission)",
@@ -537,8 +537,8 @@
             "description": "",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L336"
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L273"
           },
           {
             "method": "setStarred(Boolean)",
@@ -547,7 +547,7 @@
             "returnType": "File",
             "returnDescription": "this File, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L278"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L358"
           },
           {
             "method": "setTrashed(Boolean)",
@@ -556,7 +556,7 @@
             "returnType": "File",
             "returnDescription": "this File, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L287"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L367"
           }
         ]
       },
@@ -608,7 +608,7 @@
             "returnType": "Folder",
             "returnDescription": "This Folder, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L383"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L508"
           },
           {
             "method": "addEditor(User)",
@@ -617,7 +617,7 @@
             "returnType": "Folder",
             "returnDescription": "This Folder, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L383"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L508"
           },
           {
             "method": "addEditors(String)",
@@ -626,7 +626,7 @@
             "returnType": "Folder",
             "returnDescription": "This Folder, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L397"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L522"
           },
           {
             "method": "addViewer(String)",
@@ -635,7 +635,7 @@
             "returnType": "Folder",
             "returnDescription": "This Folder, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L362"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L487"
           },
           {
             "method": "addViewer(User)",
@@ -644,7 +644,7 @@
             "returnType": "Folder",
             "returnDescription": "This Folder, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L362"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L487"
           },
           {
             "method": "addViewers(String)",
@@ -653,7 +653,7 @@
             "returnType": "Folder",
             "returnDescription": "This Folder, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L362"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L487"
           },
           {
             "method": "createFile(BlobSource)",
@@ -716,7 +716,7 @@
             "returnType": "Permission",
             "returnDescription": "The permissions granted to the user.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L348"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L473"
           },
           {
             "method": "getAccess(User)",
@@ -725,7 +725,7 @@
             "returnType": "Permission",
             "returnDescription": "The permissions granted to the user.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L348"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L473"
           },
           {
             "method": "getDateCreated()",
@@ -734,7 +734,7 @@
             "returnType": "Date",
             "returnDescription": "the date the Folder was created",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L147"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L149"
           },
           {
             "method": "getDescription()",
@@ -743,7 +743,7 @@
             "returnType": "String",
             "returnDescription": "the description for the Folder",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L141"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L143"
           },
           {
             "method": "getEditors()",
@@ -752,7 +752,7 @@
             "returnType": "User[]",
             "returnDescription": "The list of editors for this Folder if the user has edit access or an\n    empty array otherwise.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L189"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L191"
           },
           {
             "method": "getFiles()",
@@ -815,7 +815,7 @@
             "returnType": "Date",
             "returnDescription": "the date the Folder was last updated",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L137"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L139"
           },
           {
             "method": "getName()",
@@ -824,7 +824,7 @@
             "returnType": "String",
             "returnDescription": "the name of the Folder",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L110"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L112"
           },
           {
             "method": "getOwner()",
@@ -833,7 +833,7 @@
             "returnType": "User",
             "returnDescription": "The owner of this Folder.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L170"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L172"
           },
           {
             "method": "getParents()",
@@ -842,7 +842,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "a collection of folders that are immediate parents of the Folder",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L13"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L14"
           },
           {
             "method": "getResourceKey()",
@@ -851,7 +851,7 @@
             "returnType": "String",
             "returnDescription": "The resource key of the Folder.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L332"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L460"
           },
           {
             "method": "getSecurityUpdateEligible()",
@@ -860,7 +860,7 @@
             "returnType": "Boolean",
             "returnDescription": "Whether the resource key requirement can be applied for the Folder.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L339"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L464"
           },
           {
             "method": "getSecurityUpdateEnabled()",
@@ -869,7 +869,7 @@
             "returnType": "Boolean",
             "returnDescription": "Whether the resource key requirement is enabled for this Folder.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L342"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L467"
           },
           {
             "method": "getSharingAccess()",
@@ -877,8 +877,8 @@
             "description": "Gets which class of users can access the Folder, besides any individual\nusers who have been explicitly given access.",
             "returnType": "Access",
             "returnDescription": "which class of users can access the Folder",
-            "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L327"
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L431"
           },
           {
             "method": "getSharingPermission()",
@@ -886,8 +886,8 @@
             "description": "Gets the permission granted to those users who can access the Folder,\nbesides any individual users who have been explicitly given access.",
             "returnType": "Permission",
             "returnDescription": "the permissions granted to users who can access the Folder",
-            "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L322"
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L402"
           },
           {
             "method": "getSize()",
@@ -896,7 +896,7 @@
             "returnType": "Integer",
             "returnDescription": "the number of bytes used to store the Folder in Drive",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L150"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L152"
           },
           {
             "method": "getUrl()",
@@ -905,7 +905,7 @@
             "returnType": "String",
             "returnDescription": "the URL that can be used to view this Folder in a Google App like\n    Drive or Docs",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L197"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L199"
           },
           {
             "method": "getViewers()",
@@ -914,7 +914,7 @@
             "returnType": "User[]",
             "returnDescription": "The list of viewers and commenters for this Folder if the user has edit\n    access or an empty array otherwise.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L181"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L183"
           },
           {
             "method": "isShareableByEditors()",
@@ -923,7 +923,7 @@
             "returnType": "Boolean",
             "returnDescription": "true if users with edit permissions are allowed to share with other users or\n    change the permissions; false if not",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L269"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L349"
           },
           {
             "method": "isStarred()",
@@ -932,7 +932,7 @@
             "returnType": "Boolean",
             "returnDescription": "true if the Folder is starred in the user's Drive; false if not",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L129"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L131"
           },
           {
             "method": "isTrashed()",
@@ -941,7 +941,7 @@
             "returnType": "Boolean",
             "returnDescription": "true if the Folder is in the trash of the user's Drive;\n    false if not",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L133"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L135"
           },
           {
             "method": "moveTo(Folder)",
@@ -950,7 +950,7 @@
             "returnType": "Folder",
             "returnDescription": "This Folder, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L206"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L208"
           },
           {
             "method": "removeEditor(String)",
@@ -959,7 +959,7 @@
             "returnType": "Folder",
             "returnDescription": "This Folder, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L376"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L501"
           },
           {
             "method": "removeEditor(User)",
@@ -968,7 +968,7 @@
             "returnType": "Folder",
             "returnDescription": "This Folder, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L376"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L501"
           },
           {
             "method": "removeViewer(String)",
@@ -977,7 +977,7 @@
             "returnType": "Folder",
             "returnDescription": "This Folder for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L390"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L515"
           },
           {
             "method": "removeViewer(User)",
@@ -986,7 +986,7 @@
             "returnType": "Folder",
             "returnDescription": "This Folder for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L390"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L515"
           },
           {
             "method": "revokePermissions(String)",
@@ -995,7 +995,7 @@
             "returnType": "Folder",
             "returnDescription": "This Folder, for chaining.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L353"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L478"
           },
           {
             "method": "revokePermissions(User)",
@@ -1004,7 +1004,7 @@
             "returnType": "Folder",
             "returnDescription": "This Folder, for chaining.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L353"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L478"
           },
           {
             "method": "searchFiles(String)",
@@ -1031,7 +1031,7 @@
             "returnType": "Folder",
             "returnDescription": "this Folder, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L244"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L246"
           },
           {
             "method": "setName(String)",
@@ -1040,7 +1040,7 @@
             "returnType": "Folder",
             "returnDescription": "this Folder, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L252"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L254"
           },
           {
             "method": "setOwner(String)",
@@ -1049,7 +1049,7 @@
             "returnType": "Folder",
             "returnDescription": "this Folder, for chaining",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L358"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L483"
           },
           {
             "method": "setOwner(User)",
@@ -1058,7 +1058,7 @@
             "returnType": "Folder",
             "returnDescription": "this Folder, for chaining",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L358"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L483"
           },
           {
             "method": "setSecurityUpdateEnabled(Boolean)",
@@ -1067,7 +1067,7 @@
             "returnType": "Folder",
             "returnDescription": "This Folder, for chaining.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L345"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L470"
           },
           {
             "method": "setShareableByEditors(Boolean)",
@@ -1076,7 +1076,7 @@
             "returnType": "Folder",
             "returnDescription": "this Folder, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L261"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L263"
           },
           {
             "method": "setSharing(Access,Permission)",
@@ -1084,8 +1084,8 @@
             "description": "",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L336"
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L273"
           },
           {
             "method": "setStarred(Boolean)",
@@ -1094,7 +1094,7 @@
             "returnType": "Folder",
             "returnDescription": "this Folder, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L278"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L358"
           },
           {
             "method": "setTrashed(Boolean)",
@@ -1103,7 +1103,7 @@
             "returnType": "Folder",
             "returnDescription": "this Folder, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L287"
+            "implementationLink": "src/services/driveapp/fakedrivemeta.js#L367"
           }
         ]
       },
@@ -1199,7 +1199,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of files that remained in a previous iterator when the continuation token\n    was generated.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L137"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L138"
           },
           {
             "method": "continueFolderIterator(String)",
@@ -1208,7 +1208,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "A collection of folders that remained in a previous iterator when the continuation\n    token was generated.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L140"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L141"
           },
           {
             "method": "createFile(BlobSource)",
@@ -1217,7 +1217,7 @@
             "returnType": "File",
             "returnDescription": "The new file.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L117"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L118"
           },
           {
             "method": "createFile(String,String)",
@@ -1226,7 +1226,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L117"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L118"
           },
           {
             "method": "createFile(String,String,String)",
@@ -1235,7 +1235,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L117"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L118"
           },
           {
             "method": "createFolder(String)",
@@ -1244,7 +1244,7 @@
             "returnType": "Folder",
             "returnDescription": "The new folder.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L124"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L125"
           },
           {
             "method": "createShortcut(String)",
@@ -1271,7 +1271,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L156"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L157"
           },
           {
             "method": "getFileById(String)",
@@ -1280,7 +1280,7 @@
             "returnType": "File",
             "returnDescription": "The file with the given ID.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L46"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L47"
           },
           {
             "method": "getFileByIdAndResourceKey(String,String)",
@@ -1289,7 +1289,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L133"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L134"
           },
           {
             "method": "getFiles()",
@@ -1298,7 +1298,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of all files in the user's Drive.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L66"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L67"
           },
           {
             "method": "getFilesByName(String)",
@@ -1307,7 +1307,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of all files in the user's Drive that have the given name.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L84"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L85"
           },
           {
             "method": "getFilesByType(String)",
@@ -1316,7 +1316,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of all files in the user's Drive that have the given MIME\n    type.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L109"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L110"
           },
           {
             "method": "getFolderById(String)",
@@ -1325,7 +1325,7 @@
             "returnType": "Folder",
             "returnDescription": "The folder with the given ID.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L54"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L55"
           },
           {
             "method": "getFolderByIdAndResourceKey(String,String)",
@@ -1334,7 +1334,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L130"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L131"
           },
           {
             "method": "getFolders()",
@@ -1343,7 +1343,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "A collection of all folders in the user's Drive.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L74"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L75"
           },
           {
             "method": "getFoldersByName(String)",
@@ -1352,7 +1352,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "A collection of all folders in the user's Drive that have the given name.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L83"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L84"
           },
           {
             "method": "getRootFolder()",
@@ -1361,7 +1361,7 @@
             "returnType": "Folder",
             "returnDescription": "The root folder of the user's Drive.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L35"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L36"
           },
           {
             "method": "getStorageLimit()",
@@ -1370,7 +1370,7 @@
             "returnType": "Integer",
             "returnDescription": "The number of bytes the user is allowed to store in Drive.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L150"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L151"
           },
           {
             "method": "getStorageUsed()",
@@ -1379,7 +1379,7 @@
             "returnType": "Integer",
             "returnDescription": "The number of bytes the user is currently storing in Drive.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L153"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L154"
           },
           {
             "method": "getTrashedFiles()",
@@ -1388,7 +1388,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of files in the trash.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L143"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L144"
           },
           {
             "method": "getTrashedFolders()",
@@ -1397,7 +1397,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "A collection of folders in the trash.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L146"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L147"
           },
           {
             "method": "searchFiles(String)",
@@ -1406,7 +1406,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of all files in the user's Drive that match the search\n    criteria.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L96"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L97"
           },
           {
             "method": "searchFolders(String)",
@@ -1415,7 +1415,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "A collection of all folders in the user's Drive that match the search\n    criteria.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L100"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L101"
           }
         ]
       },
@@ -1430,40 +1430,40 @@
             "description": "Anyone on the Internet can find and access. No sign-in required.\n\nDomain administrators can prohibit this setting for users of a Google Workspace domain. If\nthe setting is disabled, passing this value to File.setSharing(accessType, permissionType) throws an exception.",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/enums/driveenums.js#L4"
           },
           {
             "method": "ANYONE_WITH_LINK",
             "description": "Anyone who has the link can access. No sign-in required.\n\nDomain administrators can prohibit this setting for users of a Google Workspace domain. If\nthe setting is disabled, passing this value to File.setSharing(accessType, permissionType) throws an exception.",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/enums/driveenums.js#L5"
           },
           {
             "method": "DOMAIN",
             "description": "People in your domain can find and access. Sign-in required.\n\nThis setting is available only for users of a Google Workspace domain. For other types of\nGoogle accounts, passing this value to File.setSharing(accessType, permissionType) throws\nan exception.",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/enums/driveenums.js#L6"
           },
           {
             "method": "DOMAIN_WITH_LINK",
             "description": "People in your domain who have the link can access. Sign-in required.\n\nThis setting is available only for users of a Google Workspace domain. For other types of\nGoogle accounts, passing this value to File.setSharing(accessType, permissionType) throws\nan exception.",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/enums/driveenums.js#L7"
           },
           {
             "method": "PRIVATE",
             "description": "Only people explicitly granted permission can access. Sign-in required.",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/enums/driveenums.js#L8"
           }
         ]
       },
@@ -1478,40 +1478,40 @@
             "description": "Users who can access the file or folder are able only to view it or copy it. Passing this value\nto File.setSharing(accessType, permissionType) throws an exception if the type of file\ndoes not support it.",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/enums/driveenums.js#L18"
           },
           {
             "method": "EDIT",
             "description": "Users who can access the file or folder are able to edit it. Unless File.setShareableByEditors(shareable) is set to false, users can also change the sharing\nsettings. Passing this value to File.setSharing(accessType, permissionType) throws an\nexception if the type of file does not support it.",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/enums/driveenums.js#L13"
           },
           {
             "method": "COMMENT",
             "description": "Users who can access the file or folder are able only to view it, copy it, or comment on it.\nPassing this value to File.setSharing(accessType, permissionType) throws an exception if\nthe type of file does not support it.",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/enums/driveenums.js#L12"
           },
           {
             "method": "OWNER",
             "description": "The user owns the file or folder. This value can be returned, but passing it to File.setSharing(accessType, permissionType) throws an exception.",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/enums/driveenums.js#L16"
           },
           {
             "method": "ORGANIZER",
             "description": "Users who can organize files and folders within a shared drive. This value can be returned, but\npassing it to File.setSharing(accessType, permissionType) throws an exception.",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/enums/driveenums.js#L15"
           },
           {
             "method": "FILE_ORGANIZER",
@@ -1526,8 +1526,8 @@
             "description": "The user does not have any permissions for the file or folder. This value can be returned, but\npassing it to File.setSharing(accessType, permissionType) throws an exception unless it\nis set in combination with Access.ANYONE.",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/enums/driveenums.js#L14"
           }
         ]
       }
@@ -17381,7 +17381,7 @@
             "returnType": "Integer",
             "returnDescription": "the index of the item",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L120"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L122"
           },
           {
             "method": "getPoints()",
@@ -17399,7 +17399,7 @@
             "returnType": "String",
             "returnDescription": "the item's title or header text",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L125"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L127"
           },
           {
             "method": "getType()",
@@ -17426,7 +17426,7 @@
             "returnType": "Boolean",
             "returnDescription": "whether the respondent must answer the question",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L222"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L224"
           },
           {
             "method": "setChoiceValues(String)",
@@ -17471,7 +17471,7 @@
             "returnType": "CheckboxItem",
             "returnDescription": "this CheckboxItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L172"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L174"
           },
           {
             "method": "setPoints(Integer)",
@@ -17489,7 +17489,7 @@
             "returnType": "CheckboxItem",
             "returnDescription": "the current item (for chaining)",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L236"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L238"
           },
           {
             "method": "setTitle(String)",
@@ -17498,7 +17498,7 @@
             "returnType": "CheckboxItem",
             "returnDescription": "this CheckboxItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L194"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L196"
           },
           {
             "method": "setValidation(CheckboxValidation)",
@@ -17605,7 +17605,7 @@
             "returnType": "String",
             "returnDescription": "the item's title or header text",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L125"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L127"
           },
           {
             "method": "getType()",
@@ -17623,7 +17623,7 @@
             "returnType": "Boolean",
             "returnDescription": "whether the respondent must answer the question",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L222"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L224"
           },
           {
             "method": "setColumns(String)",
@@ -17641,7 +17641,7 @@
             "returnType": "CheckboxGridItem",
             "returnDescription": "this CheckboxGridItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L172"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L174"
           },
           {
             "method": "setRequired(Boolean)",
@@ -17650,7 +17650,7 @@
             "returnType": "CheckboxGridItem",
             "returnDescription": "the current item (for chaining)",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L236"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L238"
           },
           {
             "method": "setRows(String)",
@@ -17668,7 +17668,7 @@
             "returnType": "CheckboxGridItem",
             "returnDescription": "this CheckboxGridItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L194"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L196"
           },
           {
             "method": "setValidation(CheckboxGridValidation)",
@@ -17948,7 +17948,7 @@
             "returnType": "Integer",
             "returnDescription": "the index of the item",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L120"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L122"
           },
           {
             "method": "getPoints()",
@@ -17966,7 +17966,7 @@
             "returnType": "String",
             "returnDescription": "the item's title or header text",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L125"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L127"
           },
           {
             "method": "getType()",
@@ -17993,7 +17993,7 @@
             "returnType": "Boolean",
             "returnDescription": "whether the respondent must answer the question",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L222"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L224"
           },
           {
             "method": "setGeneralFeedback(QuizFeedback)",
@@ -18011,7 +18011,7 @@
             "returnType": "DateItem",
             "returnDescription": "this DateItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L172"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L174"
           },
           {
             "method": "setIncludesYear(Boolean)",
@@ -18038,7 +18038,7 @@
             "returnType": "DateItem",
             "returnDescription": "the current item (for chaining)",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L236"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L238"
           },
           {
             "method": "setTitle(String)",
@@ -18047,7 +18047,7 @@
             "returnType": "DateItem",
             "returnDescription": "this DateItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L194"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L196"
           }
         ]
       },
@@ -18109,7 +18109,7 @@
             "returnType": "Integer",
             "returnDescription": "the index of the item",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L120"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L122"
           },
           {
             "method": "getPoints()",
@@ -18127,7 +18127,7 @@
             "returnType": "String",
             "returnDescription": "the item's title or header text",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L125"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L127"
           },
           {
             "method": "getType()",
@@ -18154,7 +18154,7 @@
             "returnType": "Boolean",
             "returnDescription": "whether the respondent must answer the question",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L222"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L224"
           },
           {
             "method": "setGeneralFeedback(QuizFeedback)",
@@ -18172,7 +18172,7 @@
             "returnType": "DateTimeItem",
             "returnDescription": "this DateTimeItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L172"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L174"
           },
           {
             "method": "setIncludesYear(Boolean)",
@@ -18199,7 +18199,7 @@
             "returnType": "DateTimeItem",
             "returnDescription": "the current item (for chaining)",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L236"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L238"
           },
           {
             "method": "setTitle(String)",
@@ -18208,7 +18208,7 @@
             "returnType": "DateTimeItem",
             "returnDescription": "this DateTimeItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L194"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L196"
           }
         ]
       },
@@ -18270,7 +18270,7 @@
             "returnType": "Integer",
             "returnDescription": "the index of the item",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L120"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L122"
           },
           {
             "method": "getPoints()",
@@ -18288,7 +18288,7 @@
             "returnType": "String",
             "returnDescription": "the item's title or header text",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L125"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L127"
           },
           {
             "method": "getType()",
@@ -18306,7 +18306,7 @@
             "returnType": "Boolean",
             "returnDescription": "whether the respondent must answer the question",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L222"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L224"
           },
           {
             "method": "setGeneralFeedback(QuizFeedback)",
@@ -18324,7 +18324,7 @@
             "returnType": "DurationItem",
             "returnDescription": "this DurationItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L172"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L174"
           },
           {
             "method": "setPoints(Integer)",
@@ -18342,7 +18342,7 @@
             "returnType": "DurationItem",
             "returnDescription": "the current item (for chaining)",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L236"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L238"
           },
           {
             "method": "setTitle(String)",
@@ -18351,7 +18351,7 @@
             "returnType": "DurationItem",
             "returnDescription": "this DurationItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L194"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L196"
           }
         ]
       },
@@ -18592,8 +18592,8 @@
             "description": "Creates a new response to the form. To answer a question item, create an ItemResponse\nfrom the item, then attach it to this form response by calling FormResponse.withItemResponse(response). To save the assembled response, call FormResponse.submit().",
             "returnType": "FormResponse",
             "returnDescription": "The newly created form response.",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/formapp/fakeform.js#L661"
           },
           {
             "method": "deleteAllResponses()",
@@ -19070,7 +19070,7 @@
             "returnType": "String",
             "returnDescription": "A URL in the form http://goo.gl/forms/1234.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeform.js#L638"
+            "implementationLink": "src/services/formapp/fakeform.js#L647"
           },
           {
             "method": "submitGrades(FormResponse)",
@@ -19132,7 +19132,7 @@
             "returnType": "String",
             "returnDescription": "The ID of the form response, or null if the form response has not been\n    submitted.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformresponse.js#L36"
+            "implementationLink": "src/services/formapp/fakeformresponse.js#L39"
           },
           {
             "method": "getItemResponses()",
@@ -19141,7 +19141,7 @@
             "returnType": "ItemResponse[]",
             "returnDescription": "An array of responses to every question item within the form for which the respondent\n    provided an answer.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformresponse.js#L52"
+            "implementationLink": "src/services/formapp/fakeformresponse.js#L55"
           },
           {
             "method": "getRespondentEmail()",
@@ -19150,7 +19150,7 @@
             "returnType": "String",
             "returnDescription": "The email address of the person who submitted this response, if available, or null if the script created this response but has not yet submitted it.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformresponse.js#L28"
+            "implementationLink": "src/services/formapp/fakeformresponse.js#L31"
           },
           {
             "method": "getResponseForItem(Item)",
@@ -19168,7 +19168,7 @@
             "returnType": "Date",
             "returnDescription": "The timestamp at which this response was submitted, or null if the script\n    created this response but has not yet submitted it.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformresponse.js#L44"
+            "implementationLink": "src/services/formapp/fakeformresponse.js#L47"
           },
           {
             "method": "submit()",
@@ -19177,7 +19177,7 @@
             "returnType": "FormResponse",
             "returnDescription": "A newly created response saved to the form's response store.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformresponse.js#L41"
+            "implementationLink": "src/services/formapp/fakeformresponse.js#L44"
           },
           {
             "method": "toPrefilledUrl()",
@@ -19203,8 +19203,8 @@
             "description": "Adds the given item response to a form response. This method applies only to form responses\nthat the script has created but not yet submitted; it cannot affect stored responses. If this\nmethod is called multiple times for the same item, only the last item response is retained.",
             "returnType": "FormResponse",
             "returnDescription": "This FormResponse, for chaining.",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/formapp/fakeformresponse.js#L95"
           }
         ]
       },
@@ -19603,7 +19603,7 @@
             "returnType": "String",
             "returnDescription": "the item's title or header text",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L125"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L127"
           },
           {
             "method": "getType()",
@@ -19621,7 +19621,7 @@
             "returnType": "Boolean",
             "returnDescription": "whether the respondent must answer the question",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L222"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L224"
           },
           {
             "method": "setColumns(String)",
@@ -19639,7 +19639,7 @@
             "returnType": "GridItem",
             "returnDescription": "this GridItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L172"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L174"
           },
           {
             "method": "setRequired(Boolean)",
@@ -19648,7 +19648,7 @@
             "returnType": "GridItem",
             "returnDescription": "the current item (for chaining)",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L236"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L238"
           },
           {
             "method": "setRows(String)",
@@ -19666,7 +19666,7 @@
             "returnType": "GridItem",
             "returnDescription": "this GridItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L194"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L196"
           },
           {
             "method": "setValidation(GridValidation)",
@@ -19791,7 +19791,7 @@
             "returnType": "Integer",
             "returnDescription": "the index of the item",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L120"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L122"
           },
           {
             "method": "getPoints()",
@@ -19809,7 +19809,7 @@
             "returnType": "String",
             "returnDescription": "the item's title or header text",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L125"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L127"
           },
           {
             "method": "getType()",
@@ -19836,7 +19836,7 @@
             "returnType": "Boolean",
             "returnDescription": "whether the respondent must answer the question",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L222"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L224"
           },
           {
             "method": "setChoiceValues(String)",
@@ -19881,7 +19881,7 @@
             "returnType": "MultipleChoiceItem",
             "returnDescription": "this MultipleChoiceItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L172"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L174"
           },
           {
             "method": "setPoints(Integer)",
@@ -19899,7 +19899,7 @@
             "returnType": "MultipleChoiceItem",
             "returnDescription": "the current item (for chaining)",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L236"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L238"
           },
           {
             "method": "setTitle(String)",
@@ -19908,7 +19908,7 @@
             "returnType": "MultipleChoiceItem",
             "returnDescription": "this MultipleChoiceItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L194"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L196"
           },
           {
             "method": "showOtherOption(Boolean)",
@@ -19979,7 +19979,7 @@
             "returnType": "Integer",
             "returnDescription": "the index of the item",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L120"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L122"
           },
           {
             "method": "getTitle()",
@@ -19988,7 +19988,7 @@
             "returnType": "String",
             "returnDescription": "the item's title or header text",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L125"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L127"
           },
           {
             "method": "getType()",
@@ -20024,7 +20024,7 @@
             "returnType": "ImageItem",
             "returnDescription": "this ImageItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L172"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L174"
           },
           {
             "method": "setImage(BlobSource)",
@@ -20042,7 +20042,7 @@
             "returnType": "ImageItem",
             "returnDescription": "this ImageItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L194"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L196"
           },
           {
             "method": "setWidth(Integer)",
@@ -20122,7 +20122,7 @@
             "returnType": "Integer",
             "returnDescription": "the index of the item",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L120"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L122"
           },
           {
             "method": "getPoints()",
@@ -20140,7 +20140,7 @@
             "returnType": "String",
             "returnDescription": "the item's title or header text",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L125"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L127"
           },
           {
             "method": "getType()",
@@ -20158,7 +20158,7 @@
             "returnType": "Boolean",
             "returnDescription": "whether the respondent must answer the question",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L222"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L224"
           },
           {
             "method": "setGeneralFeedback(QuizFeedback)",
@@ -20176,7 +20176,7 @@
             "returnType": "ParagraphTextItem",
             "returnDescription": "this ParagraphTextItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L172"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L174"
           },
           {
             "method": "setPoints(Integer)",
@@ -20194,7 +20194,7 @@
             "returnType": "ParagraphTextItem",
             "returnDescription": "the current item (for chaining)",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L236"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L238"
           },
           {
             "method": "setTitle(String)",
@@ -20203,7 +20203,7 @@
             "returnType": "ParagraphTextItem",
             "returnDescription": "this ParagraphTextItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L194"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L196"
           },
           {
             "method": "setValidation(ParagraphTextValidation)",
@@ -20272,7 +20272,7 @@
             "returnType": "Integer",
             "returnDescription": "the index of the item",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L120"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L122"
           },
           {
             "method": "getPageNavigationType()",
@@ -20290,7 +20290,7 @@
             "returnType": "String",
             "returnDescription": "the item's title or header text",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L125"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L127"
           },
           {
             "method": "getType()",
@@ -20326,7 +20326,7 @@
             "returnType": "PageBreakItem",
             "returnDescription": "this PageBreakItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L172"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L174"
           },
           {
             "method": "setTitle(String)",
@@ -20335,7 +20335,7 @@
             "returnType": "PageBreakItem",
             "returnDescription": "this PageBreakItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L194"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L196"
           }
         ]
       },
@@ -20530,7 +20530,7 @@
             "returnType": "String",
             "returnDescription": "the item's title or header text",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L125"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L127"
           },
           {
             "method": "getType()",
@@ -20557,7 +20557,7 @@
             "returnType": "Boolean",
             "returnDescription": "whether the respondent must answer the question",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L222"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L224"
           },
           {
             "method": "setBounds(Integer,Integer)",
@@ -20584,7 +20584,7 @@
             "returnType": "ScaleItem",
             "returnDescription": "this ScaleItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L172"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L174"
           },
           {
             "method": "setLabels(String,String)",
@@ -20611,7 +20611,7 @@
             "returnType": "ScaleItem",
             "returnDescription": "the current item (for chaining)",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L236"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L238"
           },
           {
             "method": "setTitle(String)",
@@ -20620,7 +20620,7 @@
             "returnType": "ScaleItem",
             "returnDescription": "this ScaleItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L194"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L196"
           }
         ]
       },
@@ -20682,7 +20682,7 @@
             "returnType": "Integer",
             "returnDescription": "the index of the item",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L120"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L122"
           },
           {
             "method": "getPoints()",
@@ -20718,7 +20718,7 @@
             "returnType": "String",
             "returnDescription": "the item's title or header text",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L125"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L127"
           },
           {
             "method": "getType()",
@@ -20736,7 +20736,7 @@
             "returnType": "Boolean",
             "returnDescription": "whether the respondent must answer the question",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L222"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L224"
           },
           {
             "method": "setGeneralFeedback(QuizFeedback)",
@@ -20754,7 +20754,7 @@
             "returnType": "RatingItem",
             "returnDescription": "this RatingItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L172"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L174"
           },
           {
             "method": "setPoints(Integer)",
@@ -20790,7 +20790,7 @@
             "returnType": "RatingItem",
             "returnDescription": "the current item (for chaining)",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L236"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L238"
           },
           {
             "method": "setTitle(String)",
@@ -20799,7 +20799,7 @@
             "returnType": "RatingItem",
             "returnDescription": "this RatingItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L194"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L196"
           }
         ]
       },
@@ -20843,7 +20843,7 @@
             "returnType": "Integer",
             "returnDescription": "the index of the item",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L120"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L122"
           },
           {
             "method": "getTitle()",
@@ -20852,7 +20852,7 @@
             "returnType": "String",
             "returnDescription": "the item's title or header text",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L125"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L127"
           },
           {
             "method": "getType()",
@@ -20870,7 +20870,7 @@
             "returnType": "SectionHeaderItem",
             "returnDescription": "this SectionHeaderItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L172"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L174"
           },
           {
             "method": "setTitle(String)",
@@ -20879,7 +20879,7 @@
             "returnType": "SectionHeaderItem",
             "returnDescription": "this SectionHeaderItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L194"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L196"
           }
         ]
       },
@@ -21388,7 +21388,7 @@
             "returnType": "Integer",
             "returnDescription": "the index of the item",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L120"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L122"
           },
           {
             "method": "getPoints()",
@@ -21406,7 +21406,7 @@
             "returnType": "String",
             "returnDescription": "the item's title or header text",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L125"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L127"
           },
           {
             "method": "getType()",
@@ -21424,7 +21424,7 @@
             "returnType": "Boolean",
             "returnDescription": "whether the respondent must answer the question",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L222"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L224"
           },
           {
             "method": "setGeneralFeedback(QuizFeedback)",
@@ -21442,7 +21442,7 @@
             "returnType": "TimeItem",
             "returnDescription": "this TimeItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L172"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L174"
           },
           {
             "method": "setPoints(Integer)",
@@ -21460,7 +21460,7 @@
             "returnType": "TimeItem",
             "returnDescription": "the current item (for chaining)",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L236"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L238"
           },
           {
             "method": "setTitle(String)",
@@ -21469,7 +21469,7 @@
             "returnType": "TimeItem",
             "returnDescription": "this TimeItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L194"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L196"
           }
         ]
       },
@@ -21699,7 +21699,7 @@
             "returnType": "Integer",
             "returnDescription": "the index of the item",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L120"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L122"
           },
           {
             "method": "getTitle()",
@@ -21708,7 +21708,7 @@
             "returnType": "String",
             "returnDescription": "the item's title or header text",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L125"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L127"
           },
           {
             "method": "getType()",
@@ -21744,7 +21744,7 @@
             "returnType": "VideoItem",
             "returnDescription": "this VideoItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L172"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L174"
           },
           {
             "method": "setTitle(String)",
@@ -21753,7 +21753,7 @@
             "returnType": "VideoItem",
             "returnDescription": "this VideoItem, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeformitem.js#L194"
+            "implementationLink": "src/services/formapp/fakeformitem.js#L196"
           },
           {
             "method": "setVideoUrl(String)",
@@ -23081,7 +23081,7 @@
             "returnType": "HTTPResponse",
             "returnDescription": "The HTTP response data.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/urlfetchapp/app.js#L76"
+            "implementationLink": "src/services/urlfetchapp/app.js#L87"
           },
           {
             "method": "fetch(String,Object)",
@@ -23090,7 +23090,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/urlfetchapp/app.js#L76"
+            "implementationLink": "src/services/urlfetchapp/app.js#L87"
           },
           {
             "method": "fetchAll(Object)",
@@ -23099,7 +23099,7 @@
             "returnType": "HTTPResponse[]",
             "returnDescription": "An array of HTTP response data from each input request.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/urlfetchapp/app.js#L94"
+            "implementationLink": "src/services/urlfetchapp/app.js#L105"
           },
           {
             "method": "getRequest(String)",
@@ -23134,7 +23134,7 @@
             "returnType": "Object",
             "returnDescription": "a JavaScript key/value map of HTTP headers",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/urlfetchapp/app.js#L17"
+            "implementationLink": "src/services/urlfetchapp/app.js#L19"
           },
           {
             "method": "getAs(String)",
@@ -23143,7 +23143,7 @@
             "returnType": "Blob",
             "returnDescription": "The data as a blob.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/urlfetchapp/app.js#L60"
+            "implementationLink": "src/services/urlfetchapp/app.js#L71"
           },
           {
             "method": "getBlob()",
@@ -23152,7 +23152,7 @@
             "returnType": "Blob",
             "returnDescription": "The data as a blob.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/urlfetchapp/app.js#L32"
+            "implementationLink": "src/services/urlfetchapp/app.js#L23"
           },
           {
             "method": "getContent()",
@@ -23161,7 +23161,7 @@
             "returnType": "Byte[]",
             "returnDescription": "the content as a raw binary array",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/urlfetchapp/app.js#L23"
+            "implementationLink": "src/services/urlfetchapp/app.js#L21"
           },
           {
             "method": "getContentText()",
@@ -23170,7 +23170,7 @@
             "returnType": "String",
             "returnDescription": "the content of the HTTP response, as a string",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/urlfetchapp/app.js#L23"
+            "implementationLink": "src/services/urlfetchapp/app.js#L21"
           },
           {
             "method": "getContentText(String)",
@@ -23179,7 +23179,7 @@
             "returnType": "String",
             "returnDescription": "the content of the HTTP response, encoded using the given charset",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/urlfetchapp/app.js#L23"
+            "implementationLink": "src/services/urlfetchapp/app.js#L21"
           },
           {
             "method": "getHeaders()",
@@ -23188,7 +23188,7 @@
             "returnType": "Object",
             "returnDescription": "a JavaScript key/value map of HTTP headers",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/urlfetchapp/app.js#L26"
+            "implementationLink": "src/services/urlfetchapp/app.js#L22"
           },
           {
             "method": "getResponseCode()",
