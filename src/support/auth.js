@@ -197,6 +197,8 @@ const setAuth = async (scopes = [], mcpLoading = false) => {
 
         if (!tokenResponse.ok) {
           const errorText = await tokenResponse.text()
+          console.log ('... it looks like you forgot to enable domain-wide delegation for the service account')
+          console.log ('... rerun gas-fakes auth and check the instructions about enabling domain-wide delegation')
           throw new Error(`Failed to exchange JWT for token: ${errorText}`)
         }
 

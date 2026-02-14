@@ -36,22 +36,35 @@ export const sxRetry = async (Auth, tag, func, options = {}) => {
       response = err.response;
     }
 
-    const redoCodes = [429, 500, 503, 408, 401]
+    const redoCodes = [429, 500, 503, 408, 401];
+    const networkErrorCodes = [
+      'ETIMEDOUT',
+      'ECONNRESET',
+      'ENETDOWN',
+      'ENETUNREACH',
+      'ECONNREFUSED',
+      'EPIPE',
+      'EAI_AGAIN',
+      'EHOSTUNREACH'
+    ];
     const status = response?.status || response?.statusCode;
-    const isRetryable = redoCodes.includes(error?.code) ||
-      redoCodes.includes(status) ||
-      error?.code === 'ETIMEDOUT' ||
-      error?.code === 'ECONNRESET' ||
-      error?.cause?.code === 'ETIMEDOUT' ||
-      error?.cause?.code === 'ECONNRESET' ||
-      error?.message?.includes('ETIMEDOUT') ||
-      error?.message?.includes('ECONNRESET') ||
-      (status === 403 && (
-        error?.message?.toLowerCase().includes('usage limit') ||
-        error?.message?.toLowerCase().includes('rate limit') ||
-        error?.errors?.some(e => ['rateLimitExceeded', 'userRateLimitExceeded', 'calendarUsageLimitsExceeded'].includes(e.reason))
-      )) ||
-      extraRetryCheck(error, response);
+
+    let retryReason = redoCodes.includes(error?.code) ? error.code :
+      redoCodes.includes(status) ? status :
+        networkErrorCodes.includes(error?.code) ? error.code :
+          networkErrorCodes.includes(error?.cause?.code) ? error.cause.code :
+            networkErrorCodes.find(code => error?.message?.includes(code));
+
+    if (!retryReason && status === 403 && (
+      error?.message?.toLowerCase().includes('usage limit') ||
+      error?.message?.toLowerCase().includes('rate limit') ||
+      error?.errors?.some(e => ['rateLimitExceeded', 'userRateLimitExceeded', 'calendarUsageLimitsExceeded'].includes(e.reason))
+    )) {
+      retryReason = 'Rate Limit';
+    }
+
+    const isRetryable = !!retryReason || extraRetryCheck(error, response);
+    if (isRetryable && !retryReason) retryReason = 'Extra Check';
 
     if (isRetryable && i < maxRetries - 1) {
       const isAuthError = error?.code === 401 || status === 401;
@@ -63,7 +76,7 @@ export const sxRetry = async (Auth, tag, func, options = {}) => {
       } else {
         const jitter = Math.floor(Math.random() * 1000);
         const totalDelay = delay + jitter;
-        syncWarn(`Retryable error on ${tag} (status: ${status || error?.code}). Retrying in ${totalDelay}ms...`);
+        syncWarn(`Retryable error on ${tag} (status: ${status || error?.code}, reason: ${retryReason}). Retrying in ${totalDelay}ms...`);
         await sleep(totalDelay);
         delay *= 2;
       }
@@ -71,6 +84,22 @@ export const sxRetry = async (Auth, tag, func, options = {}) => {
     }
 
     if (error) {
+      if (isRetryable && i === maxRetries - 1) {
+        // We've exhausted retries. Mark the error message to indicate this.
+        const msg = `Max retries reached (${maxRetries}) for reason ${retryReason}: ${error.message}`;
+        if (!response) {
+          response = {
+            status: 504,
+            statusText: msg,
+            data: { error: { message: msg } }
+          };
+        } else {
+          response.data = response.data || {};
+          response.data.error = response.data.error || { message: error.message };
+          response.data.error.message = `Max retries reached (${maxRetries}) for reason ${retryReason}: ${response.data.error.message}`;
+        }
+      }
+
       if (!skipLog(error, response)) {
         syncError(`Failed in ${tag}`, error);
       }

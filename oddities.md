@@ -937,6 +937,22 @@ To provide a working `submit()` method, `gas-fakes` uses a "web submission hack"
 
 This workaround bypasses the API limitation but introduces a brief (milliseconds) "security hole" where the form is public. This is a clear case of a missing capability in the public API compared to the Apps Script environment.
 
+#### Inability to Programmatically Delete Responses (`deleteAllResponses`)
+
+The Google Forms API v1 does not provide any endpoint to delete form responses.
+
+##### Live Apps Script Behavior
+
+In Apps Script, `Form.deleteAllResponses()` clears all submitted responses from the form.
+
+##### The Problem with API Emulation
+
+Because there is no corresponding endpoint in the public Forms API, `gas-fakes` cannot emulate this behavior reliably.
+
+##### `gas-fakes` Implementation
+
+To reflect this limitation, `Form.deleteAllResponses()` in the fake `FormApp` service throws a detailed error.
+
 ### item ids Forms API -vs- FormApp
 
 The Forms API returns item ids as hex strings, while Apps Script FormApp returns them as numbers. This leads to all kinds of complications when using the API and Apps Script interoperably. gas-fakes attempts to bridge this gap by providing returning all Ids from the FormApp emulation as numbers, and converting them to and from hex strings when interacting with the Forms API. This was very tricky as there are all kinds od ids embedded in the forms API responses and requests. It's possible I've missed some so if you get apis errors about id types/mismatches please raise an issue in the repo.

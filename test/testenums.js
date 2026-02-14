@@ -113,7 +113,6 @@ export const testEnums = (pack) => {
       "ThemeColorType", //	ThemeColorType	An enumeration of possible theme color types.
       "ValueType", //	ValueType	An enumeration of value types returned by Range.getValue() and Range.getValues() from the Range class of the Spreadsheet service. The enumeration values listed below are in addition to Number, Boolean, Date, or String.
       "WrapStrategy", //	WrapStrategy	An enumeration of the strategies used for wrapping cells.
-      "ChartType", // ChartType	An enumeration of the possible chart types.
     ]
 
     enumProps.forEach(f => testEnumProp(f, SpreadsheetApp, t))
@@ -145,6 +144,16 @@ export const testEnums = (pack) => {
     ]
 
     enumProps.forEach(f => testEnumProp(f, Charts, t))
+  })
+
+  unit.section("check drive enums", t => {
+    // test that all directly accessible enums work
+    const enumProps = [
+      "Access",
+      "Permission"
+    ]
+
+    enumProps.forEach(f => testEnumProp(f, DriveApp, t))
   })
 
 

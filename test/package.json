@@ -78,6 +78,6 @@
   "repository": "github:brucemcpherson/gas-fakes",
   "homepage": "https://ramblings.mcpher.com/a-proof-of-concept-implementation-of-apps-script-environment-on-node/",
   "devDependencies": {
-    "dotenv": "^17.2.4"
+    "dotenv": "^17.3.1"
   }
 }

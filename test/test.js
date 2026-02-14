@@ -74,18 +74,22 @@ export const testFakes = () => {
   const pack = initTests();
   const { unit } = pack;
 
-  console.log("\n----Test ScriptApp----");
-  testScriptApp(pack);
-  console.log("\n----Test docsadv----");
-  testDocsAdv(pack);
-  console.log("\n----Test docs----");
-  testDocs(pack);
-  console.log("\n----Test docs images----");
-  testDocsImages(pack);
-  console.log("\n----Test docs next----");
-  testDocsNext(pack);
-  console.log("\n----Test docs list items----");
-  testDocsListItems(pack);
+
+  console.log("\n----Test Sheets DataValidations----");
+  testSheetsDataValidations(pack);
+  console.log("\n----Test Sheets compat with UI----");
+  testSheetsVui(pack);
+  console.log("\n----Test Sheets Sets----");
+  testSheetsSets(pack);
+  console.log("\n----Test Sheets Permissions----");
+  testSheetsPermissions(pack);
+  console.log("\n----Test Sheets----");
+  testSheets(pack);
+  console.log("\n----Test SheetsValues----");
+  testSheetsValues(pack);
+  console.log("\n----Test SheetsDeveloper----");
+  testSheetsDeveloper(pack);
+
   console.log("\n----Test Enums----");
   testEnums(pack);
   console.log("\n----Test Sheets text----");
@@ -100,7 +104,18 @@ export const testFakes = () => {
   testFormWebHack(pack);
   console.log("\n----Test drive sharing----");
   testDriveSharing(pack);
-
+  console.log("\n----Test ScriptApp----");
+  testScriptApp(pack);
+  console.log("\n----Test docsadv----");
+  testDocsAdv(pack);
+  console.log("\n----Test docs----");
+  testDocs(pack);
+  console.log("\n----Test docs images----");
+  testDocsImages(pack);
+  console.log("\n----Test docs next----");
+  testDocsNext(pack);
+  console.log("\n----Test docs list items----");
+  testDocsListItems(pack);
   console.log("\n----Test Logger----");
   testLogger(pack);
 
@@ -159,25 +174,8 @@ export const testFakes = () => {
   console.log("\n----Test formresponse----");
   testFormResponse(pack);
 
-
-
   console.log("\n----Test Sheets Data----");
   testSheetsData(pack);
-  console.log("\n----Test Sheets DataValidations----");
-  testSheetsDataValidations(pack);
-  console.log("\n----Test Sheets compat with UI----");
-  testSheetsVui(pack);
-  console.log("\n----Test Sheets Sets----");
-  testSheetsSets(pack);
-  console.log("\n----Test Sheets Permissions----");
-  testSheetsPermissions(pack);
-  console.log("\n----Test Sheets----");
-  testSheets(pack);
-  console.log("\n----Test SheetsValues----");
-  testSheetsValues(pack);
-  console.log("\n----Test SheetsDeveloper----");
-  testSheetsDeveloper(pack);
-
   console.log("\n----Test Fiddler----");
   testFiddler(pack);
   console.log("\n----Test Drive----");

@@ -662,6 +662,14 @@ export class FakeForm {
     return newFakeFormResponse(this, { answers: {} });
   }
 
+  /**
+   * Deletes all responses from the form.
+   * @returns {FakeForm} The form, for chaining.
+   */
+  deleteAllResponses() {
+    throw new Error('deleteAllResponses is not yet implemented in the fake environment because the Google Forms API v1 does not support deleting responses.');
+  }
+
   toString() {
     return 'Form';
   }

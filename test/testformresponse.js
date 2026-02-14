@@ -98,6 +98,22 @@ export const testFormResponse = (pack) => {
     t.is(durationResp.getResponse(), '01:02:03', 'DurationItem response value should be HH:mm:ss');
   });
 
+  unit.section('Form.deleteAllResponses', (t) => {
+    const form = FormApp.create('Delete Responses Test');
+    toTrash.push(DriveApp.getFileById(form.getId()));
+
+    if (FormApp.isFake) {
+      const err = t.threw(() => form.deleteAllResponses());
+      t.truthy(err, 'deleteAllResponses should throw in fake environment');
+      if (err) {
+        t.rxMatch(err.message, /deleteAllResponses is not yet implemented/, 'Error message should be descriptive');
+      }
+    } else {
+      // On live, we just verify the method exists and doesn't crash (though it might fail if no responses)
+      t.true(is.function(form.deleteAllResponses), 'deleteAllResponses should be a function');
+    }
+  });
+
   if (!pack) {
     unit.report();
   }

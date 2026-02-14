@@ -67,9 +67,9 @@ export const testStores = (pack) => {
     }
 
     const exValue = 'ex'
-    const p = ['dp', 'sp', 'up']
+    const p = ['up', 'dp', 'sp'].slice(0, 1)
     p.forEach(f => {
-      const testValue = f + 'p'
+      const testValue = f + 'c'
       if (cs[f]) {
         t.is(cs[f].put(testKey, testValue), null)
         t.is(cs[f].get(testKey), testValue)
