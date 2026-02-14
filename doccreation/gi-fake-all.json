@@ -18601,8 +18601,8 @@
             "description": "Deletes all submitted responses from the form's response store. This method does not delete\ncopies of responses stored in an external response destination (like a spreadsheet), but does\nclear the form's summary view.",
             "returnType": "Form",
             "returnDescription": "This Form, for chaining.",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/formapp/fakeform.js#L669"
           },
           {
             "method": "deleteItem(Integer)",

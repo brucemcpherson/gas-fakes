@@ -9,7 +9,7 @@
 | [Content](./progress/content.md) | 3 | 16 | 0 | 0 | 16 |
 | [Document](./progress/document.md) | 47 | 1032 | 468 | 22 | 542 |
 | [Drive](./progress/drive.md) | 8 | 164 | 115 | 29 | 20 |
-| [Forms](./progress/forms.md) | 41 | 504 | 269 | 0 | 235 |
+| [Forms](./progress/forms.md) | 41 | 504 | 270 | 0 | 234 |
 | [Gmail](./progress/gmail.md) | 6 | 168 | 58 | 0 | 110 |
 | [HTML](./progress/html.md) | 6 | 39 | 0 | 0 | 39 |
 | [JDBC](./progress/jdbc.md) | 20 | 749 | 0 | 0 | 749 |
@@ -22,4 +22,4 @@
 | [URL Fetch](./progress/urlfetch.md) | 2 | 13 | 11 | 0 | 2 |
 | [Utilities](./progress/utilities.md) | 5 | 59 | 27 | 3 | 29 |
 | [XML](./progress/xml.md) | 14 | 149 | 0 | 0 | 149 |
-| **Total** | **420** | **6708** | **2615** | **74** | **4019** |
+| **Total** | **420** | **6708** | **2616** | **74** | **4018** |

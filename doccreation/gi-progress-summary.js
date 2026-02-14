@@ -10,7 +10,7 @@ const outputFile = path.resolve(__dirname, '../progress.md');
 
 const results = [];
 
-const files = fs.readdirSync(progressDir).filter(file => file.endsWith('.md'));
+const files = fs.readdirSync(progressDir).filter(file => file.toLowerCase().endsWith('.md'));
 
 for (const file of files) {
   const filePath = path.join(progressDir, file);
