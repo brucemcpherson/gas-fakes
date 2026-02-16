@@ -18593,7 +18593,7 @@
             "returnType": "FormResponse",
             "returnDescription": "The newly created form response.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeform.js#L661"
+            "implementationLink": "src/services/formapp/fakeform.js#L717"
           },
           {
             "method": "deleteAllResponses()",
@@ -18602,7 +18602,7 @@
             "returnType": "Form",
             "returnDescription": "This Form, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeform.js#L669"
+            "implementationLink": "src/services/formapp/fakeform.js#L725"
           },
           {
             "method": "deleteItem(Integer)",
@@ -19070,7 +19070,7 @@
             "returnType": "String",
             "returnDescription": "A URL in the form http://goo.gl/forms/1234.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/formapp/fakeform.js#L647"
+            "implementationLink": "src/services/formapp/fakeform.js#L703"
           },
           {
             "method": "submitGrades(FormResponse)",
