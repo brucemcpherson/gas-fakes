@@ -74,9 +74,9 @@ There's also a test available to see if you are running in GAS or on Node - `Scr
 
 The proxy also enables the [sandbox service](sandbox.md) to be applied to globally without needing special code in each of the services. Private methods and properties (those that exist only in the fake class) are identified by a prefixed `__` (with the exception of isFake which is present in every fake class). The proxy uses this to  detect and prevent accidental overwriting of any methods. For example range.getValue() = 1 will throw and error, whereas doc.__somefakeproperty = 1 will not.
 
-ScriptApp.__registeredServices (in fact the __registeredServices on any service) will return an array of the services that have already been registered. There's generally no need to do this but for collaborators developing services it could be useful
+ScriptApp.__registeredServices (in fact the __registeredServices on any service) will return an array of the services that already been registered. There's generally no need to do this but for collaborators developing services it could be useful
 
-ScriptApp.__loadedServices will return an array of the services that have already been loaded and initialized. In other words they've been used at least once.
+ScriptApp.__loadedServices will return an array of the services that already been loaded and initialized. In other words they've been used at least once.
 
 Initial sandbox behaviors are set in src/services/scriptapp/behavior.js for every registered class.
 
@@ -501,9 +501,11 @@ The `gas-fakes` test suite (`testdocsimages.js`) now contains a workaround for t
 
 ##### matching table element indices with apps script
 
-Adding a table always inserts a preceding \n. This is okay when appending, but not okay when inserting as we end up with an unwanted paragraph compared to what Apps Script does. It turns out that a table must always have a preceding paragraph, or the API throws an error. Of course there would already be a preceding paragraph after deleting this one anyway, but the API still won't let you delete a directly preceding paragraph (This seems like a bug but I won't report it on buganizer for now till I figure out the entire picture of tables). 
+Adding a table always inserts a preceding 
+. This is okay when appending, but not okay when inserting as we end up with an unwanted paragraph compared to what Apps Script does. It turns out that a table must always have a preceding paragraph, or the API throws an error. Of course there would already be a preceding paragraph after deleting this one anyway, but the API still won't let you delete a directly preceding paragraph (This seems like a bug but I won't report it on buganizer for now till I figure out the entire picture of tables). 
 
-So instead we need to delete the \n from the preceding-1 paragraph (if indeed there is one). So we end up with a bit of hack, both to insert the table and also any insertions that go before a table. It also means that the technique of using namedranges to track already defined elements becomes tricky when tables are invloved because of the side effect of modifyng elements not directly involved in table operations. 
+So instead we need to delete the 
+ from the preceding-1 paragraph (if indeed there is one). So we end up with a bit of hack, both to insert the table and also any insertions that go before a table. It also means that the technique of using namedranges to track already defined elements becomes tricky when tables are invloved because of the side effect of modifyng elements not directly involved in table operations. 
 
 It's a real mindbender to handle this and of course I'm not entirely sure I've swept up all the edge cases yet.
 
@@ -671,11 +673,11 @@ Tabs are a recent addition to Docs, and have added a bit of complication to hand
 ```
 [docs](https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/get)
 
-suggestionsViewMode	- enum (SuggestionsViewMode)
+suggestionsViewMode     - enum (SuggestionsViewMode)
 
 The suggestions view mode to apply to the document. This allows viewing the document with all suggestions inline, accepted or rejected. If one is not specified, DEFAULT_FOR_CURRENT_ACCESS is used.
 
-includeTabsContent	- boolean
+includeTabsContent      - boolean
 
 Whether to populate the Document.tabs field instead of the text content fields like body and documentStyle on Document.
 
@@ -810,7 +812,7 @@ This behavior is problematic to replicate with the v1 Google Forms API for the f
 
 2.  **Updating**: The logical next step to emulate the behavior would be to:
     a. Create the form with `info.title` set to the desired file name.
-    b. Immediately issue a `batchUpdate` request to set `info.title` to an empty string (`""`).
+    b. Immediately issue a `batchUpdate` request to set `info.title` to an empty string (""").
 
 However, the `batchUpdate` request fails. The Forms API rejects an attempt to set `info.title` to an empty string, returning a `400 Bad Request` with the error message: `info.title was not provided`.
 
@@ -831,7 +833,7 @@ There is a notable difference in how the live `FormApp` service and the underlyi
 
 ##### Live Apps Script Behavior
 
-When you create a choice-based item using the `FormApp` service, it automatically generates a single default choice. The value of this default choice is an empty string (`""`).
+When you create a choice-based item using the `FormApp` service, it automatically generates a single default choice. The value of this default choice is an empty string (""").
 
 ```javascript
 // In live Apps Script
@@ -932,10 +934,22 @@ To provide a working `submit()` method, `gas-fakes` uses a "web submission hack"
 1. It identifies the public form submission URL (e.g., swapping `/viewform` for `/formResponse`).
 2. It captures the current sharing state of the form file.
 3. It **temporarily** makes the form public (`ANYONE_WITH_LINK` / `VIEW`).
-4. It uses `UrlFetchApp.fetch` to perform a `POST` request with the response payload.
-5. It immediately restores the form's original sharing permissions.
+4. It scrapes the published form's HTML for essential metadata:
+    - **`fbzx`**: A security token required by Google to validate the submission.
+    - **`pageHistory`**: A sequence of page indices (e.g., `0,1,2`) that tells the server which pages the user has "visited."
+5. It constructs a `POST` request using `UrlFetchApp.fetch`. Crucially, to support **multi-page forms**, it provides a "robust" `pageHistory` fallback (`0,1,2,3,4,5,6,7,8,9,10`). Without this, responses for items on pages other than the first would be silently ignored by Google's servers.
+6. It immediately restores the form's original sharing permissions.
 
 This workaround bypasses the API limitation but introduces a brief (milliseconds) "security hole" where the form is public. This is a clear case of a missing capability in the public API compared to the Apps Script environment.
+
+#### Patches for Robust Form Submission
+
+To achieve reliable programmatic submission via the "web submission hack," several critical patches were implemented:
+
+1.  **Metadata Cache Clearing**: The security token `fbzx` must be fresh for certain forms. The `FakeForm` now supports `__clearScrapedMetadata()`, which is called after each successful `submit()` to force a re-scrape for the next response.
+2.  **Dynamic Page History**: Multi-page forms often fail with a 400 error if `pageHistory` doesn't match the form's structure. The submission logic now dynamically calculates `pageHistory` based on the actual number of `PAGE_BREAK` items.
+3.  **Required Field Handling**: Branching logic or missing optional data in legacy forms can cause submissions to fail if the target form has "Required" fields. The recommended pattern is to temporarily record and disable the `isRequired` status of all items before submission, then restore them in a `finally` block.
+4.  **Grid Mapping Robustness**: Grid and Checkbox Grid items are now mapped more robustly by matching row titles (using `cleanTitle`) and column headers, ensuring data aligns correctly even if the underlying row/column order differs between forms.
 
 #### Inability to Programmatically Delete Responses (`deleteAllResponses`)
 

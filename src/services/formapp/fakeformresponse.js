@@ -115,21 +115,54 @@ export class FakeFormResponse {
     const responderUri = this.__form.__getResponderUri();
     const url = responderUri.replace('/viewform', '/formResponse');
     const payload = {};
-    console.log('url', url)
-    console.log('edit url', this.__form.getEditUrl())
-    console.log('responder uri', this.__form.__getResponderUri())
-    console.log('published url', this.__form.getPublishedUrl())
-    console.log('form id', this.__form.getId())
-
 
     this.getItemResponses().forEach(itemResponse => {
       const item = itemResponse.getItem();
-      const id = item.getId();
-      payload[`entry.${id}`] = itemResponse.getResponse();
+      const response = itemResponse.getResponse();
+      const itemType = item.getType().toString();
+
+      if ((itemType === 'CHECKBOX_GRID' || itemType === 'GRID') && Array.isArray(response)) {
+        const gridRows = item.__resource.questionGroupItem?.questions || [];
+        
+        response.forEach((rowResponse, rowIndex) => {
+          if (rowResponse && (Array.isArray(rowResponse) ? rowResponse.length > 0 : true)) {
+            const rowQuestionIdHex = gridRows[rowIndex]?.questionId;
+            if (rowQuestionIdHex) {
+              const rowQuestionIdDecimal = Utils.fromHex(rowQuestionIdHex);
+              payload[`entry.${rowQuestionIdDecimal}`] = rowResponse;
+            }
+          }
+        });
+      } else {
+        const questionIdHex = item.__resource.questionItem?.question?.questionId;
+        if (questionIdHex) {
+           const questionIdDecimal = Utils.fromHex(questionIdHex);
+           payload[`entry.${questionIdDecimal}`] = response;
+        }
+      }
     });
 
     if (Object.keys(payload).length > 0) {
- 
+      // Dynamic page history based on actual form structure
+      const pageCount = this.__form.getItems(FormApp.ItemType.PAGE_BREAK).length + 1;
+      payload.pageHistory = Array.from({length: pageCount}, (_, i) => i).join(',');
+      payload.fvv = '1';
+
+      // Use cached metadata if available
+      const metadata = this.__form.__getScrapedMetadata();
+      if (metadata?.fbzx) payload.fbzx = metadata.fbzx;
+
+      // Build the payload string manually to handle multiple values for the same key (checkboxes)
+      const payloadParts = [];
+      Object.keys(payload).forEach(key => {
+        const value = payload[key];
+        if (Array.isArray(value)) {
+          value.forEach(v => payloadParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(v)}`));
+        } else {
+          payloadParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+        }
+      });
+      const payloadString = payloadParts.join('&');
 
       // we need to do many things here to allowe access to the form as there are no formapp methods to add reponses.
       // first save the current file permissions
@@ -144,29 +177,24 @@ export class FakeFormResponse {
 
       try {
 
-        // --- YOUR SUBMISSION LOGIC HERE ---
-        console.log("Form is temporarily public. Submitting...");
+        // --- SUBMISSION LOGIC ---
         const response = UrlFetchApp.fetch(url, {
           method: 'post',
-          payload,
+          payload: payloadString,
+          contentType: 'application/x-www-form-urlencoded',
           muteHttpExceptions: true
         });
-
-        if (response.getContentText().includes("recorded")) {
-          console.log("Success! Data pushed to Google Sheets.");
-        }
 
         if (response?.getResponseCode() !== 200) {
           throw new Error(`Failed to submit form response: ${response.getResponseCode()}`);
         }
 
-      } catch (e) {
-        console.error("Submission failed: " + e.toString());
+        // Successful submission, clear the scraped metadata cache to get a fresh fbzx next time
+        this.__form.__clearScrapedMetadata();
+
       } finally {
         // 3. Reset to exactly how it was before
-        // This closes the 401/403 hole immediately
         formFile.setSharing(originalAccess, originalPermission);
-        console.log("Permissions reset to original state.");
       }
     }
 

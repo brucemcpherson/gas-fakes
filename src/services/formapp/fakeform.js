@@ -627,7 +627,7 @@ export class FakeForm {
    * @returns {string} The form URL.
    */
   getPublishedUrl() {
-    return `https://docs.google.com/forms/d/e/${this.getId()}/viewform`;
+    return `https://docs.google.com/forms/d/${this.getId()}/viewform`;
   }
 
   /**
@@ -636,6 +636,62 @@ export class FakeForm {
    */
   __getResponderUri() {
     return this.__resource.responderUri;
+  }
+
+  /**
+   * Internal method to get scraped metadata from the published form with caching.
+   * @returns {object} The scraped metadata or null.
+   */
+  __getScrapedMetadata() {
+    if (this.__scrapedMetadata) return this.__scrapedMetadata;
+
+    const formFile = this.__file; 
+
+    // 1. Capture original state
+    const originalAccess = formFile.getSharingAccess();
+    const originalPermission = formFile.getSharingPermission();
+
+    try {
+      // 2. Open access temporarily
+      formFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+      // 3. Fetch the HTML
+      const publishUrl = this.getPublishedUrl();
+      const formHtml = UrlFetchApp.fetch(publishUrl).getContentText();
+      
+      const metadata = { entryMap: {} };
+      const fbzxMatch = formHtml.match(/name="fbzx" value="([^"]+)"/);
+      if (fbzxMatch) metadata.fbzx = fbzxMatch[1];
+
+      const historyMatch = formHtml.match(/name="pageHistory" value="([^"]+)"/);
+      if (historyMatch) metadata.pageHistory = historyMatch[1];
+
+      // Scrape entry IDs. They are usually in a script block like FB_PUBLIC_LOAD_DATA_
+      // or just search for entry.ID in the HTML.
+      // A common pattern is [123456789, "Question Title", ...]
+      const entryMatches = formHtml.matchAll(/entry\.(\d+)/g);
+      for (const match of entryMatches) {
+        // This is a bit crude but might help identify all available entry IDs
+        metadata.entryMap[match[1]] = true;
+      }
+
+      this.__scrapedMetadata = metadata;
+      return metadata;
+
+    } catch (e) {
+      console.warn(`[gas-fakes] Failed to fetch form metadata: ${e.message}`);
+      return null;
+    } finally {
+      // 4. Reset to original state
+      formFile.setSharing(originalAccess, originalPermission);
+      }
+  }
+
+  /**
+   * Internal method to clear the scraped metadata cache.
+   */
+  __clearScrapedMetadata() {
+    this.__scrapedMetadata = null;
   }
 
   /**
