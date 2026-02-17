@@ -381,6 +381,10 @@ const fxGetSourceAccessTokenInfo = () => {
   return callSync("sxGetSourceAccessTokenInfo");
 };
 
+const fxTestRetry = (errorMessage) => {
+  return callSync("sxTestRetry", { errorMessage });
+};
+
 const fxSheets = (args) =>
   fxGeneric({
     ...args,
@@ -447,5 +451,6 @@ export const Syncit = {
   fxDriveExport,
   fxGetAccessToken,
   fxGetAccessTokenInfo,
-  fxGetSourceAccessTokenInfo
+  fxGetSourceAccessTokenInfo,
+  fxTestRetry
 }

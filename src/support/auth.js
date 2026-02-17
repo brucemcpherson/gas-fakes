@@ -225,6 +225,9 @@ const setAuth = async (scopes = [], mcpLoading = false) => {
         this._expiresAt = 0
         this.credentials = null
       }
+      _authClient.refreshAccessToken = function () {
+        return this.getAccessToken()
+      }
 
       mayLog(`...using Domain-Wide Delegation for user: ${userEmail}`)
 

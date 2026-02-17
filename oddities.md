@@ -772,7 +772,7 @@ DocumentApp.getNumChildren() returns the value 1 and ignores the initial section
 
 ### Forms
 
-There isn't an Apps Script Forms advanced service, but for the sake of consistency I'm creating one in gas-fakes for FormApp to use. 
+There isn't an Apps Script Forms advanced service, but for the sake of consistency I'm creating one in gas-fakes for FormApp to use. After having dug into the Forms API, it's clear that it's not a simple 1:1 mapping with the Apps Script service. I'm suspecting that whoever wrote the Forms API was on acid at the time.
 
 #### Discrepancy between `FormApp.create(title)` and Forms API behavior regarding form title and file name
 

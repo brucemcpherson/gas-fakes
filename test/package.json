@@ -68,13 +68,14 @@
     "testsheetschart": "node --env-file ./.env testsheetschart.js execute",
     "testchartsapp": "node --env-file ./.env testchartsapp.js execute",
     "testformwebhack": "node --env-file ./.env testformwebhack.js execute",
-    "testdrivesharing": "node --env-file ./.env testdrivesharing.js execute"
+    "testdrivesharing": "node --env-file ./.env testdrivesharing.js execute",
+    "testdwdrefresh": "node --env-file ./.env testdwdrefresh.js execute"
   },
   "name": "test-gas-fakes",
-  "version": "2.0.6",
+  "version": "2.0.9",
   "license": "MIT",
   "main": "test.js",
-  "description": "test gas-fakes on both live and local apps script",
+  "description": "test gas-fakes on both live and local apps script - version number should match the gas-fakes version number it tests",
   "repository": "github:brucemcpherson/gas-fakes",
   "homepage": "https://ramblings.mcpher.com/a-proof-of-concept-implementation-of-apps-script-environment-on-node/",
   "devDependencies": {

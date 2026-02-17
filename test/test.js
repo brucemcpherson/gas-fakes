@@ -65,6 +65,7 @@ import { testLock } from './testlock.js';
 import { testChartsApp } from "./testchartsapp.js";
 import { testFormWebHack } from "./testformwebhack.js";
 import { testDriveSharing } from "./testdrivesharing.js";
+import { testDwdRefresh } from "./testdwdrefresh.js";
 // important - run this last for now - see https://github.com/brucemcpherson/gas-fakes/issues/118
 import { testGmail } from "./testgmail.js";
 import { testSandboxGmail } from "./testsandboxgmail.js";

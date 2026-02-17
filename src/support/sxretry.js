@@ -63,16 +63,20 @@ export const sxRetry = async (Auth, tag, func, options = {}) => {
       retryReason = 'Rate Limit';
     }
 
+    if (!retryReason && error?.message?.toLowerCase().includes('no refresh token')) {
+      retryReason = 'No Refresh Token';
+    }
+
     const isRetryable = !!retryReason || extraRetryCheck(error, response);
     if (isRetryable && !retryReason) retryReason = 'Extra Check';
 
     if (isRetryable && i < maxRetries - 1) {
-      const isAuthError = error?.code === 401 || status === 401;
+      const isAuthError = error?.code === 401 || status === 401 || retryReason === 'No Refresh Token';
       if (isAuthError) {
         // Only retry auth error once
         if (i > 0) break;
         Auth.invalidateToken();
-        syncWarn(`Authentication error (401) on ${tag}. Invalidated token and retrying immediately...`);
+        syncWarn(`Authentication error (${status || retryReason}) on ${tag}. Invalidated token and retrying immediately...`);
       } else {
         const jitter = Math.floor(Math.random() * 1000);
         const totalDelay = delay + jitter;
