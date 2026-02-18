@@ -82,19 +82,12 @@ export const testFakes = () => {
   testSheetsVui(pack);
   console.log("\n----Test Sheets Sets----");
   testSheetsSets(pack);
-  console.log("\n----Test Sheets Permissions----");
-  testSheetsPermissions(pack);
-  console.log("\n----Test Sheets----");
-  testSheets(pack);
-  console.log("\n----Test SheetsValues----");
-  testSheetsValues(pack);
-  console.log("\n----Test SheetsDeveloper----");
-  testSheetsDeveloper(pack);
+
+
 
   console.log("\n----Test Enums----");
   testEnums(pack);
-  console.log("\n----Test Sheets text----");
-  testSheetsText(pack);
+
   console.log("\n----Test sheets chart----");
   testSheetsChart(pack);
   console.log("\n----Test SheetsExotics----");
@@ -127,6 +120,9 @@ export const testFakes = () => {
   console.log("\n----Test workspaceevents----");
   testWorkspaceEvents(pack);
 
+  console.log("\n----Test Sheets text----");
+  testSheetsText(pack);
+
   console.log("\n----Test calendar----");
   testCalendars(pack);
   console.log("\n----Test calendarsandbox----");
@@ -144,10 +140,13 @@ export const testFakes = () => {
   testDocsStyles(pack);
   console.log("\n----Test docs headers----");
   testDocsHeaders(pack);
-  console.log("\n----Test docs footers----");
-  testDocsFooters(pack);
-  console.log("\n----Test docs footnotes----");
-  testDocsFootnotes(pack);
+
+
+  console.log("\n----Test SheetsValues----");
+  testSheetsValues(pack);
+  console.log("\n----Test SheetsDeveloper----");
+  testSheetsDeveloper(pack);
+
   console.log("\n----Test slides----");
   testSlides(pack);
   console.log("\n----Test slides text range----");
@@ -168,6 +167,17 @@ export const testFakes = () => {
   testSlidesAdv(pack);
   console.log("\n----Test slidesslide----");
   testSlidesSlide(pack);
+  console.log("\n----Test Sheets Permissions----");
+  testSheetsPermissions(pack);
+  console.log("\n----Test Sheets----");
+  testSheets(pack);
+
+  console.log("\n----Test docs footers----");
+  testDocsFooters(pack);
+  console.log("\n----Test docs footnotes----");
+  testDocsFootnotes(pack);
+
+
   console.log("\n----Test form----");
   testForm(pack);
   console.log("\n----Test formsadv----");

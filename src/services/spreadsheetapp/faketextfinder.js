@@ -60,7 +60,7 @@ export class FakeTextFinder {
     }
     return (
       this.searchResults[
-        this.count == 0 ? this.searchResults.length - 1 : --this.count
+      this.count == 0 ? this.searchResults.length - 1 : --this.count
       ] || null
     );
   }
@@ -189,6 +189,9 @@ export class FakeTextFinder {
           target = c.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         }
         if (!matchCase) {
+          if (typeof c !== 'string') {
+            c = String(c);
+          }
           target = c.toLowerCase();
           this.text = this.text.toLowerCase();
         }

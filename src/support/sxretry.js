@@ -17,7 +17,7 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
  */
 export const sxRetry = async (Auth, tag, func, options = {}) => {
   const {
-    maxRetries = 7,
+    maxRetries = 9,
     initialDelay = 1777,
     extraRetryCheck = () => false,
     skipLog = () => false
