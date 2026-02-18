@@ -1053,7 +1053,8 @@ If you want to play with the testing suite , then take a look at the [collaborat
 - [getting started](GETTING_STARTED.md) - how to handle authentication for restricted scopes.
 - [readme](README.md)
 - [gas fakes cli](gas-fakes-cli.md)
-- [running gas-fakes on google cloud run](cloud-run.md)
+- [running gas-fakes on google cloud run](https://github.com/brucemcpherson/gas-fakes-containers)
+- [running gas-fakes on google kubernetes engine](https://github.com/brucemcpherson/gas-fakes-containers)
 - [initial idea and thoughts](https://ramblings.mcpher.com/a-proof-of-concept-implementation-of-apps-script-environment-on-node/)
 - [Inside the volatile world of a Google Document](https://ramblings.mcpher.com/inside-the-volatile-world-of-a-google-document/)
 - [Apps Script Services on Node – using apps script libraries](https://ramblings.mcpher.com/apps-script-services-on-node-using-apps-script-libraries/)
