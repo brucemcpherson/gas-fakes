@@ -82,9 +82,17 @@ export async function main() {
         return;
       }
 
-      const envPath = path.resolve(process.cwd(), env);
-      console.log(`...using env file in ${envPath}`);
-      dotenv.config({ path: envPath, quiet: true });
+      // Load environment variables. 
+      // If --env-file is used, we skip the default .env to avoid conflicts,
+      // but if the user explicitly provided -e, we use that.
+      const hasEnvFileFlag = process.execArgv.some(arg => arg.startsWith('--env-file'));
+      const isDefaultEnv = env === "./.env";
+
+      if (!hasEnvFileFlag || !isDefaultEnv) {
+        const envPath = path.resolve(process.cwd(), env);
+        console.log(`...using env file in ${envPath}`);
+        dotenv.config({ path: envPath, quiet: true });
+      }
 
       const settingsPath = path.resolve(process.cwd(), gfsettings);
       console.log(`...using gasfakes settings file in ${settingsPath}`);

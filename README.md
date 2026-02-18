@@ -129,15 +129,13 @@ It contains a cloud logging query that will display any logging done in this ses
 
 You will have used the gas-fakes init command to create a .env file, containing the LOG_DESTINATION setting. You can change any of the settings in the .env file manually if you want to.
 
-If you want to set an initial LOG_DESTINATION using that .env file, you have to let gas-fakes know where to find it. Let's assume it's in the same folder as your main script.
+If you want to set an initial LOG_DESTINATION using that .env file, you have to let gas-fakes know where to find it. Let's assume it's in the same folder as your main script. 
 ```env
-node --env-file=.env yourapp.js
+node yourapp.js
+# or if your .env is somewhere else
+node --env-file pathtoenv yourapp.js
 ```
-Some developers prefer to use dotenv to set the path of the .env file
-```javascript
-import dotenv from 'dotenv'
-dotenv.config({ path: '/custom/path/to/.env' })
-```
+
 Alternatively, instead of putting it in an env file, you can export it in your shell environment. 
 ```sh
 export LOG_DESTINATION="BOTH"

@@ -1,6 +1,5 @@
-
+import './support/env-loader.js'; 
 import './services/scriptapp/app.js'
-
 import './services/driveapp/app.js'
 import './services/logger/app.js'
 import './services/urlfetchapp/app.js'

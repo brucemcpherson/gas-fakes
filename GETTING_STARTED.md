@@ -221,15 +221,22 @@ const userCache = newCacheDropin({creds:userCacheCreds});
 
 ## You're Ready to Code!
 
-Your environment is now configured. You can start writing Apps Script code in your local `.js` files and run them with Node.js. You'll also need to ensure your script can read your .env file to be able to read the optional behavioral settings. 
+Your environment is now configured. You can start writing Apps Script code in your local `.js` files and run them with Node.js. 
 
-Remember to import `gas-fakes` at the top of your main script file, and to instruct node to read your .env file. gas-fakes will still work without reference to tne .env file but your stores and other settings will not be discovered, and the authetication method will fall back to application default credentials (adc- as it won't know which service account to use)
+### Environment Variables (.env)
+
+`gas-fakes` requires environment variables for configuration (authentication type, store settings, etc.). These are typically stored in a `.env` file. 
+
+The library handles environment loading automatically with the following precedence:
+1.  **Node.js `--env-file` Flag**: If you start your script with `node --env-file=.env.path main.js`, `gas-fakes` will respect this and skip its own loading logic. This is the recommended modern approach for Node.js 20.6.0+.
+2.  **Automatic Local Lookup**: If no flag is used, `gas-fakes` automatically looks for a `.env` file in the same directory as your main script.
+3.  **Current Working Directory**: As a fallback, it looks in the current working directory.
+
+You no longer need to manually import `dotenv/config` in your script.
 
 ```javascript
-// this is not mandatory as you can pass your .env file via --env-file <path-to-env-file>
-// however if you have a local env file you want to use this is a good way to include it
-import 'dotenv/config';
 // The main entry point for gas-fakes
+// This will automatically handle environment loading if not already handled by node --env-file
 import '@mcpher/gas-fakes';
 
 // Your Apps Script code here...

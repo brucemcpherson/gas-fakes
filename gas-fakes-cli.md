@@ -29,8 +29,13 @@ Ayou can use the `gas-fakes` command-line interface (CLI) to assist with the set
 
 First, create a `.env` file to store your project configuration:
 
+to use domain wide delegation and a keyless service account
 ```bash
 gas-fakes init
+```
+or, to use Application default credentials
+```bash
+gas-fakes init --auth-type adc
 ```
 
 Next, authorize the tool. This command will guide you through the process of logging into your Google account and setting up the necessary credentials:
@@ -71,6 +76,8 @@ Options:
   -e, --env <path>                          Path to a custom .env file. (default: "./.env")
   -g, --gfsettings <path>                   Path to a gasfakes.json settings file. (default: "./gasfakes.json")
   -x, --sandbox                             Run the script in a basic sandbox.
+
+> **Note on .env files:** `gas-fakes` also supports the native Node.js `--env-file` flag (available in Node.js 20.6.0+). If you run `node --env-file=.env gas-fakes ...`, the CLI will respect those variables and skip loading its default `./.env` file. Explicitly providing `-e` will still take precedence.
   -w, --whitelistRead <string>              Comma-separated file IDs for read-only access (enables sandbox).
   --ww, --whitelistReadWrite <string>       Comma-separated file IDs for read/write access (enables sandbox).
   --wt, --whitelistReadWriteTrash <string>  Comma-separated file IDs for read/write/trash access (enables sandbox).
