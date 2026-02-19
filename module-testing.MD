@@ -119,6 +119,7 @@ execute `bash togas.sh` to copy all files to apps script IDE. All tests can be r
 - [gas fakes cli](gas-fakes-cli.md)
 - [running gas-fakes on google cloud run](https://github.com/brucemcpherson/gas-fakes-containers)
 - [running gas-fakes on google kubernetes engine](https://github.com/brucemcpherson/gas-fakes-containers)
+- [running gas-fakes on Amazon AWS lambda](https://github.com/brucemcpherson/gas-fakes-containers)
 - [initial idea and thoughts](https://ramblings.mcpher.com/a-proof-of-concept-implementation-of-apps-script-environment-on-node/)
 - [Inside the volatile world of a Google Document](https://ramblings.mcpher.com/inside-the-volatile-world-of-a-google-document/)
 - [Apps Script Services on Node – using apps script libraries](https://ramblings.mcpher.com/apps-script-services-on-node-using-apps-script-libraries/)
