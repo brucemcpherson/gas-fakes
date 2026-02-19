@@ -2,7 +2,6 @@ import { GoogleAuth, JWT, Impersonated, OAuth2Client } from "google-auth-library
 import is from "@sindresorhus/is";
 import { createHash } from "node:crypto";
 import { syncLog, syncError } from "./workersync/synclogger.js";
-import fs from "node:fs";
 
 const _authScopes = new Set([]);
 
