@@ -54,7 +54,7 @@ Here are the key features of each:
 | Feature | Domain-Wide Delegation (DWD) | Application Default Credentials (ADC) |
 | :--- | :--- | :--- |
 | **Primary Use** | Production-ready, cross-platform deployment | Local development and quick start |
-| **Platform Support** | Universal (Local, Cloud Run, Kubernetes, Workload Identity) | Good for local, limited in some cloud environments |
+| **Platform Support** | Universal (Local, Cloud Run, Kubernetes, Workload Identity, AWS) | Good for local, limited in some cloud environments |
 | **Security** | Secure service-account based impersonation | Direct user or service account permissions |
 | **Configuration** | `gas-fakes init --auth-type dwd` (Default). Automatic service account creation. | `gas-fakes init --auth-type adc`. Manual scope setup via env vars. |
 | **Admin action required** | **Yes**, requires admin action to enable DWD for the service account. | Normally none |
