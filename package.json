@@ -25,7 +25,8 @@
     "zod": "^4.3.6"
   },
   "overrides": {
-    "minimatch": "^10.2.1"
+    "minimatch": "^10.2.1",
+    "glob": "^13.0.0"
   },
   "type": "module",
   "scripts": {
@@ -36,7 +37,7 @@
   },
   "name": "@mcpher/gas-fakes",
   "author": "bruce mcpherson",
-  "version": "2.0.12",
+  "version": "2.0.13",
   "license": "MIT",
   "main": "main.js",
   "description": "An implementation of the Google Workspace Apps Script runtime: Run native App Script Code on Node and Cloud Run",
