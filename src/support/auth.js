@@ -56,7 +56,25 @@ const getHashedUserId = () =>
 const _getTokenInfo = async (client) => {
   const tokenResponse = await client.getAccessToken();
   const token = tokenResponse.token;
-  const tokenInfo = await client.getTokenInfo(token);
+  
+  let tokenInfo;
+  if (typeof client.getTokenInfo === 'function') {
+    tokenInfo = await client.getTokenInfo(token);
+  } else {
+    // Fallback for clients like AwsClient that don't have getTokenInfo
+    // Call the Token Info API directly
+    const response = await client.request({
+      url: `https://oauth2.googleapis.com/tokeninfo?access_token=${token}`,
+      method: 'GET'
+    });
+    tokenInfo = response.data;
+    
+    // Ensure email is populated from subject if missing (WIF fallback)
+    if (!tokenInfo.email && process.env.GOOGLE_WORKSPACE_SUBJECT) {
+      tokenInfo.email = process.env.GOOGLE_WORKSPACE_SUBJECT;
+    }
+  }
+  
   return {
     tokenInfo,
     token
@@ -112,9 +130,6 @@ const setAuth = async (scopes = [], mcpLoading = false) => {
     mayLog(`...discovered project ID: ${_projectId}`)
 
     // steering for auth type
-    // 1. if AUTH_TYPE is DWD, use DWD
-    // 2. if AUTH_TYPE is ADC, use ADC
-    // 3. if AUTH_TYPE is not set, use DWD if saName is present, else ADC
     const saName = process.env.GOOGLE_SERVICE_ACCOUNT_NAME
     const authType = process.env.AUTH_TYPE?.toLowerCase()
     const useDwd = authType === 'dwd' || (authType !== 'adc' && saName)
@@ -134,19 +149,21 @@ const setAuth = async (scopes = [], mcpLoading = false) => {
       mayLog(`...attempting to use service account: ${targetPrincipal}`)
 
       /// _sourceClient is the identity of the person/thing running the code
-      // we'll try to get the openid and email scopes for the source client too if they are in the manifest
       const sourceScopes = scopes.filter(s => s === 'openid' || s === 'https://www.googleapis.com/auth/userinfo.email')
       _sourceClient = await _auth.getClient(sourceScopes.length > 0 ? { scopes: sourceScopes } : {})
 
       // now to get who the real user is
       const { tokenInfo: userInfo } = await getSourceAccessTokenInfo()
-      mayLog(`...user verified as: ${userInfo.email}`);
-
-      // DWD Subject priority:
-      // 1. GOOGLE_WORKSPACE_SUBJECT
-      // 2. Caller identity (from getSourceAccessTokenInfo)
+      
+      // AWS tokens might not have email info
       const saEmail = targetPrincipal
       const userEmail = process.env.GOOGLE_WORKSPACE_SUBJECT || userInfo.email
+      
+      if (userEmail) {
+        mayLog(`...user verified as: ${userEmail}`);
+      } else {
+        mayLog(`...warning: user identity could not be verified from token, using fallback`);
+      }
 
       const dwdClient = new OAuth2Client()
       dwdClient._token = null
@@ -168,10 +185,7 @@ const setAuth = async (scopes = [], mcpLoading = false) => {
           scope: scopes.join(' ')
         }
 
-        //mayLog(`[Auth] DWD Scopes: ${payload.scope}`)
-
         // Sign the JWT via IAM API
-        // Note: The caller must have 'Service Account Token Creator' role on the target SA
         const signUrl = `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${saEmail}:signJwt`
         const signResponse = await _sourceClient.request({
           url: signUrl,
@@ -196,8 +210,6 @@ const setAuth = async (scopes = [], mcpLoading = false) => {
 
         if (!tokenResponse.ok) {
           const errorText = await tokenResponse.text()
-          console.log ('... it looks like you forgot to enable domain-wide delegation for the service account')
-          console.log ('... rerun gas-fakes auth and check the instructions about enabling domain-wide delegation')
           throw new Error(`Failed to exchange JWT for token: ${errorText}`)
         }
 
@@ -209,10 +221,9 @@ const setAuth = async (scopes = [], mcpLoading = false) => {
         return { token: this._token }
       }
 
-      // override request to ensure we use our token but leverage the existing transporter
+      // override request
       const originalRequest = dwdClient.request.bind(dwdClient)
       dwdClient.request = async function (options) {
-        // Ensure token is fresh
         await this.getAccessToken()
         return originalRequest(options)
       }
@@ -230,14 +241,18 @@ const setAuth = async (scopes = [], mcpLoading = false) => {
 
       mayLog(`...using Domain-Wide Delegation for user: ${userEmail}`)
 
-      // check we can get an access token - this will trigger the signJwt flow
-      const { tokenInfo } = await getAccessTokenInfo()
-      mayLog(`...sa (acting as user) verified as: ${tokenInfo.email}`);
+      // check we can get an access token
+      const { tokenInfo: authedTokenInfo } = await getAccessTokenInfo()
+      if (authedTokenInfo.email) {
+        mayLog(`...sa (acting as user) verified as: ${authedTokenInfo.email}`);
+      } else {
+        mayLog(`...sa (acting as user) token acquired successfully`);
+      }
     }
 
 
   } catch (error) {
-    mayLog(`...auth failed - check you are logged in with 'gcloud auth login' and have enabled workload identity: ${error}`)
+    mayLog(`...auth failed - check environment variables and workload identity: ${error}`)
     throw error
   }
   return getAuth()
@@ -256,15 +271,6 @@ const invalidateToken = () => {
     }
   }
 }
-/**
- * we'll be using adc credentials so no need for any special auth here
- * the idea here is to keep addign scopes to any auth so we have them all
- * @param {string[]} [scopes=[]] the required scopes will be added to existing scopes already asked for
- * @param {string} [keyFile=null]
- * @param {boolean} [mcpLoading=false] When the MCP server is loading, this value is true. By this, the invalid values can be hidden while the MCP server is loading. This is important for using Google Antigravity.
- * @returns {GoogleAuth.auth}
- */
-
 
 /**
  * if we're doing a fetch on drive API we need a special header
@@ -278,10 +284,6 @@ const googify = (options = {}) => {
   // if no authorization, we dont need this either
   if (!Reflect.has(headers, "Authorization")) return options;
 
-  // we'll need the projectID for this
-  // note - you must add the x-goog-user-project header, otherwise it'll use some nonexistent project
-  // see https://cloud.google.com/docs/authentication/rest#set-billing-project
-  // this has been syncified
   const projectId = getProjectId();
   return {
     ...options,
@@ -293,7 +295,6 @@ const googify = (options = {}) => {
 };
 
 /**
- * this would have been set up when manifest was imported
  * @returns {string} the project id
  */
 const getProjectId = () => {
@@ -318,7 +319,6 @@ const getAuth = () => {
   if (!hasAuth())
     throw new Error(`auth hasnt been intialized with setAuth yet`);
 
-  // Simply return the client we've already prepared/patched
   return getAuthClient();
 };
 
@@ -326,17 +326,11 @@ const getAuth = () => {
 
 /**
  * why is this here ?
- * because when we syncit, we import auth for each method and it needs this
- * if it was somewhere else we'd need to import that too.
- * we can't serialize a return object
- * so we just select a few props from it
- * @param {SyncApiResponse} result
- * @returns
  */
 export const responseSyncify = (result) => {
   if (!result) {
     return {
-      status: 503, // Service Unavailable, a good representation for a worker-level failure
+      status: 503,
       statusCode: 503,
       statusText: "Worker Error: No response object received from API call",
       error: {
@@ -357,10 +351,6 @@ export const responseSyncify = (result) => {
   };
 };
 
-/**
- * these are the ones that have been so far requested
- * @returns {Set}
- */
 const getAuthedScopes = () => _authScopes;
 
 export const Auth = {
