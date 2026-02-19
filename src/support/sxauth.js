@@ -80,7 +80,7 @@ export const sxInit = async ({ manifestPath, claspPath, settingsPath, cachePath,
     try {
     await mkdir(settingsDir, { recursive: true })
     syncLog(`...writing to ${settingsPath}`);
-    writeFile(settingsPath, strSet, { flag: 'w' })
+    await writeFile(settingsPath, strSet, { flag: 'w' })
     } catch (err) {
       syncWarn(`...unable to write settings file (normal in readonly filesystem) - skipping ${settingsPath}: ${err}`)
     }
