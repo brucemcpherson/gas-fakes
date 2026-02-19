@@ -1044,6 +1044,12 @@ When using workload identity/service account, the active user is the user being 
 
 Another issue with 10.4, is we now get this error "Method doesn't allow unregistered callers (callers without established identity)". I believe this is to do with the use of certain scopes being restricted. When we are using ADC for authentication, but we can full it into thinking it's using an internal OAuth client by creating one in the console, then injecting its credentials into the file used by ADC. For a full explanation on setting this up see  this write up on setting up [getting started](GETTING_STARTED.md)
 
+#### Dependency security and overrides
+To address high-severity ReDoS vulnerabilities in transitive dependencies (specifically `minimatch` pulled in via `archiver`), `gas-fakes` uses the `overrides` field in `package.json`. This ensures that a secure version of `minimatch` (>= 10.2.1) is forced across all dependencies, even those that normally request older, vulnerable versions.
+
+#### Read-only filesystems and settings persistence
+In ephemeral environments like Cloud Run, the filesystem is typically read-only. `gas-fakes` initialization (`sxInit`) is designed to handle this by skipping settings persistence if the write fails. A critical bug was fixed where these operations were not properly awaited, causing unhandled promise rejections that crashed the worker process. All filesystem operations during initialization are now correctly awaited and handled within `try...catch` blocks to ensure graceful degradation in read-only environments.
+
 ## Testing
 
 If you want to play with the testing suite , then take a look at the [collaborators](collaborators.md) writeup.
