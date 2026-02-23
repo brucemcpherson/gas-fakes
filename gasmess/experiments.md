@@ -3,7 +3,7 @@ Anything you find here may or may not work
 You can add your own experiments here too - just create your own folder to do it in
 Before starting here make sure you have gone through the authentication process in README
 
-## <img src="./logo.png" alt="gas-fakes logo" width="50" align="top"> Further Reading
+## <img src="../logo.png" alt="gas-fakes logo" width="50" align="top"> Further Reading
 
 - [getting started](GETTING_STARTED.md) - how to handle authentication for restricted scopes.
 - [readme](README.md)
