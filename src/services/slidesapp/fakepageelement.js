@@ -65,6 +65,18 @@ export class FakePageElement {
   }
 
   /**
+   * Returns the page element as a table.
+   * @returns {FakeTable} The table.
+   */
+  asTable() {
+    if (this.__resource.table) {
+      const { newFakeTable } = PageElementRegistry;
+      return newFakeTable(this.__resource, this.__page);
+    }
+    throw new Error('PageElement is not a table.');
+  }
+
+  /**
    * Gets the type of the page element.
    * @returns {SlidesApp.PageElementType} The type.
    */
@@ -391,5 +403,6 @@ export class FakePageElement {
 
 export const PageElementRegistry = {
   newFakeShape: null,
-  newFakeLine: null
+  newFakeLine: null,
+  newFakeTable: null
 };

@@ -83,6 +83,7 @@ export class FakeTextRange {
       requests.push({
         deleteText: {
           objectId: objectId,
+          cellLocation: this.__shape.__cellLocation,
           textRange: {
             type: 'FROM_START_INDEX',
             startIndex: 0
@@ -104,6 +105,7 @@ export class FakeTextRange {
       requests.push({
         insertText: {
           objectId: objectId,
+          cellLocation: this.__shape.__cellLocation,
           insertionIndex: 0,
           text: newText
         }
