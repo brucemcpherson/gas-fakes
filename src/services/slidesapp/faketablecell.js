@@ -6,11 +6,14 @@ export const newFakeTableCell = (...args) => {
 };
 
 export class FakeTableCell {
-  constructor(resource, table, rowIndex, colIndex) {
-    this.__resource = resource;
+  constructor(table, rowIndex, colIndex) {
     this.__table = table;
     this.__rowIndex = rowIndex;
     this.__colIndex = colIndex;
+  }
+
+  get __resource() {
+    return this.__table.__resource.table?.tableRows?.[this.__rowIndex]?.tableCells?.[this.__colIndex];
   }
 
   /**
@@ -30,7 +33,7 @@ export class FakeTableCell {
       getObjectId: () => this.__table.getObjectId(),
       __resource: {
         shape: {
-          text: this.__resource.text || { textElements: [] }
+          text: this.__resource?.text || { textElements: [] }
         }
       },
       __cellLocation: {
@@ -39,9 +42,6 @@ export class FakeTableCell {
       },
       __presentation: this.__table.__presentation
     };
-    if (!this.__resource.text) {
-      this.__resource.text = mockShape.__resource.shape.text;
-    }
     return newFakeTextRange(mockShape);
   }
 

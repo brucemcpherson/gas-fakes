@@ -22,8 +22,8 @@ export class FakeTable extends FakePageElement {
    * @returns {FakeTableRow[]} The rows.
    */
   getRows() {
-    return (this.__resource.table?.tableRows || []).map((row, index) =>
-      newFakeTableRow(row, this, index)
+    return (this.__resource.table?.tableRows || []).map((_, index) =>
+      newFakeTableRow(this, index)
     );
   }
 
