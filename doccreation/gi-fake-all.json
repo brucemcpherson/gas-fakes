@@ -52941,7 +52941,7 @@
             "returnType": "PageElement",
             "returnDescription": "This page element, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L180"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L192"
           },
           {
             "method": "asGroup()",
@@ -53003,8 +53003,8 @@
             "description": "Returns the page element as a table.",
             "returnType": "Table",
             "returnDescription": "This page element as a table.",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L71"
           },
           {
             "method": "asVideo()",
@@ -53031,7 +53031,7 @@
             "returnType": "PageElement",
             "returnDescription": "This page element, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L229"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L241"
           },
           {
             "method": "bringToFront()",
@@ -53040,7 +53040,7 @@
             "returnType": "PageElement",
             "returnDescription": "This page element, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L234"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L246"
           },
           {
             "method": "duplicate()",
@@ -53058,7 +53058,7 @@
             "returnType": "ConnectionSite[]",
             "returnDescription": "The connection sites list, which may be empty if this element has no connection sites.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L382"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L394"
           },
           {
             "method": "getDescription()",
@@ -53067,7 +53067,7 @@
             "returnType": "String",
             "returnDescription": "The page element's alt text description.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L197"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L209"
           },
           {
             "method": "getHeight()",
@@ -53076,7 +53076,7 @@
             "returnType": "Number",
             "returnDescription": "The page element's inherent height in points, or null if the page element does\n    not have a height.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L129"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L141"
           },
           {
             "method": "getInherentHeight()",
@@ -53103,7 +53103,7 @@
             "returnType": "Number",
             "returnDescription": "This element's horizontal position in points, from the upper-left corner of the page.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L100"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L112"
           },
           {
             "method": "getObjectId()",
@@ -53121,7 +53121,7 @@
             "returnType": "PageElementType",
             "returnDescription": "The page element's type.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L71"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L83"
           },
           {
             "method": "getParentGroup()",
@@ -53130,7 +53130,7 @@
             "returnType": "Group",
             "returnDescription": "The group this page element belongs to, or null.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L214"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L226"
           },
           {
             "method": "getParentPage()",
@@ -53139,7 +53139,7 @@
             "returnType": "Page",
             "returnDescription": "The page this element resides on.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L210"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L222"
           },
           {
             "method": "getRotation()",
@@ -53148,7 +53148,7 @@
             "returnType": "Number",
             "returnDescription": "The rotation angle in degrees between 0 (inclusive) and 360 (exclusive).",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L140"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L152"
           },
           {
             "method": "getTitle()",
@@ -53157,7 +53157,7 @@
             "returnType": "String",
             "returnDescription": "The page element's alt text title.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L192"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L204"
           },
           {
             "method": "getTop()",
@@ -53166,7 +53166,7 @@
             "returnType": "Number",
             "returnDescription": "This element's vertical position in points, from the upper-left corner of the page.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L109"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L121"
           },
           {
             "method": "getTransform()",
@@ -53175,7 +53175,7 @@
             "returnType": "AffineTransform",
             "returnDescription": "The page element's transform.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L151"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L163"
           },
           {
             "method": "getWidth()",
@@ -53184,7 +53184,7 @@
             "returnType": "Number",
             "returnDescription": "The page element's inherent width in points, or null if the page element does\n    not have a width.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L118"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L130"
           },
           {
             "method": "preconcatenateTransform(AffineTransform)",
@@ -53193,7 +53193,7 @@
             "returnType": "PageElement",
             "returnDescription": "This page element, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L175"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L187"
           },
           {
             "method": "remove()",
@@ -53202,7 +53202,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L220"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L232"
           },
           {
             "method": "scaleHeight(Number)",
@@ -53247,7 +53247,7 @@
             "returnType": "PageElement",
             "returnDescription": "This page element, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L239"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L251"
           },
           {
             "method": "sendToBack()",
@@ -53256,7 +53256,7 @@
             "returnType": "PageElement",
             "returnDescription": "This page element, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L244"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L256"
           },
           {
             "method": "setDescription(String)",
@@ -53265,7 +53265,7 @@
             "returnType": "PageElement",
             "returnDescription": "This page element.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L205"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L217"
           },
           {
             "method": "setHeight(Number)",
@@ -53274,7 +53274,7 @@
             "returnType": "PageElement",
             "returnDescription": "This page element, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L135"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L147"
           },
           {
             "method": "setLeft(Number)",
@@ -53283,7 +53283,7 @@
             "returnType": "PageElement",
             "returnDescription": "This page element, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L104"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L116"
           },
           {
             "method": "setRotation(Number)",
@@ -53292,7 +53292,7 @@
             "returnType": "PageElement",
             "returnDescription": "This page element, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L146"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L158"
           },
           {
             "method": "setTitle(String)",
@@ -53301,7 +53301,7 @@
             "returnType": "PageElement",
             "returnDescription": "This page element.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L196"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L208"
           },
           {
             "method": "setTop(Number)",
@@ -53310,7 +53310,7 @@
             "returnType": "PageElement",
             "returnDescription": "This page element, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L113"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L125"
           },
           {
             "method": "setTransform(AffineTransform)",
@@ -53319,7 +53319,7 @@
             "returnType": "PageElement",
             "returnDescription": "This element, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L163"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L175"
           },
           {
             "method": "setWidth(Number)",
@@ -53328,7 +53328,7 @@
             "returnType": "PageElement",
             "returnDescription": "This page element, for chaining.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakepageelement.js#L124"
+            "implementationLink": "src/services/slidesapp/fakepageelement.js#L136"
           }
         ]
       },
@@ -56165,7 +56165,7 @@
             "returnType": "Slide",
             "returnDescription": "The duplicated slide.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L215"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L270"
           },
           {
             "method": "getBackground()",
@@ -56435,7 +56435,7 @@
             "returnType": "Line",
             "returnDescription": "The inserted line.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L179"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L196"
           },
           {
             "method": "insertLine(LineCategory,ConnectionSite,ConnectionSite)",
@@ -56444,7 +56444,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L179"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L196"
           },
           {
             "method": "insertLine(LineCategory,Number,Number,Number,Number)",
@@ -56453,7 +56453,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L179"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L196"
           },
           {
             "method": "insertPageElement(PageElement)",
@@ -56542,8 +56542,8 @@
             "description": "",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L242"
           },
           {
             "method": "insertTable(Integer,Integer,Number,Number,Number,Number)",
@@ -56551,8 +56551,8 @@
             "description": "",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L242"
           },
           {
             "method": "insertTable(Table)",
@@ -56560,8 +56560,8 @@
             "description": "Inserts a copy of the provided Table on the page.",
             "returnType": "Table",
             "returnDescription": "The inserted table.",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L242"
           },
           {
             "method": "insertTextBox(String)",
@@ -56569,8 +56569,8 @@
             "description": "Inserts a text box Shape containing the provided string on the page.",
             "returnType": "Shape",
             "returnDescription": "The inserted text box shape.",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L179"
           },
           {
             "method": "insertTextBox(String,Number,Number,Number,Number)",
@@ -56578,8 +56578,8 @@
             "description": "",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L179"
           },
           {
             "method": "insertVideo(String)",
@@ -56811,8 +56811,8 @@
             "description": "Returns the text content of the table cell. Returns null if the cell is merged but is\nnot a head cell.",
             "returnType": "",
             "returnDescription": "TextRange",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/faketablecell.js#L20"
           },
           {
             "method": "setContentAlignment(ContentAlignment)",
@@ -57025,8 +57025,8 @@
             "description": "Returns the number of columns in the table.",
             "returnType": "Integer",
             "returnDescription": "The number fo columns in this table.",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/faketable.js#L55"
           },
           {
             "method": "getNumRows()",
@@ -57034,8 +57034,8 @@
             "description": "Returns the number of rows in the table.",
             "returnType": "Integer",
             "returnDescription": "The number of rows in this table.",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/faketable.js#L47"
           },
           {
             "method": "getObjectId()",
@@ -57088,8 +57088,8 @@
             "description": "Returns the specified row in the table.",
             "returnType": "TableRow",
             "returnDescription": "The table row retrieved.",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/faketable.js#L24"
           },
           {
             "method": "getTitle()",
@@ -57320,8 +57320,8 @@
             "description": "Returns the cell at the specified index.",
             "returnType": "TableCell",
             "returnDescription": "the cell.",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/faketablerow.js#L19"
           },
           {
             "method": "getIndex()",
@@ -57347,8 +57347,8 @@
             "description": "Returns the number of cells in this row.",
             "returnType": "",
             "returnDescription": "Integer",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/faketablerow.js#L42"
           },
           {
             "method": "getParentTable()",
@@ -57437,7 +57437,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/faketextrange.js#L126"
+            "implementationLink": "src/services/slidesapp/faketextrange.js#L128"
           },
           {
             "method": "clear(Integer,Integer)",
@@ -57446,7 +57446,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/faketextrange.js#L126"
+            "implementationLink": "src/services/slidesapp/faketextrange.js#L128"
           },
           {
             "method": "find(String)",
@@ -57455,7 +57455,7 @@
             "returnType": "TextRange[]",
             "returnDescription": "A list of text ranges.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/faketextrange.js#L182"
+            "implementationLink": "src/services/slidesapp/faketextrange.js#L184"
           },
           {
             "method": "find(String,Integer)",
@@ -57464,7 +57464,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/faketextrange.js#L182"
+            "implementationLink": "src/services/slidesapp/faketextrange.js#L184"
           },
           {
             "method": "getAutoTexts()",
@@ -57473,7 +57473,7 @@
             "returnType": "AutoText[]",
             "returnDescription": "A list of auto texts.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/faketextrange.js#L176"
+            "implementationLink": "src/services/slidesapp/faketextrange.js#L178"
           },
           {
             "method": "getEndIndex()",
@@ -57608,7 +57608,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/faketextrange.js#L105"
+            "implementationLink": "src/services/slidesapp/faketextrange.js#L106"
           },
           {
             "method": "isEmpty()",
@@ -57617,7 +57617,7 @@
             "returnType": "Boolean",
             "returnDescription": "true if there are no characters in this range, and returns false\n    otherwise.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/faketextrange.js#L246"
+            "implementationLink": "src/services/slidesapp/faketextrange.js#L248"
           },
           {
             "method": "replaceAllText(String,String)",
