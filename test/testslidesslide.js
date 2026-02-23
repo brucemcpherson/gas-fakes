@@ -63,6 +63,27 @@ export const testSlidesSlide = (pack) => {
       t.is(master.toString(), 'Master', 'getLayout().getMaster() should return a Master object');
     }
     t.true(is.array(slide2.getPageElements()), 'getPageElements() should return an array');
+
+    // Test insertTextBox()
+    const textBoxText = 'Hello World';
+    const textBox = slide2.insertTextBox(textBoxText, 50, 60, 200, 100);
+    t.is(textBox.toString(), 'Shape', 'insertTextBox() should return a Shape object');
+    t.is(textBox.getText().asString(), textBoxText + '\n', 'Text box should contain the inserted text plus trailing newline');
+
+    // Test insertTable()
+    const table = slide2.insertTable(2, 3, 10, 10, 300, 100);
+    t.is(table.toString(), 'Table', 'insertTable(rows, cols) should return a Table object');
+    t.is(table.getNumRows(), 2, 'Table should have 2 rows');
+    t.is(table.getNumColumns(), 3, 'Table should have 3 columns');
+
+    const cellText = 'Cell Content';
+    table.getRow(0).getCell(0).getText().setText(cellText);
+    t.is(table.getRow(0).getCell(0).getText().asString(), cellText + '\n', 'Cell content should be set');
+
+    const copiedTable = slide2.insertTable(table);
+    t.is(copiedTable.toString(), 'Table', 'insertTable(table) should return a Table object');
+    t.is(copiedTable.getNumRows(), 2, 'Copied table should have 2 rows');
+    t.is(copiedTable.getRow(0).getCell(0).getText().asString(), cellText + '\n', 'Copied table cell should have identical content');
   });
 
   if (!pack) {

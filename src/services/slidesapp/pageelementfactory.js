@@ -1,5 +1,6 @@
 import { newFakeShape } from './fakeshape.js';
 import { newFakeLine } from './fakeline.js';
+import { newFakeTable } from './faketable.js';
 
 /**
  * Converts a base PageElement to a more specific subclass (Shape, Line, etc.)
@@ -13,6 +14,9 @@ export const asSpecificPageElement = (pageElement) => {
   }
   if (resource.line) {
     return newFakeLine(resource, pageElement.__page);
+  }
+  if (resource.table) {
+    return newFakeTable(resource, pageElement.__page);
   }
   // Add other types as they are implemented
   return pageElement;

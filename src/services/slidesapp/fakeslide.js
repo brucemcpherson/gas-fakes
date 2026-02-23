@@ -168,6 +168,23 @@ export class FakeSlide {
   }
 
   /**
+   * Inserts a text box.
+   * @param {string} text The text to insert.
+   * @param {number} left The left position.
+   * @param {number} top The top position.
+   * @param {number} width The width.
+   * @param {number} height The height.
+   * @returns {FakeShape} The new text box.
+   */
+  insertTextBox(text, left, top, width, height) {
+    const shape = this.insertShape('TEXT_BOX', left, top, width, height);
+    if (text) {
+      shape.getText().setText(text);
+    }
+    return shape;
+  }
+
+  /**
    * Inserts a line.
    * @param {SlidesApp.LineCategory} lineCategory The line category.
    * @param {number} [left]
@@ -210,6 +227,105 @@ export class FakeSlide {
     const newElement = elements.find(e => e.getObjectId() === objectId);
     if (!newElement) throw new Error('New line not found');
     return newElement.asLine();
+  }
+
+  /**
+   * Inserts a table.
+   * @param {number|FakeTable} rowsOrTable The number of rows or a table to copy.
+   * @param {number} [columns] The number of columns (if rowsOrTable is a number).
+   * @param {number} [left]
+   * @param {number} [top]
+   * @param {number} [width]
+   * @param {number} [height]
+   * @returns {FakeTable} The new table.
+   */
+  insertTable(rowsOrTable, columns, left = 0, top = 0, width = 300, height = 300) {
+    const presentationId = this.__presentation.getId();
+    const objectId = `table_${Math.random().toString(36).substring(2, 11)}`;
+    let request = null;
+
+    if (typeof rowsOrTable === 'number') {
+      request = {
+        createTable: {
+          objectId,
+          rows: rowsOrTable,
+          columns: columns,
+          elementProperties: {
+            pageObjectId: this.getObjectId(),
+            size: {
+              width: { magnitude: width, unit: 'PT' },
+              height: { magnitude: height, unit: 'PT' }
+            },
+            transform: {
+              scaleX: 1,
+              scaleY: 1,
+              translateX: left,
+              translateY: top,
+              unit: 'PT'
+            }
+          }
+        }
+      };
+    } else {
+      // Copy table logic - use duplicateObject if it's the same presentation?
+      // Or manually create new table with same rows/cols.
+      // Slide.insertTable(Table) usually means copy.
+      const table = rowsOrTable;
+      request = {
+        createTable: {
+          objectId,
+          rows: table.getNumRows(),
+          columns: table.getNumColumns(),
+          elementProperties: {
+            pageObjectId: this.getObjectId(),
+            size: {
+              width: { magnitude: table.getWidth(), unit: 'PT' },
+              height: { magnitude: table.getHeight(), unit: 'PT' }
+            },
+            transform: {
+              scaleX: 1,
+              scaleY: 1,
+              translateX: table.getLeft(),
+              translateY: table.getTop(),
+              unit: 'PT'
+            }
+          }
+        }
+      };
+    }
+
+    try {
+      Slides.Presentations.batchUpdate([request], presentationId);
+    } catch (err) {
+      if (!err?.message?.includes('already exists')) throw err;
+    }
+
+    const elements = this.getPageElements();
+    const newElement = elements.find(e => e.getObjectId() === objectId);
+    if (!newElement) throw new Error('New table not found');
+
+    const newTable = newElement.asTable();
+
+    // If copying, we should probably copy cell contents too.
+    if (typeof rowsOrTable !== 'number') {
+      const sourceTable = rowsOrTable;
+      const targetTable = newTable;
+      const rows = sourceTable.getRows();
+      const targetRows = targetTable.getRows();
+
+      for (let r = 0; r < rows.length; r++) {
+        const cells = rows[r].getCells();
+        const targetCells = targetRows[r].getCells();
+        for (let c = 0; c < cells.length; c++) {
+          const text = cells[c].getText().asString();
+          if (text) {
+            targetCells[c].getText().setText(text);
+          }
+        }
+      }
+    }
+
+    return newTable;
   }
 
   duplicate() {
