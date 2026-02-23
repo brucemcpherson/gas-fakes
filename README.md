@@ -1,4 +1,4 @@
-# <img src="./logo.png" alt="gas-fakes logo" width="50" align="top"> A proof of concept implementation of Apps Script Environment on Node
+# <img src="./logo.png" alt="gas-fakes logo" width="50" align="top"> Run Native Apps Script code anywhere with gas-fakes
 
 I use clasp/antigravity to develop Google Apps Script (GAS) applications, but when using GAS native services, there's way too much back and forwards to the GAS IDE going while testing. I set myself the ambition of implementing a fake version of the GAS runtime environment on Node so I could at least do some testing and debugging of Apps Scripts locally on Node.
 
