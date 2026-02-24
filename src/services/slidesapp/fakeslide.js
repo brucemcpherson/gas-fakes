@@ -87,6 +87,16 @@ export class FakeSlide {
   }
 
   /**
+   * Gets the list of tables on the slide.
+   * @returns {FakeTable[]} The tables.
+   */
+  getTables() {
+    return this.getPageElements()
+      .filter(pe => pe.toString() === 'Table')
+      .map(pe => pe.asTable());
+  }
+
+  /**
    * Deletes the slide.
    */
   remove() {

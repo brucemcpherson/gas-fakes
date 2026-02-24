@@ -84,6 +84,13 @@ export const testSlidesSlide = (pack) => {
     t.is(copiedTable.toString(), 'Table', 'insertTable(table) should return a Table object');
     t.is(copiedTable.getNumRows(), 2, 'Copied table should have 2 rows');
     t.is(copiedTable.getRow(0).getCell(0).getText().asString(), cellText + '\n', 'Copied table cell should have identical content');
+
+    // Test getTables()
+    const tables = slide2.getTables();
+    t.is(tables.length, 2, 'slide2 should have 2 tables');
+    t.true(tables.every(tbl => tbl.toString() === 'Table'), 'All items returned by getTables() should be Table objects');
+    t.is(tables[0].getObjectId(), table.getObjectId(), 'First table should match the first inserted table');
+    t.is(tables[1].getObjectId(), copiedTable.getObjectId(), 'Second table should match the second inserted table');
   });
 
   if (!pack) {
