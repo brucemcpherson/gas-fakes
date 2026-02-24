@@ -80,10 +80,45 @@ export const testSlidesSlide = (pack) => {
     table.getRow(0).getCell(0).getText().setText(cellText);
     t.is(table.getRow(0).getCell(0).getText().asString(), cellText + '\n', 'Cell content should be set');
 
+    // Test getShapes()
+    const shapes = slide2.getShapes();
+    // slide2 already had one textbox inserted earlier
+    t.is(shapes.length, 1, 'slide2 should have 1 shape (the textbox)');
+    t.true(shapes.every(s => s.toString() === 'Shape'), 'All items returned by getShapes() should be Shape objects');
+    t.is(shapes[0].getObjectId(), textBox.getObjectId(), 'Shape ID should match the textbox ID');
+
     const copiedTable = slide2.insertTable(table);
     t.is(copiedTable.toString(), 'Table', 'insertTable(table) should return a Table object');
     t.is(copiedTable.getNumRows(), 2, 'Copied table should have 2 rows');
     t.is(copiedTable.getRow(0).getCell(0).getText().asString(), cellText + '\n', 'Copied table cell should have identical content');
+
+    // Test getTables()
+    const tables = slide2.getTables();
+    t.is(tables.length, 2, 'slide2 should have 2 tables');
+    t.true(tables.every(tbl => tbl.toString() === 'Table'), 'All items returned by getTables() should be Table objects');
+    t.is(tables[0].getObjectId(), table.getObjectId(), 'First table should match the first inserted table');
+    t.is(tables[1].getObjectId(), copiedTable.getObjectId(), 'Second table should match the second inserted table');
+
+    // Test replaceAllText()
+    const slide4 = pres.appendSlide();
+    const tb1 = slide4.insertTextBox('Hello foo', 10, 10, 100, 50);
+    const tb2 = slide4.insertTextBox('Hello Foo', 10, 70, 100, 50);
+    const tb3 = slide2.insertTextBox('Hello foo', 10, 140, 100, 50); // Same text on different slide
+
+    // Case-insensitive replacement on slide4
+    const count1 = slide4.replaceAllText('foo', 'bar', false);
+    t.is(count1, 2, 'Should replace 2 instances (case-insensitive)');
+    t.is(tb1.getText().asString(), 'Hello bar\n', 'tb1 text should be updated');
+    t.is(tb2.getText().asString(), 'Hello bar\n', 'tb2 text should be updated');
+    t.is(tb3.getText().asString(), 'Hello foo\n', 'tb3 on slide2 should NOT be updated');
+
+    // Case-sensitive replacement on slide4
+    const tb4 = slide4.insertTextBox('Hello baz', 10, 210, 100, 50);
+    const tb5 = slide4.insertTextBox('Hello Baz', 10, 280, 100, 50);
+    const count2 = slide4.replaceAllText('baz', 'qux', true);
+    t.is(count2, 1, 'Should replace 1 instance (case-sensitive)');
+    t.is(tb4.getText().asString(), 'Hello qux\n', 'tb4 text should be updated');
+    t.is(tb5.getText().asString(), 'Hello Baz\n', 'tb5 text should NOT be updated');
   });
 
   if (!pack) {

@@ -6,10 +6,13 @@ export const newFakeTableRow = (...args) => {
 };
 
 export class FakeTableRow {
-  constructor(resource, table, rowIndex) {
-    this.__resource = resource;
+  constructor(table, rowIndex) {
     this.__table = table;
     this.__rowIndex = rowIndex;
+  }
+
+  get __resource() {
+    return this.__table.__resource.table?.tableRows?.[this.__rowIndex];
   }
 
   /**
@@ -17,8 +20,8 @@ export class FakeTableRow {
    * @returns {FakeTableCell[]} The cells.
    */
   getCells() {
-    return (this.__resource.tableCells || []).map((cell, colIndex) =>
-      newFakeTableCell(cell, this.__table, this.__rowIndex, colIndex)
+    return (this.__resource?.tableCells || []).map((_, colIndex) =>
+      newFakeTableCell(this.__table, this.__rowIndex, colIndex)
     );
   }
 
@@ -40,7 +43,7 @@ export class FakeTableRow {
    * @returns {number} The number of cells.
    */
   getNumCells() {
-    return (this.__resource.tableCells || []).length;
+    return (this.__resource?.tableCells || []).length;
   }
 
   toString() {

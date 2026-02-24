@@ -87,6 +87,26 @@ export class FakeSlide {
   }
 
   /**
+   * Gets the list of tables on the slide.
+   * @returns {FakeTable[]} The tables.
+   */
+  getTables() {
+    return this.getPageElements()
+      .filter(pe => pe.toString() === 'Table')
+      .map(pe => pe.asTable());
+  }
+
+  /**
+   * Gets the list of shapes on the slide.
+   * @returns {FakeShape[]} The shapes.
+   */
+  getShapes() {
+    return this.getPageElements()
+      .filter(pe => pe.toString() === 'Shape')
+      .map(pe => pe.asShape());
+  }
+
+  /**
    * Deletes the slide.
    */
   remove() {
@@ -365,6 +385,30 @@ export class FakeSlide {
         insertionIndex: index
       }
     }], presentationId);
+  }
+
+  /**
+   * Replaces all instances of text matching a find string with a replace string.
+   * @param {string} findText The text to find.
+   * @param {string} replaceText The text to replace with.
+   * @param {boolean} matchCase Whether to match case.
+   * @returns {number} The number of occurrences replaced.
+   */
+  replaceAllText(findText, replaceText, matchCase) {
+    const presentationId = this.__presentation.getId();
+    const requests = [{
+      replaceAllText: {
+        replaceText: replaceText,
+        containsText: {
+          text: findText,
+          matchCase: matchCase
+        },
+        pageObjectIds: [this.getObjectId()]
+      }
+    }];
+
+    const response = Slides.Presentations.batchUpdate(requests, presentationId);
+    return response.replies[0].replaceAllText.occurrencesChanged || 0;
   }
 
   toString() {
