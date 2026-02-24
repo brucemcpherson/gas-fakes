@@ -80,6 +80,13 @@ export const testSlidesSlide = (pack) => {
     table.getRow(0).getCell(0).getText().setText(cellText);
     t.is(table.getRow(0).getCell(0).getText().asString(), cellText + '\n', 'Cell content should be set');
 
+    // Test getShapes()
+    const shapes = slide2.getShapes();
+    // slide2 already had one textbox inserted earlier
+    t.is(shapes.length, 1, 'slide2 should have 1 shape (the textbox)');
+    t.true(shapes.every(s => s.toString() === 'Shape'), 'All items returned by getShapes() should be Shape objects');
+    t.is(shapes[0].getObjectId(), textBox.getObjectId(), 'Shape ID should match the textbox ID');
+
     const copiedTable = slide2.insertTable(table);
     t.is(copiedTable.toString(), 'Table', 'insertTable(table) should return a Table object');
     t.is(copiedTable.getNumRows(), 2, 'Copied table should have 2 rows');

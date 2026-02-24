@@ -97,6 +97,16 @@ export class FakeSlide {
   }
 
   /**
+   * Gets the list of shapes on the slide.
+   * @returns {FakeShape[]} The shapes.
+   */
+  getShapes() {
+    return this.getPageElements()
+      .filter(pe => pe.toString() === 'Shape')
+      .map(pe => pe.asShape());
+  }
+
+  /**
    * Deletes the slide.
    */
   remove() {
