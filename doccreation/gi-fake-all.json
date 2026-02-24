@@ -56165,7 +56165,7 @@
             "returnType": "Slide",
             "returnDescription": "The duplicated slide.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L270"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L290"
           },
           {
             "method": "getBackground()",
@@ -56299,8 +56299,8 @@
             "description": "Returns the list of Shape objects on the page.",
             "returnType": "",
             "returnDescription": "Shape[]",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L103"
           },
           {
             "method": "getSheetsCharts()",
@@ -56344,8 +56344,8 @@
             "description": "Returns the list of Table objects on the page.",
             "returnType": "",
             "returnDescription": "Table[]",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L93"
           },
           {
             "method": "getVideos()",
@@ -56435,7 +56435,7 @@
             "returnType": "Line",
             "returnDescription": "The inserted line.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L196"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L216"
           },
           {
             "method": "insertLine(LineCategory,ConnectionSite,ConnectionSite)",
@@ -56444,7 +56444,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L196"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L216"
           },
           {
             "method": "insertLine(LineCategory,Number,Number,Number,Number)",
@@ -56453,7 +56453,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L196"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L216"
           },
           {
             "method": "insertPageElement(PageElement)",
@@ -56471,7 +56471,7 @@
             "returnType": "Shape",
             "returnDescription": "The inserted shape.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L115"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L135"
           },
           {
             "method": "insertShape(ShapeType)",
@@ -56480,7 +56480,7 @@
             "returnType": "Shape",
             "returnDescription": "The inserted shape.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L115"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L135"
           },
           {
             "method": "insertShape(ShapeType,Number,Number,Number,Number)",
@@ -56489,7 +56489,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L115"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L135"
           },
           {
             "method": "insertSheetsChart(EmbeddedChart)",
@@ -56543,7 +56543,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L242"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L262"
           },
           {
             "method": "insertTable(Integer,Integer,Number,Number,Number,Number)",
@@ -56552,7 +56552,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L242"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L262"
           },
           {
             "method": "insertTable(Table)",
@@ -56561,7 +56561,7 @@
             "returnType": "Table",
             "returnDescription": "The inserted table.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L242"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L262"
           },
           {
             "method": "insertTextBox(String)",
@@ -56570,7 +56570,7 @@
             "returnType": "Shape",
             "returnDescription": "The inserted text box shape.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L179"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L199"
           },
           {
             "method": "insertTextBox(String,Number,Number,Number,Number)",
@@ -56579,7 +56579,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L179"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L199"
           },
           {
             "method": "insertVideo(String)",
@@ -56633,7 +56633,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L92"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L112"
           },
           {
             "method": "refreshSlide()",
@@ -56651,7 +56651,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/fakeslide.js#L92"
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L112"
           },
           {
             "method": "replaceAllText(String,String)",
@@ -56659,8 +56659,8 @@
             "description": "",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L397"
           },
           {
             "method": "replaceAllText(String,String,Boolean)",
@@ -56668,8 +56668,8 @@
             "description": "",
             "returnType": "",
             "returnDescription": "",
-            "gas-fakes status": "not started",
-            "implementationLink": null
+            "gas-fakes status": "completed",
+            "implementationLink": "src/services/slidesapp/fakeslide.js#L397"
           },
           {
             "method": "selectAsCurrentPage()",
@@ -56812,7 +56812,7 @@
             "returnType": "",
             "returnDescription": "TextRange",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/faketablecell.js#L20"
+            "implementationLink": "src/services/slidesapp/faketablecell.js#L23"
           },
           {
             "method": "setContentAlignment(ContentAlignment)",
@@ -57321,7 +57321,7 @@
             "returnType": "TableCell",
             "returnDescription": "the cell.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/faketablerow.js#L19"
+            "implementationLink": "src/services/slidesapp/faketablerow.js#L22"
           },
           {
             "method": "getIndex()",
@@ -57348,7 +57348,7 @@
             "returnType": "",
             "returnDescription": "Integer",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/slidesapp/faketablerow.js#L42"
+            "implementationLink": "src/services/slidesapp/faketablerow.js#L45"
           },
           {
             "method": "getParentTable()",
