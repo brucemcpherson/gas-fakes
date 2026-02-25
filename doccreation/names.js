@@ -31,8 +31,8 @@ const serviceToDirectoryMap = {
     'Script': 'script',
     'Utilities': 'utilities',
     'URL Fetch': 'urlfetchapp',
-    'Jdbc': 'jdbc',
-    'XML': 'xml',
+    'JDBC': 'jdbc',
+    'XML': 'xmlservice',
 };
 
 const classSynonyms = {
