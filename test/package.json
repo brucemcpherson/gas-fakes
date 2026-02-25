@@ -69,7 +69,8 @@
     "testchartsapp": "node testchartsapp.js execute",
     "testformwebhack": "node testformwebhack.js execute",
     "testdrivesharing": "node testdrivesharing.js execute",
-    "testdwdrefresh": "node testdwdrefresh.js execute"
+    "testdwdrefresh": "node testdwdrefresh.js execute",
+    "testxmlservice": "node testxmlservice.js execute"
   },
   "name": "test-gas-fakes",
   "version": "2.0.9",
