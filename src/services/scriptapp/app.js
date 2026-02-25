@@ -1,5 +1,3 @@
-
-
 // fake script app to get oauth token from application default credentials on Apps Script
 // first set up and test ADC with required scopes - see https://ramblings.mcpher.com/application-default-credentials-with-google-cloud-and-workspace-apis
 // Note that all async type functions have been converted to synch to make it Apps Script like
@@ -15,6 +13,11 @@ import { slogger } from "../../support/slogger.js";
  * @return {string} token
  */
 const getOAuthToken = () => {
+  if (_app && _app.__platform === 'ksuite') {
+    const t = process.env.KSUITE_TOKEN
+    if (!t) throw new Error('missing KSUITE token')
+    return t
+  }
   return Syncit.fxGetAccessToken(Auth)
 }
 
@@ -122,6 +125,16 @@ if (typeof globalThis[name] === typeof undefined) {
         requireAllScopes,
         requireScopes,
         getScriptId: Auth.getScriptId,
+        get __platform() {
+          return Auth.getPlatform()
+        },
+        set __platform(value) {
+          Auth.setPlatform(value)
+          // When platform changes, we should ideally clear caches of all services.
+          if (globalThis.DriveApp && typeof globalThis.DriveApp.__reset === 'function') {
+            globalThis.DriveApp.__reset()
+          }
+        },
         get __projectId() {
           return Auth.getProjectId()
         },

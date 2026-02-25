@@ -117,7 +117,8 @@ export function callSync(method, ...args) {
   Atomics.store(control, CONTROL_INDICES.STATUS, 1);
 
   // 2. Send the task to the worker.
-  const payload = { method, args };
+  const platform = globalThis.ScriptApp?.__platform || 'workspace';
+  const payload = { method, args, platform };
   worker.postMessage(payload);
 
   // 3. Block and wait for the worker to finish.

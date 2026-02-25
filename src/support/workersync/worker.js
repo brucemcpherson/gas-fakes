@@ -127,6 +127,11 @@ parentPort.on('message', async (task) => {
       if (!Auth.getProjectId()) {
         throw new Error('[Worker] Not initialized. fxInit must be called first.');
       }
+
+      if (task.platform) {
+        Auth.setPlatform(task.platform);
+      }
+      
       result = await asyncFn(Auth, ...task.args);
 
     }

@@ -13,6 +13,7 @@
     "test": "node test.js",
     "testlock": "node testlock.js execute",
     "testdrive": "node testdrive.js execute",
+    "testksuite": "node testksuite.js execute",
     "testsheetsdatavalidations": "node testsheetsdatavalidations.js execute",
     "testsheetspermissions": "node testsheetspermissions.js execute",
     "testsheetsvalues": "node testsheetsvalues.js execute",

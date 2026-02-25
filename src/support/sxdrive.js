@@ -13,8 +13,110 @@ import { getStreamAsBuffer } from 'get-stream';
 import { syncWarn, syncError, syncLog } from './workersync/synclogger.js';
 import { getDriveApiClient } from '../services/advdrive/drapis.js';
 import { translateFieldsToV2 } from './utils.js';
+import { KSuiteDrive } from './ksuite/kdrive.js';
+
+const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
+  const token = process.env.KSUITE_TOKEN;
+  const kDrive = new KSuiteDrive(token);
+
+  if (prop === 'files' && method === 'get') {
+    const data = await kDrive.getFile(params.fileId);
+    return {
+      data,
+      response: { status: 200 }
+    };
+  }
+
+  if (prop === 'files' && method === 'list') {
+    // extract parent from q if possible
+    let parentId = null;
+    let mimeTypeFilter = null;
+    let mimeTypeExclude = false;
+
+    if (params.q) {
+      const parentMatch = params.q.match(/'([^']*)' in parents/);
+      if (parentMatch) parentId = parentMatch[1];
+
+      const mimeMatch = params.q.match(/mimeType\s*(!?=)\s*'([^']*)'/);
+      if (mimeMatch) {
+        mimeTypeExclude = mimeMatch[1] === '!=';
+        mimeTypeFilter = mimeMatch[2];
+      }
+    }
+    
+    const result = await kDrive.listFiles(parentId);
+    let files = result.files;
+
+    // Manual filtering for mimeType since KSuite API might not support it in the same way
+    if (mimeTypeFilter) {
+      files = files.filter(f => {
+        const isFolder = f.mimeType === 'application/vnd.google-apps.folder';
+        const match = f.mimeType === mimeTypeFilter || (mimeTypeFilter === 'application/vnd.google-apps.folder' && isFolder);
+        return mimeTypeExclude ? !match : match;
+      });
+    }
+
+    return {
+      data: {
+        files,
+        nextPageToken: result.nextPageToken
+      },
+      response: { status: 200 }
+    };
+  }
+
+  if (prop === 'files' && method === 'create') {
+    // Check if it's a directory
+    const isDir = params.resource?.mimeType === 'application/vnd.google-apps.folder';
+    if (isDir) {
+      const parentId = params.resource?.parents?.[0];
+      const data = await kDrive.createDirectory(parentId, params.resource.name);
+      return {
+        data,
+        response: { status: 200 }
+      };
+    }
+  }
+
+  if (prop === 'files' && method === 'update') {
+    if (params.resource && Reflect.has(params.resource, 'trashed')) {
+      if (params.resource.trashed) {
+        await kDrive.deleteFile(params.fileId);
+        return {
+          data: { ...params.resource, id: params.fileId },
+          response: { status: 200 }
+        };
+      } else {
+        const data = await kDrive.restoreFile(params.fileId);
+        return {
+          data,
+          response: { status: 200 }
+        };
+      }
+    }
+
+    if (params.resource && params.resource.name) {
+      const data = await kDrive.renameFile(params.fileId, params.resource.name);
+      return {
+        data: { 
+          ...data, 
+          id: params.fileId, 
+          name: params.resource.name,
+          mimeType: params.resource.mimeType // Keep existing mimeType if available
+        },
+        response: { status: 200 }
+      };
+    }
+  }
+
+  throw new Error(`KSuite Drive API ${prop}.${method} not implemented in POC`);
+};
 
 export const sxDrive = async (Auth, { prop, method, params, options }) => {
+
+  if (Auth.getPlatform() === 'ksuite') {
+    return handleKSuiteDrive(Auth, { prop, method, params, options });
+  }
 
   const apiClient = getDriveApiClient();
   const tag = `sxDrive for ${prop}.${method}`;
@@ -53,6 +155,56 @@ export const sxDrive = async (Auth, { prop, method, params, options }) => {
  */
 
 export const sxStreamUpMedia = async (Auth, { resource, bytes, fields, method, mimeType, fileId, params }) => {
+
+  if (Auth.getPlatform() === 'ksuite') {
+    const isDir = (resource?.mimeType || mimeType) === 'application/vnd.google-apps.folder';
+    const token = process.env.KSUITE_TOKEN;
+    const kDrive = new KSuiteDrive(token);
+    const parentId = resource?.parents?.[0];
+
+    if (method === 'update') {
+      if (resource?.name) {
+        const data = await kDrive.renameFile(fileId, resource.name);
+        return {
+          data: { ...data, id: fileId, name: resource.name },
+          response: { status: 200 }
+        };
+      }
+      
+      if (resource && Reflect.has(resource, 'trashed')) {
+        if (resource.trashed) {
+          await kDrive.deleteFile(fileId);
+          return {
+            data: { ...resource, id: fileId },
+            response: { status: 200 }
+          };
+        } else {
+          const data = await kDrive.restoreFile(fileId);
+          return {
+            data,
+            response: { status: 200 }
+          };
+        }
+      }
+      
+      // other updates not yet implemented
+      throw new Error(`sxStreamUpMedia: update method for KSuite not fully implemented (fileId: ${fileId}, resource: ${JSON.stringify(resource)})`);
+    }
+
+    if (isDir) {
+      const data = await kDrive.createDirectory(parentId, resource?.name);
+      return {
+        data,
+        response: { status: 200 }
+      };
+    } else {
+      const data = await kDrive.uploadFile(parentId, resource?.name || 'Untitled', bytes, resource?.mimeType || mimeType);
+      return {
+        data,
+        response: { status: 200 }
+      };
+    }
+  }
 
   // this is the node drive service
   const drive = getDriveApiClient()
@@ -126,7 +278,11 @@ const sxStreamer = async ({
  * @param {string} p.id file id
  * @return {SxResult} from the api
  */
-export const sxDriveExport = async (_, { id: fileId, mimeType }) => {
+export const sxDriveExport = async (Auth, { id: fileId, mimeType }) => {
+
+  if (Auth.getPlatform() === 'ksuite') {
+     throw new Error('sxDriveExport not implemented for KSuite in POC');
+  }
 
   return sxStreamer({
     params: {
@@ -142,7 +298,17 @@ export const sxDriveExport = async (_, { id: fileId, mimeType }) => {
  * @param {string} p.id file id
  * @return {SxResult} from the api
  */
-export const sxDriveMedia = async (_, { id: fileId }) => {
+export const sxDriveMedia = async (Auth, { id: fileId }) => {
+
+  if (Auth.getPlatform() === 'ksuite') {
+    const token = process.env.KSUITE_TOKEN;
+    const kDrive = new KSuiteDrive(token);
+    const data = await kDrive.downloadFile(fileId);
+    return {
+      data: Array.from(data),
+      response: { status: 200 }
+    };
+  }
 
   return sxStreamer({
     params: {

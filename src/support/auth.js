@@ -15,6 +15,7 @@ let _clasp = null;
 let _activeUser = null;
 let _effectiveUser = null;
 let _tokenScopes = null;
+let _platform = 'workspace';
 
 
 let _settings = null;
@@ -34,6 +35,8 @@ const setAccessToken = (accessToken) => (_accessToken = accessToken);
 const setSettings = (settings) => (_settings = settings);
 const getCachePath = () => getSettings().cache;
 const getPropertiesPath = () => getSettings().properties;
+const setPlatform = (platform) => (_platform = platform);
+const getPlatform = () => _platform;
 
 
 const getTimeZone = () => getManifest().timeZone;
@@ -386,5 +389,7 @@ export const Auth = {
   setEffectiveUser,
   getEffectiveUser,
   invalidateToken,
-  setTokenScopes
+  setTokenScopes,
+  setPlatform,
+  getPlatform
 };
