@@ -1,5 +1,6 @@
 // use package.json to direct to file:../ for local code testing
 import '@mcpher/gas-fakes'
+import { testXmlService } from './testxmlservice.js';
 
 import { initTests } from "./testinit.js";
 import { testDrive } from "./testdrive.js";
@@ -197,6 +198,8 @@ export const testFakes = () => {
   testSession(pack);
   console.log("\n----Test Utilities----");
   testUtilities(pack);
+  console.log("\n----Test XmlService----");
+  testXmlService(pack);
   console.log("\n----Test Stores----");
   testStores(pack);
 
