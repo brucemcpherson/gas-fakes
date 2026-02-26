@@ -14,6 +14,7 @@
     "testlock": "node testlock.js execute",
     "testdrive": "node testdrive.js execute",
     "testksuitedrive": "node testksuitedrive.js execute",
+    "testksuitedrivesharing": "node testksuitedrivesharing.js execute",
     "testsheetsdatavalidations": "node testsheetsdatavalidations.js execute",
     "testsheetspermissions": "node testsheetspermissions.js execute",
     "testsheetsvalues": "node testsheetsvalues.js execute",

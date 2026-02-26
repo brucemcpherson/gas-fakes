@@ -19,7 +19,22 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
   const token = process.env.KSUITE_TOKEN;
   const kDrive = new KSuiteDrive(token);
 
+  if (method === 'getDriveId') {
+    const driveId = await kDrive.getDriveId();
+    return { data: driveId, response: { status: 200 } };
+  }
+
   if (prop === 'files' && method === 'get') {
+    // Be very flexible about where 'alt' might be
+    const isMedia = params.alt === 'media' || (params.params && params.params.alt === 'media');
+    
+    if (isMedia) {
+      const data = await kDrive.downloadFile(params.fileId);
+      return {
+        data: Array.from(data),
+        response: { status: 200 }
+      };
+    }
     const data = await kDrive.getFile(params.fileId);
     return {
       data,
@@ -28,10 +43,11 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
   }
 
   if (prop === 'files' && method === 'list') {
-    // extract parent from q if possible
+    // extract filters from q
     let parentId = null;
     let mimeTypeFilter = null;
     let mimeTypeExclude = false;
+    let nameFilter = null;
 
     if (params.q) {
       const parentMatch = params.q.match(/'([^']*)' in parents/);
@@ -42,18 +58,40 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
         mimeTypeExclude = mimeMatch[1] === '!=';
         mimeTypeFilter = mimeMatch[2];
       }
+
+      const nameMatch = params.q.match(/name\s*=\s*'([^']*)'/);
+      if (nameMatch) nameFilter = nameMatch[1];
     }
     
-    const result = await kDrive.listFiles(parentId);
+    // Per user instruction: stay within private root.
+    // Clean request - no per_page
+    const result = await kDrive.listFiles(parentId || 'root');
     let files = result.files;
 
-    // Manual filtering for mimeType since KSuite API might not support it in the same way
+    // To improve global search in POC, if we're at root and didn't find much, 
+    // look one level deeper into folders.
+    if (!parentId || parentId === 'root') {
+       const subDirs = files.filter(f => f.mimeType === 'application/vnd.google-apps.folder');
+       for (const dir of subDirs) {
+         if (dir.id === '1' || dir.name === 'Private' || dir.name === 'Common') continue;
+         const subResult = await kDrive.listFiles(dir.id);
+         files = files.concat(subResult.files);
+       }
+    }
+
+    // syncLog(`[Worker] KSuite listFiles returned ${files.length} items total (including 1-level recursion).`);
+
+    // Manual filtering
     if (mimeTypeFilter) {
       files = files.filter(f => {
         const isFolder = f.mimeType === 'application/vnd.google-apps.folder';
         const match = f.mimeType === mimeTypeFilter || (mimeTypeFilter === 'application/vnd.google-apps.folder' && isFolder);
         return mimeTypeExclude ? !match : match;
       });
+    }
+
+    if (nameFilter) {
+      files = files.filter(f => f.name === nameFilter);
     }
 
     return {
@@ -100,6 +138,15 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
         response: { status: 200 }
       };
     }
+
+    // Handle moveTo (addParents/removeParents)
+    if (params.addParents) {
+      const data = await kDrive.moveFile(params.fileId, params.addParents);
+      return {
+        data,
+        response: { status: 200 }
+      };
+    }
   }
 
   if (prop === 'files' && method === 'copy') {
@@ -109,6 +156,73 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
       data,
       response: { status: 200 }
     };
+  }
+
+  if (prop === 'permissions') {
+    if (method === 'list') {
+      const shareLink = await kDrive.getShareLink(params.fileId);
+      const effUser = Auth.getEffectiveUser();
+      const permissions = [
+        {
+          id: 'owner',
+          type: 'user',
+          role: 'owner',
+          emailAddress: effUser.email,
+          displayName: effUser.name || effUser.email
+        }
+      ];
+      if (shareLink) {
+        permissions.push({
+          id: 'anyoneWithLink',
+          type: 'anyone',
+          role: shareLink.capabilities?.can_edit ? 'writer' : (shareLink.capabilities?.can_comment ? 'commenter' : 'reader'),
+          allowFileDiscovery: false
+        });
+      }
+      return {
+        data: { permissions },
+        response: { status: 200 }
+      };
+    }
+
+    if (method === 'create') {
+      if (params.resource.type === 'anyone') {
+        const settings = {
+          can_edit: params.resource.role === 'writer',
+          can_comment: params.resource.role === 'commenter',
+          right: 'public'
+        };
+        const data = await kDrive.createShareLink(params.fileId, settings);
+        return {
+          data: { id: 'anyoneWithLink', ...params.resource },
+          response: { status: 200 }
+        };
+      }
+    }
+
+    if (method === 'delete') {
+      if (params.permissionId === 'anyoneWithLink') {
+        await kDrive.deleteShareLink(params.fileId);
+        return {
+          data: {},
+          response: { status: 204 }
+        };
+      }
+    }
+
+    if (method === 'update') {
+      if (params.permissionId === 'anyoneWithLink') {
+        const settings = {
+          can_edit: params.resource.role === 'writer',
+          can_comment: params.resource.role === 'commenter'
+        };
+        await kDrive.updateShareLink(params.fileId, settings);
+        return {
+          data: { id: 'anyoneWithLink', ...params.resource },
+          response: { status: 200 }
+        };
+      }
+    }
   }
 
   throw new Error(`KSuite Drive API ${prop}.${method} not implemented in POC`);
@@ -185,7 +299,34 @@ export const sxStreamUpMedia = async (Auth, { resource, bytes, fields, method, m
           response: { status: 200 }
         };
       }
+
+      // Handle moveTo (addParents/removeParents)
+      if (params && params.addParents) {
+        const data = await kDrive.moveFile(fileId, params.addParents);
+        return {
+          data,
+          response: { status: 200 }
+        };
+      }
+
+      // Handle media update (setContent)
+      if (bytes) {
+        const data = await kDrive.uploadFile(null, null, bytes, null, fileId);
+        return {
+          data,
+          response: { status: 200 }
+        };
+      }
       
+      // If resource is empty or doesn't have supported fields for update, just return current metadata
+      if (!resource || Object.keys(resource).length === 0) {
+        const data = await kDrive.getFile(fileId);
+        return {
+          data,
+          response: { status: 200 }
+        };
+      }
+
       // other updates not yet implemented
       throw new Error(`sxStreamUpMedia: update method for KSuite not fully implemented (fileId: ${fileId}, resource: ${JSON.stringify(resource)})`);
     }
@@ -303,8 +444,10 @@ export const sxDriveMedia = async (Auth, { id: fileId }) => {
     const token = process.env.KSUITE_TOKEN;
     const kDrive = new KSuiteDrive(token);
     const data = await kDrive.downloadFile(fileId);
+    const meta = await kDrive.getFile(fileId);
     return {
       data: Array.from(data),
+      metadata: meta,
       response: { status: 200 }
     };
   }

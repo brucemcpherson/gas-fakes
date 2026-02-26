@@ -145,20 +145,20 @@ export class KSuiteDrive {
      const driveId = await this.getDriveId();
      const actualFileId = (parentId === 'root' || !parentId) ? await this.getPrivateRootId() : parentId;
      const realUrl = `${this.baseUrl}/3/drive/${driveId}/files/${actualFileId}/files`;
-     //syncLog(`KSuite API call: GET ${realUrl}`);
      
+     // COMPLETELY CLEAN REQUEST - No searchParams, no loops
      try {
        const response = await got(realUrl, {
          headers: { Authorization: `Bearer ${this.token}` },
-         responseType: 'json',
-         searchParams: params
+         responseType: 'json'
        });
+       
        return {
-          files: response.body.data.map(f => this.translateFile(f)),
+          files: (response.body.data || []).map(f => this.translateFile(f)),
           nextPageToken: response.body.pagination?.next ? String(response.body.pagination.page + 1) : null
        };
      } catch (err) {
-       syncWarn(`KSuite API error: ${err.message}`);
+       syncWarn(`KSuite API error in listFiles: ${err.message}`);
        throw err;
      }
   }
@@ -177,6 +177,11 @@ export class KSuiteDrive {
       });
       return this.translateFile(response.body.data);
     } catch (err) {
+      if (err.response?.body?.error?.code === 'destination_already_exists') {
+        const newName = `${name} (${Date.now()})`;
+        // syncWarn(`Directory ${name} already exists, retrying as ${newName}`);
+        return this.createDirectory(parentId, newName);
+      }
       let msg = err.message;
       if (err.response?.body) {
         const bodyStr = typeof err.response.body === 'object' ? JSON.stringify(err.response.body) : String(err.response.body);
@@ -187,13 +192,23 @@ export class KSuiteDrive {
     }
   }
 
-  async uploadFile(parentId, name, content, mimeType) {
+  async uploadFile(parentId, name, content, mimeType, fileId = null) {
     const driveId = await this.getDriveId();
-    const actualParentId = (parentId === 'root' || !parentId) ? await this.getPrivateRootId() : parentId;
     const url = `${this.baseUrl}/3/drive/${driveId}/upload`;
     const buffer = Buffer.from(content || '');
     
-    //syncLog(`KSuite API call: POST ${url} (name: ${name}, parent: ${actualParentId}, size: ${buffer.length})`);
+    const searchParams = {
+      total_size: buffer.length
+    };
+
+    if (fileId) {
+      searchParams.file_id = fileId;
+    } else {
+      const actualParentId = (parentId === 'root' || !parentId) ? await this.getPrivateRootId() : parentId;
+      searchParams.directory_id = actualParentId;
+      searchParams.file_name = name;
+      searchParams.conflict = 'rename';
+    }
 
     try {
       const response = await got.post(url, {
@@ -201,18 +216,17 @@ export class KSuiteDrive {
           Authorization: `Bearer ${this.token}`,
           'Content-Type': 'application/octet-stream'
         },
-        searchParams: {
-          directory_id: actualParentId,
-          file_name: name,
-          total_size: buffer.length,
-          conflict: 'rename'
-        },
+        searchParams,
         body: buffer,
         responseType: 'json'
       });
       const data = response.body.data;
       return this.translateFile(Array.isArray(data) ? data[0] : data);
     } catch (err) {
+      if (!fileId && err.response?.body?.error?.code === 'destination_already_exists') {
+        const newName = `${name} (${Date.now()})`;
+        return this.uploadFile(parentId, newName, content, mimeType);
+      }
       let msg = err.message;
       if (err.response?.body) {
         const bodyStr = typeof err.response.body === 'object' ? JSON.stringify(err.response.body) : String(err.response.body);
@@ -235,6 +249,10 @@ export class KSuiteDrive {
       });
       return true;
     } catch (err) {
+      // Ignore 404 errors on delete - it's already gone
+      if (err.response?.statusCode === 404) {
+        return true;
+      }
       syncWarn(`KSuite API error: ${err.message}`);
       throw err;
     }
@@ -293,6 +311,30 @@ export class KSuiteDrive {
     }
   }
 
+  async moveFile(fileId, destinationParentId) {
+    const driveId = await this.getDriveId();
+    const actualDestinationId = (destinationParentId === 'root' || !destinationParentId) ? await this.getPrivateRootId() : destinationParentId;
+    const url = `${this.baseUrl}/3/drive/${driveId}/files/${fileId}/move/${actualDestinationId}`;
+    
+    try {
+      await got.post(url, {
+        headers: { Authorization: `Bearer ${this.token}` },
+        json: { conflict: 'rename' },
+        responseType: 'json'
+      });
+      // After moving, fetch the full metadata
+      const file = await this.getFile(fileId);
+      // Manually ensure the parent_id is updated in the returned object to avoid lag issues
+      if (file) {
+        file.parents = [String(actualDestinationId)];
+      }
+      return file;
+    } catch (err) {
+      syncWarn(`KSuite API error: ${err.message}`);
+      throw err;
+    }
+  }
+
   async copyFile(fileId, destinationParentId, name) {
     const driveId = await this.getDriveId();
     const actualDestinationId = (destinationParentId === 'root' || !destinationParentId) ? await this.getPrivateRootId() : destinationParentId;
@@ -311,6 +353,59 @@ export class KSuiteDrive {
     }
   }
 
+  async getShareLink(fileId) {
+    const driveId = await this.getDriveId();
+    const url = `${this.baseUrl}/2/drive/${driveId}/files/${fileId}/link`;
+    try {
+      const response = await got(url, {
+        headers: { Authorization: `Bearer ${this.token}` },
+        responseType: 'json'
+      });
+      return response.body.data;
+    } catch (err) {
+      // Ignore 404 and 400 errors - file might not have a share link or might not support one
+      if (err.response?.statusCode === 404 || err.response?.statusCode === 400) return null;
+      throw err;
+    }
+  }
+
+  async createShareLink(fileId, settings = {}) {
+    const driveId = await this.getDriveId();
+    const url = `${this.baseUrl}/2/drive/${driveId}/files/${fileId}/link`;
+    const response = await got.post(url, {
+      headers: { Authorization: `Bearer ${this.token}` },
+      json: {
+        right: 'public',
+        can_download: true,
+        can_see_info: true,
+        ...settings
+      },
+      responseType: 'json'
+    });
+    return response.body.data;
+  }
+
+  async updateShareLink(fileId, settings = {}) {
+    const driveId = await this.getDriveId();
+    const url = `${this.baseUrl}/2/drive/${driveId}/files/${fileId}/link`;
+    const response = await got.put(url, {
+      headers: { Authorization: `Bearer ${this.token}` },
+      json: settings,
+      responseType: 'json'
+    });
+    return response.body.data;
+  }
+
+  async deleteShareLink(fileId) {
+    const driveId = await this.getDriveId();
+    const url = `${this.baseUrl}/2/drive/${driveId}/files/${fileId}/link`;
+    await got.delete(url, {
+      headers: { Authorization: `Bearer ${this.token}` },
+      responseType: 'json'
+    });
+    return true;
+  }
+
   translateFile(kFile) {
     if (!kFile) return null;
     const id = kFile.id ? String(kFile.id) : undefined;
@@ -320,6 +415,7 @@ export class KSuiteDrive {
       id,
       name: kFile.name || (id === '1' ? 'kDrive Root' : ''),
       mimeType: isFolder ? 'application/vnd.google-apps.folder' : (kFile.mime_type || 'application/octet-stream'),
+      kind: 'drive#file',
       createdTime: kFile.created_at ? new Date(kFile.created_at * 1000).toISOString() : null,
       modifiedTime: kFile.last_modified_at ? new Date(kFile.last_modified_at * 1000).toISOString() : null,
       size: String(kFile.size || 0),

@@ -35,20 +35,26 @@ const normalizeSerialization = (ob) =>
 
 /**
  * check and register a result in cache
- * @param {import('./sxdrive.js').SxResult} the result of a sync api call
+ * @param {import('./sxdrive.js').SxResult} result the result of a sync api call
+ * @param {boolean} [allow404=false] whether to allow 404 errors
+ * @param {string} [fields] the fields to register
  * @return {import('./sxdrive.js').SxResult}
  */
 const registerSx = (result, allow404 = false, fields) => {
   const { data, response } = result;
-  checkResponse(data?.id, response, allow404);
-  if (data?.id) {
+  
+  // If data is a file metadata object (has an id), register it in the cache.
+  // If it's media content (array) or doesn't have an ID, skip registration.
+  if (is.plainObject(data) && is.nonEmptyString(data.id)) {
+    checkResponse(data.id, response, allow404);
     return {
       ...result,
       data: improveFileCache(data.id, data, fields),
     };
-  } else {
-    return result;
-  }
+  } 
+  
+  // For other cases (like alt=media content), just return the result as is.
+  return result;
 };
 
 const register = (id, cacher, result, allow404 = false, params) => {
@@ -182,7 +188,9 @@ const fxDriveGet = ({
 
   // now we check if it's in cache and already has the necessary fields
   // the cache will check the fields it already has against those requested
-  if (allowCache) {
+  // but we must bypass cache if alt=media is requested
+  const isMedia = params.alt === 'media' || (params.params && params.params.alt === 'media');
+  if (allowCache && !isMedia) {
     const { cachedFile, good } = getFromFileCache(id, params.fields);
     if (good)
       return {

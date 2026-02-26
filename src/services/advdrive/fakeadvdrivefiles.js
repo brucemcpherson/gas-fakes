@@ -81,8 +81,14 @@ class FakeAdvDriveFiles {
     const file = this.get(fileId, params, { allow404: false })
 
     // the download uri us just constructed from the id - doesnt appear to be in any of the properties of file
+    const platform = ScriptApp.__platform;
+    const downloadUri = platform === 'ksuite' 
+      ? `https://api.infomaniak.com/2/drive/${Syncit.fxDrive({method: 'getDriveId'}).data}/files/${file.id}/download`
+      : `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&source=downloadUrl`;
+
     return {
       metadata: {
+        ...file,
         "@type": "type.googleapis.com/google.apps.drive.v3.DownloadFileMetadata"
       },
       // this is an operation name
@@ -90,7 +96,7 @@ class FakeAdvDriveFiles {
       response: {
         // the only thing of interest here for now
         partialDownloadAllowed: true,
-        downloadUri: `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&source=downloadUrl`,
+        downloadUri,
         "@type": "type.googleapis.com/google.apps.drive.v3.DownloadFileResponse"
       },
       done: true
@@ -117,7 +123,9 @@ class FakeAdvDriveFiles {
    */
   get(id, params = {}, { allow404 = true } = {}) {
     ScriptApp.__behavior.isAccessible(id, 'Drive', 'read');
-    const {data} = Syncit.fxDriveGet ({ id, prop: apiProp, method: 'get', params, allow404, allowCache: true });
+    const result = Syncit.fxDriveGet ({ id, prop: apiProp, method: 'get', params, allow404, allowCache: true });
+    const { data } = result
+    // if (params.alt === 'media') slogger.log(`FakeAdvDriveFiles.get alt=media result type: ${typeof data}, isArray: ${Array.isArray(data)}`);
     return data
   }
 

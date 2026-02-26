@@ -127,6 +127,10 @@ export const sxInit = async ({ manifestPath, claspPath, settingsPath, cachePath,
     token: effectiveInfo.token
   }
 
+  // Populate the Auth object in the worker thread
+  Auth.setActiveUser(activeUser);
+  Auth.setEffectiveUser(effectiveUser);
+
   //syncLog(`[Auth] Active User TokenInfo: ${JSON.stringify(activeInfo.tokenInfo)}`)
   //syncLog(`[Auth] Effective User TokenInfo: ${JSON.stringify(effectiveInfo.tokenInfo)}`)
   // check that mandatory scopes have been allowed
