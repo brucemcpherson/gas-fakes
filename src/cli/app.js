@@ -135,6 +135,7 @@ export async function main() {
     .command("init")
     .description("Initializes the configuration (.env).")
     .option("-e, --env <path>", "Path to a custom .env file.")
+    .option("-b, --backends <string...>", "List of backends to initialize (google, ksuite).", ["google"])
     .addOption(
       new Option(
         "--at,--auth-type <string>",
@@ -147,7 +148,8 @@ export async function main() {
 
   program
     .command("auth")
-    .description("Runs the Google Cloud authentication flow.")
+    .description("Runs the authentication flow for a backend.")
+    .option("-b, --backend <string>", "Backend to authenticate (google, ksuite).", "google")
     .action(authenticateUser);
 
   program
