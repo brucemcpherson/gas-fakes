@@ -26,6 +26,16 @@ const claspDefaultPath = "./.clasp.json";
 const settingsDefaultPath = process.env.GF_SETTINGS_PATH || "./gasfakes.json";
 const propertiesDefaultPath = "/tmp/gas-fakes/properties";
 const cacheDefaultPath = "/tmp/gas-fakes/cache";
+
+// Helper to ensure init has happened before any worker call
+const safeCallSync = (method, ...args) => {
+  if (method !== 'sxInit' && !Auth.hasAuth()) {
+    // Attempt lazy initialization
+    fxInit();
+  }
+  return callSync(method, ...args);
+};
+
 // note that functions like Sheets.newGridRange() etc create objects that contain get and set functions
 // the makesynchronous functions need data that can be serialized. so we need to string/parse to normlaize them
 const normalizeSerialization = (ob) =>
@@ -92,7 +102,7 @@ const fxStreamUpMedia = ({
 }) => {
   // merge the required fields with the minimum
   fields = mergeParamStrings(minFields, fields);
-  const result = callSync("sxStreamUpMedia", {
+  const result = safeCallSync("sxStreamUpMedia", {
     resource: file,
     bytes: blob ? blob.getBytes() : null,
     fields,
@@ -114,7 +124,7 @@ const fxStreamUpMedia = ({
  * @return {DriveResponse} from the drive api
  */
 const fxDrive = ({ prop, method, params, options }) => {
-  return callSync("sxDrive", {
+  return safeCallSync("sxDrive", {
     prop,
     method,
     params: normalizeSerialization(params),
@@ -147,7 +157,7 @@ const fxGeneric = ({
     }
   }
 
-  const result = callSync(`sx${serviceName}`, {
+  const result = safeCallSync(`sx${serviceName}`, {
     subProp,
     prop,
     method,
@@ -204,7 +214,7 @@ const fxDriveGet = ({
   }
 
   // so we have to hit the API
-  const result = callSync("sxDriveGet", {
+  const result = safeCallSync("sxDriveGet", {
     id,
     params: normalizeSerialization(params),
     options: normalizeSerialization(options),
@@ -235,7 +245,7 @@ const fxZipper = ({ blobs }) => {
     };
   });
 
-  return callSync("sxZipper", {
+  return safeCallSync("sxZipper", {
     blobsContent,
   });
 };
@@ -252,7 +262,7 @@ const fxUnzipper = ({ blob }) => {
     bytes: blob.getBytes(),
   };
 
-  return callSync("sxUnzipper", {
+  return safeCallSync("sxUnzipper", {
     blobContent,
   });
 };
@@ -266,14 +276,16 @@ const fxUnzipper = ({ blob }) => {
  * @param {string} p.settingsPath where to find the settings file
  * @param {string} p.cachePath the cache files
  * @param {string} p.propertiesPath the properties file location
+ * @param {string[]} [p.platformAuth] list of platforms to authenticate
  * @return {object} the finalized vesions of all the above
  */
-const fxInit = ({
+export const fxInit = ({
   manifestPath = manifestDefaultPath,
   claspPath = claspDefaultPath,
   settingsPath = settingsDefaultPath,
   cachePath = cacheDefaultPath,
   propertiesPath = propertiesDefaultPath,
+  platformAuth
 } = {}) => {
   // this is the path of the runing main process
   const mainDir = path.dirname(process.argv[1]);
@@ -290,26 +302,28 @@ const fxInit = ({
     cachePath,
     propertiesPath,
     fakeId: randomUUID(),
+    platformAuth: platformAuth || (global.ScriptApp?.__platformAuth)
   });
 
   const {
-    scopes,
-    activeUser,
-    effectiveUser,
-    projectId,
+    identities,
     settings,
     manifest,
     clasp,
   } = synced;
 
   // set these values from the subprocess into the main project version of auth
-  Auth.setProjectId(projectId);
   Auth.setSettings(settings);
   Auth.setClasp(clasp);
   Auth.setManifest(manifest);
-  Auth.setActiveUser(activeUser);
-  Auth.setEffectiveUser(effectiveUser);
-  Auth.setTokenScopes(scopes);
+  
+  // Populate all identities
+  if (identities) {
+    Object.keys(identities).forEach(p => {
+      Auth.setIdentity(p, identities[p]);
+    });
+  }
+
   return synced;
 };
 
@@ -321,7 +335,7 @@ const fxInit = ({
  * @returns {*}
  */
 const fxStore = (storeArgs, method = "get", ...kvArgs) => {
-  return callSync("sxStore", {
+  return safeCallSync("sxStore", {
     method,
     kvArgs,
     storeArgs,
@@ -329,7 +343,7 @@ const fxStore = (storeArgs, method = "get", ...kvArgs) => {
 };
 
 const fxRefreshToken = () => {
-  return callSync("sxRefreshToken");
+  return safeCallSync("sxRefreshToken");
 };
 
 /**
@@ -341,14 +355,14 @@ const fxRefreshToken = () => {
  * @return {DriveResponse} from the drive api
  */
 const fxDriveMedia = ({ id }) => {
-  return callSync("sxDriveMedia", {
+  return safeCallSync("sxDriveMedia", {
     id,
   });
 };
 /**
  * sync a call to Drive api to stream a download
  * @param {object} p pargs
- * @param {string} p.prop the prop of drive eg 'files' for drive.files
+ * @param {string} p.prop of drive eg 'files' for drive.files
  * @param {string} p.method the method of drive eg 'list' for drive.files.list
  * @param {object} p.params the params to add to the request
  * @return {DriveResponse} from the drive api
@@ -356,7 +370,7 @@ const fxDriveMedia = ({ id }) => {
 const fxDriveExport = ({ id, mimeType, options = { alt: 'media' } }) => {
   // see issue https://issuetracker.google.com/issues/468534237
   // live apps script failes without this alt option
-  return callSync("sxDriveExport", {
+  return safeCallSync("sxDriveExport", {
     id,
     mimeType,
     options
@@ -371,26 +385,26 @@ const fxDriveExport = ({ id, mimeType, options = { alt: 'media' } }) => {
  * @returns {reponse} urlfetch style reponse
  */
 const fxFetch = (url, options, responseFields) => {
-  return callSync("sxFetch", url, options, responseFields);
+  return safeCallSync("sxFetch", url, options, responseFields);
 };
 
 const fxFetchAll = (requests, responseFields) => {
-  return callSync("sxFetchAll", requests, responseFields);
+  return safeCallSync("sxFetchAll", requests, responseFields);
 };
 
 const fxGetAccessToken = () => {
-  return callSync("sxGetAccessToken");
+  return safeCallSync("sxGetAccessToken");
 };
 
 const fxGetAccessTokenInfo = () => {
-  return callSync("sxGetAccessTokenInfo");
+  return safeCallSync("sxGetAccessTokenInfo");
 };
 const fxGetSourceAccessTokenInfo = () => {
-  return callSync("sxGetSourceAccessTokenInfo");
+  return safeCallSync("sxGetSourceAccessTokenInfo");
 };
 
 const fxTestRetry = (errorMessage) => {
-  return callSync("sxTestRetry", { errorMessage });
+  return safeCallSync("sxTestRetry", { errorMessage });
 };
 
 const fxSheets = (args) =>

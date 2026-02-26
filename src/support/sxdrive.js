@@ -64,22 +64,34 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
     }
     
     // Per user instruction: stay within private root.
-    // Clean request - no per_page
-    const result = await kDrive.listFiles(parentId || 'root');
-    let files = result.files;
+    // If parentId is not specified, we do a recursive search from the Private root
+    // to emulate GAS DriveApp.getFiles() behavior.
+    
+    const getAllFilesRecursive = async (dirId, depth = 0) => {
+      if (depth > 5) return []; // Limit depth to avoid infinite loops
+      
+      const result = await kDrive.listFiles(dirId);
+      let files = result.files;
+      
+      const subDirs = files.filter(f => f.mimeType === 'application/vnd.google-apps.folder');
+      for (const dir of subDirs) {
+        // Skip root references
+        if (dir.id === '1' || dir.name === 'Private' || dir.name === 'Common') continue;
+        const subFiles = await getAllFilesRecursive(dir.id, depth + 1);
+        files = files.concat(subFiles);
+      }
+      return files;
+    };
 
-    // To improve global search in POC, if we're at root and didn't find much, 
-    // look one level deeper into folders.
-    if (!parentId || parentId === 'root') {
-       const subDirs = files.filter(f => f.mimeType === 'application/vnd.google-apps.folder');
-       for (const dir of subDirs) {
-         if (dir.id === '1' || dir.name === 'Private' || dir.name === 'Common') continue;
-         const subResult = await kDrive.listFiles(dir.id);
-         files = files.concat(subResult.files);
-       }
+    let files;
+    if (parentId && parentId !== 'root') {
+      const result = await kDrive.listFiles(parentId);
+      files = result.files;
+    } else {
+      // Global search or root search - recurse from Private root
+      const rootId = await kDrive.getPrivateRootId();
+      files = await getAllFilesRecursive(rootId);
     }
-
-    // syncLog(`[Worker] KSuite listFiles returned ${files.length} items total (including 1-level recursion).`);
 
     // Manual filtering
     if (mimeTypeFilter) {
@@ -97,7 +109,7 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
     return {
       data: {
         files,
-        nextPageToken: result.nextPageToken
+        nextPageToken: null 
       },
       response: { status: 200 }
     };

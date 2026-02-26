@@ -8,16 +8,26 @@ import { Proxies } from '../../support/proxies.js'
 import { newFakeBehavior } from './behavior.js'
 import { newCacheDropin } from '@mcpher/gas-flex-cache'
 import { slogger } from "../../support/slogger.js";
+
+// This will eventually hold a proxy for ScriptApp
+let _app = null
+let _initialized = false
+// Load default from environment if available
+let _platformAuth = process.env.GF_PLATFORM_AUTH ? process.env.GF_PLATFORM_AUTH.split(',') : ['google']
+
+const ensureInit = () => {
+  if (!_initialized) {
+    _initialized = true 
+    Syncit.fxInit({ platformAuth: _platformAuth })
+  }
+}
+
 /**
  * fake ScriptApp.getOAuthToken 
  * @return {string} token
  */
 const getOAuthToken = () => {
-  if (_app && _app.__platform === 'ksuite') {
-    const t = process.env.KSUITE_TOKEN
-    if (!t) throw new Error('missing KSUITE token')
-    return t
-  }
+  ensureInit()
   return Syncit.fxGetAccessToken(Auth)
 }
 
@@ -26,6 +36,7 @@ const getOAuthToken = () => {
  * @return {string} token
  */
 const getSourceOAuthToken = () => {
+  ensureInit()
   return Syncit.fxGetSourceAccessTokenInfo(Auth).token
 }
 
@@ -45,6 +56,7 @@ const limitMode = (mode) => {
  */
 const requireAllScopes = (mode) => {
   limitMode(mode)
+  ensureInit()
   return checkScopesMatch(Array.from(Auth.getAuthedScopes().keys()))
 }
 
@@ -58,6 +70,7 @@ const requireAllScopes = (mode) => {
 const requireScopes = (mode, required) => {
   // only supporting FULL for now
   limitMode(mode)
+  ensureInit()
   return checkScopesMatch(required)
 }
 
@@ -68,7 +81,7 @@ const requireScopes = (mode, required) => {
  * @returns null
  */
 const checkScopesMatch = (required) => {
-
+  ensureInit()
   const scopes = Auth.getTokenScopes()
 
   // now we're syncronous all the way
@@ -100,10 +113,6 @@ const checkScopesMatch = (required) => {
 
 }
 
-// This will eventually hold a proxy for ScriptApp
-let _app = null
-
-
 /**
  * adds to global space to mimic Apps Script behavior
  */
@@ -111,10 +120,7 @@ const name = "ScriptApp"
 
 if (typeof globalThis[name] === typeof undefined) {
 
-  // initializing auth etc
-  Syncit.fxInit()
-
-  const getApp = () => {
+  const getApp = (prop) => {
 
     // if it hasn't been intialized yet then do that
     if (!_app) {
@@ -124,7 +130,10 @@ if (typeof globalThis[name] === typeof undefined) {
         __getSourceOAuthToken: getSourceOAuthToken,
         requireAllScopes,
         requireScopes,
-        getScriptId: Auth.getScriptId,
+        getScriptId: () => {
+          ensureInit()
+          return Auth.getScriptId()
+        },
         get __platform() {
           return Auth.getPlatform()
         },
@@ -135,28 +144,74 @@ if (typeof globalThis[name] === typeof undefined) {
             globalThis.DriveApp.__reset()
           }
         },
+        get __platformAuth() {
+          return _platformAuth
+        },
+        set __platformAuth(value) {
+          const newVal = Array.isArray(value) ? value : [value];
+          
+          if (_initialized) {
+            // Check if all requested platforms are already authorized
+            const missing = newVal.filter(p => !Auth.hasAuth(p));
+            if (missing.length > 0) {
+               // Trigger re-init for missing platforms
+               Syncit.fxInit({ platformAuth: newVal });
+            }
+          }
+          _platformAuth = newVal;
+        },
         get __projectId() {
+          ensureInit()
           return Auth.getProjectId()
         },
         get __userId() {
-          // this is actually the active user/ not the effective user
-          return Auth.getActiveUser().id
+          ensureInit()
+          return Auth.getActiveUser()?.id
         },
         AuthMode: {
           FULL: 'FULL'
         },
-        __behavior: newFakeBehavior(),
+        // __behavior added below to break recursion
         __newCacheDropin: newCacheDropin,
-        __proxies: Proxies
+        __proxies: Proxies,
+        get __registeredServices() {
+          return Proxies.getRegisteredServices()
+        }
       }
-
-
+      
+      // Initialize behavior after _app is set to break recursion
+      _app.__behavior = newFakeBehavior()
     }
-    // this is the actual driveApp we'll return from the proxy
+
+    // Now check if backend initialization is needed
+    // Explicitly trigger init ONLY for properties that require authorized backend data
+    const triggerProps = ['getOAuthToken', '__getSourceOAuthToken', 'requireAllScopes', 'requireScopes', '__projectId', '__userId', 'getScriptId'];
+
+    if (!_initialized && triggerProps.includes(prop)) {
+      ensureInit();
+    }
+
     return _app
   }
 
+  // Define a custom handler to pass the property name to getApp
+  const handler = {
+    get(_, prop, receiver) {
+      if (prop === 'isFake') return true;
+      const app = getApp(prop);
+      return Reflect.get(app, prop, receiver);
+    },
+    set(_, prop, value, receiver) {
+      const app = getApp(prop);
+      return Reflect.set(app, prop, value, receiver);
+    }
+  };
 
-  Proxies.registerProxy(name, getApp)
+  Object.defineProperty(globalThis, name, {
+    value: new Proxy({}, handler),
+    enumerable: true,
+    configurable: false,
+    writable: false,
+  });
 
 }
