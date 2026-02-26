@@ -186,7 +186,7 @@ export class FakeTextFinder {
         let res = false;
         let target = c;
         if (ignoreDiacritics) {
-          target = c.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          target = String(c).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         }
         if (!matchCase) {
           if (typeof c !== 'string') {
