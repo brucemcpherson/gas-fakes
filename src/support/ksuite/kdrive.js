@@ -115,7 +115,6 @@ export class KSuiteDrive {
     const actualFileId = fileId === 'root' ? await this.getPrivateRootId() : fileId;
     
     const url = `${this.baseUrl}/3/drive/${driveId}/files/${actualFileId}`;
-    //syncLog(`KSuite API call: GET ${url}`);
     
     try {
       const response = await got(url, {
@@ -124,6 +123,19 @@ export class KSuiteDrive {
       });
       return this.translateFile(response.body.data);
     } catch (err) {
+      // If 404, try the trash endpoint
+      if (err.response?.statusCode === 404) {
+        try {
+          const trashUrl = `${this.baseUrl}/3/drive/${driveId}/trash/${actualFileId}`;
+          const response = await got(trashUrl, {
+            headers: { Authorization: `Bearer ${this.token}` },
+            responseType: 'json'
+          });
+          return this.translateFile(response.body.data);
+        } catch (trashErr) {
+          // If trash also fails, rethrow original error
+        }
+      }
       syncWarn(`KSuite API error: ${err.message}`);
       throw err;
     }
@@ -268,9 +280,28 @@ export class KSuiteDrive {
     //(`KSuite API call: POST ${url} (name: ${name})`);
 
     try {
-      const response = await got.post(url, {
+      await got.post(url, {
         headers: { Authorization: `Bearer ${this.token}` },
         json: { name },
+        responseType: 'json'
+      });
+      // After rename, fetch the full object to ensure we have all metadata (like mimeType)
+      return await this.getFile(fileId);
+    } catch (err) {
+      syncWarn(`KSuite API error: ${err.message}`);
+      throw err;
+    }
+  }
+
+  async copyFile(fileId, destinationParentId, name) {
+    const driveId = await this.getDriveId();
+    const actualDestinationId = (destinationParentId === 'root' || !destinationParentId) ? await this.getPrivateRootId() : destinationParentId;
+    const url = `${this.baseUrl}/3/drive/${driveId}/files/${fileId}/copy/${actualDestinationId}`;
+    
+    try {
+      const response = await got.post(url, {
+        headers: { Authorization: `Bearer ${this.token}` },
+        json: name ? { name } : {},
         responseType: 'json'
       });
       return this.translateFile(response.body.data);
@@ -283,10 +314,12 @@ export class KSuiteDrive {
   translateFile(kFile) {
     if (!kFile) return null;
     const id = kFile.id ? String(kFile.id) : undefined;
+    const isFolder = kFile.type === 'dir' || kFile.type === 'private' || kFile.type === 'common';
+
     return {
       id,
       name: kFile.name || (id === '1' ? 'kDrive Root' : ''),
-      mimeType: kFile.mime_type || (kFile.type === 'dir' ? 'application/vnd.google-apps.folder' : 'application/octet-stream'),
+      mimeType: isFolder ? 'application/vnd.google-apps.folder' : (kFile.mime_type || 'application/octet-stream'),
       createdTime: kFile.created_at ? new Date(kFile.created_at * 1000).toISOString() : null,
       modifiedTime: kFile.last_modified_at ? new Date(kFile.last_modified_at * 1000).toISOString() : null,
       size: String(kFile.size || 0),

@@ -83,8 +83,8 @@ const main = () => {
 
 ## 6. Testing
 
-Tests are located in `test/testksuite.js`. You can run them via npm:
+Tests are located in `test/testksuitedrive.js`. You can run them via npm:
 ```bash
-cd test && npm run testksuite
+cd test && npm run testksuitedrive
 ```
 The test suite validates the full lifecycle: Discovery -> Mapping -> Creation -> Renaming -> Deletion.

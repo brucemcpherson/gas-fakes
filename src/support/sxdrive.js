@@ -82,31 +82,33 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
     if (params.resource && Reflect.has(params.resource, 'trashed')) {
       if (params.resource.trashed) {
         await kDrive.deleteFile(params.fileId);
-        return {
-          data: { ...params.resource, id: params.fileId },
-          response: { status: 200 }
-        };
       } else {
-        const data = await kDrive.restoreFile(params.fileId);
-        return {
-          data,
-          response: { status: 200 }
-        };
+        await kDrive.restoreFile(params.fileId);
       }
-    }
-
-    if (params.resource && params.resource.name) {
-      const data = await kDrive.renameFile(params.fileId, params.resource.name);
+      const data = await kDrive.getFile(params.fileId);
       return {
-        data: { 
-          ...data, 
-          id: params.fileId, 
-          name: params.resource.name,
-          mimeType: params.resource.mimeType // Keep existing mimeType if available
-        },
+        data,
         response: { status: 200 }
       };
     }
+
+    if (params.resource && params.resource.name) {
+      await kDrive.renameFile(params.fileId, params.resource.name);
+      const data = await kDrive.getFile(params.fileId);
+      return {
+        data,
+        response: { status: 200 }
+      };
+    }
+  }
+
+  if (prop === 'files' && method === 'copy') {
+    const parentId = params.resource?.parents?.[0];
+    const data = await kDrive.copyFile(params.fileId, parentId, params.resource?.name);
+    return {
+      data,
+      response: { status: 200 }
+    };
   }
 
   throw new Error(`KSuite Drive API ${prop}.${method} not implemented in POC`);
@@ -174,17 +176,14 @@ export const sxStreamUpMedia = async (Auth, { resource, bytes, fields, method, m
       if (resource && Reflect.has(resource, 'trashed')) {
         if (resource.trashed) {
           await kDrive.deleteFile(fileId);
-          return {
-            data: { ...resource, id: fileId },
-            response: { status: 200 }
-          };
         } else {
-          const data = await kDrive.restoreFile(fileId);
-          return {
-            data,
-            response: { status: 200 }
-          };
+          await kDrive.restoreFile(fileId);
         }
+        const data = await kDrive.getFile(fileId);
+        return {
+          data,
+          response: { status: 200 }
+        };
       }
       
       // other updates not yet implemented

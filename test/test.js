@@ -66,7 +66,7 @@ import { testChartsApp } from "./testchartsapp.js";
 import { testFormWebHack } from "./testformwebhack.js";
 import { testDriveSharing } from "./testdrivesharing.js";
 import { testDwdRefresh } from "./testdwdrefresh.js";
-import { testKSuite } from './testksuite.js';
+import { testKSuiteDrive } from './testksuitedrive.js';
 // important - run this last for now - see https://github.com/brucemcpherson/gas-fakes/issues/118
 import { testGmail } from "./testgmail.js";
 import { testSandboxGmail } from "./testsandboxgmail.js";
@@ -77,7 +77,7 @@ export const testFakes = () => {
   const { unit } = pack;
 
   console.log("\n----Test KSuite Integration----");
-  testKSuite(pack);
+  testKSuiteDrive(pack);
 
   console.log("\n----Test Sheets text----");
   testSheetsText(pack);

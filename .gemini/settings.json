@@ -1,0 +1,16 @@
+{
+    "mcpServers": {
+        "gas-fakes": {
+            "command": "gas-fakes",
+            "args": ["mcp", "--tools", "/Users/brucemcpherson/Documents/repos/gas-fakes/drive_tools.js"]
+        }
+    },
+"general": {
+    "previewFeatures": true,
+    "vimMode": false
+  },
+  "model": {
+    "defaultModel": "gemini-3-flash-preview"
+  }
+
+}
