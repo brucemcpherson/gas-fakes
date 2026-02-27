@@ -1,0 +1,32 @@
+import '@mcpher/gas-fakes'
+
+const main = () => {
+
+  ScriptApp.__platform = 'ksuite' /// or workspace to run against google workspace (the default)
+
+  const rootFolder = DriveApp.getRootFolder()
+
+  console.log ('--- KSuite Recursive Explorer ---')
+  
+  const explore = (folder, depth = 0) => {
+    const indent = '  '.repeat(depth)
+    console.log (`${indent}FOLDER: ${folder.getName()} (ID: ${folder.getId()})`)
+
+    // Show files in this folder
+    const files = folder.getFiles()
+    while (files.hasNext()) {
+      const file = files.next()
+      console.log (`${indent}  FILE: ${file.getName()} (ID: ${file.getId()})`)
+    }
+
+    // Drill into subfolders
+    const folders = folder.getFolders()
+    while (folders.hasNext()) {
+      explore (folders.next(), depth + 1)
+    }
+  }
+
+  explore(rootFolder)
+}
+
+main()

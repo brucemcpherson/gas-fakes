@@ -80,6 +80,10 @@ const settleAsBytes = (data, charset) => {
   } else if (is.buffer(data)) {
     return Array.from(data)
   } else {
+    // Handle JSON representation of a Buffer
+    if (is.object(data) && data.type === 'Buffer' && is.array(data.data)) {
+      return data.data;
+    }
     // Workaround for an issue where an array of bytes passed from a worker
     // can be deserialized as a plain object with numeric keys.
     if (is.object(data) && !is.array(data)) {
@@ -87,6 +91,7 @@ const settleAsBytes = (data, charset) => {
       // Check if the object's values look like a valid byte array.
       if (isByteArray(values)) return values;
     }
+    if (!is.array(data)) slogger.log(`settleAsBytes: data is NOT an array. type: ${typeof data}, keys: ${Object.keys(data)}`);
     assert.array(data);
     return data;
   }

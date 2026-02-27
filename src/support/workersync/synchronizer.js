@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'node:fs';
 import { slogger} from '../slogger.js'
+import { Auth } from '../auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -117,7 +118,10 @@ export function callSync(method, ...args) {
   Atomics.store(control, CONTROL_INDICES.STATUS, 1);
 
   // 2. Send the task to the worker.
-  const payload = { method, args };
+  // Use Auth directly to get current platform context
+  const platform = Auth.getPlatform();
+  
+  const payload = { method, args, platform };
   worker.postMessage(payload);
 
   // 3. Block and wait for the worker to finish.

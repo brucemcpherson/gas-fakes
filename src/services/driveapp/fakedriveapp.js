@@ -16,8 +16,7 @@ const { is } = Utils
 export class FakeDriveApp {
 
   constructor() {
-    const rf = Drive.Files.get('root', {}, { allow404: true })
-    this.__rootFolder = newFakeDriveFolder(rf)
+    this.__rootFolder = null
     this.folderApp = newFakeFolderApp()
     this.__settleClass = (file) => isFolder(file) ? newFakeDriveFolder(file) : newFakeDriveFile(file)
   }
@@ -34,7 +33,15 @@ export class FakeDriveApp {
    * @returns {FakeDriveFolder}
    */
   getRootFolder() {
+    if (!this.__rootFolder) {
+      const rf = Drive.Files.get('root', {}, { allow404: true })
+      this.__rootFolder = newFakeDriveFolder(rf)
+    }
     return this.__rootFolder
+  }
+
+  __reset() {
+    this.__rootFolder = null
   }
 
 

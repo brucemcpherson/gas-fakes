@@ -3,29 +3,94 @@
   "exceptionLogging": "STACKDRIVER",
   "runtimeVersion": "V8",
   "oauthScopes": [
+    "openid",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/cloud-platform",
     "https://www.googleapis.com/auth/drive",
     "https://www.googleapis.com/auth/script.external_request",
     "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/userinfo.email",
     "https://www.googleapis.com/auth/documents",
     "https://www.googleapis.com/auth/presentations",
     "https://www.googleapis.com/auth/forms",
-    "https://www.googleapis.com/auth/gmail.labels"
+    "https://mail.google.com/",
+
+    "https://www.googleapis.com/auth/calendar"
   ],
   "dependencies": {
     "libraries": [
+      {
+        "userSymbol": "bmPreFiddler",
+        "version": "34",
+        "libraryId": "13JUFGY18RHfjjuKmIRRfvmGlCYrEkEtN6uUm-iLUcxOUFRJD-WBX-tkR",
+        "developmentMode": false
+      },
+      {
+        "userSymbol": "bmUnitTester",
+        "version": "20",
+        "libraryId": "1zOlHMOpO89vqLPe5XpC-wzA9r5yaBkWt_qFjKqFNsIZtNJ-iUjBYDt-x"
+      },
+      {
+        "userSymbol": "bmIs",
+        "version": "1",
+        "libraryId": "1tFa7Gc68142wiiZaNmj0zA-ELDHh0q31eDXodeeCf1LxRR1LeSr3opAd"
+      },
       {
         "userSymbol": "bmFiddler",
         "version": "30",
         "libraryId": "13EWG4-lPrEf34itxQhAQ7b9JEbmCBfO8uE4Mhr99CHi3Pw65oxXtq-rU",
         "developmentMode": false
+      },
+      {
+        "userSymbol": "bmGasFlexCache",
+        "libraryId": "1R_r9n4EGctvA8lWBZVeuT66mgaKBRV5IxfIsD_And-ra2H16iNXVWva0",
+        "version": "10"
       }
     ],
     "enabledAdvancedServices": [
       {
+        "userSymbol": "Sheets",
+        "version": "v4",
+        "serviceId": "sheets"
+      },
+      {
         "userSymbol": "Docs",
         "version": "v1",
         "serviceId": "docs"
+      },
+      {
+        "userSymbol": "Slides",
+        "version": "v1",
+        "serviceId": "slides"
+      },
+      {
+        "userSymbol": "Gmail",
+        "version": "v1",
+        "serviceId": "gmail"
+      },
+      {
+        "userSymbol": "Chat",
+        "version": "v1",
+        "serviceId": "chat"
+      },
+      {
+        "userSymbol": "People",
+        "version": "v1",
+        "serviceId": "peopleapi"
+      },
+      {
+        "userSymbol": "Tasks",
+        "version": "v1",
+        "serviceId": "tasks"
+      },
+      {
+        "userSymbol": "Calendar",
+        "version": "v3",
+        "serviceId": "calendar"
+      },
+      {
+        "userSymbol": "WorkspaceEvents",
+        "version": "v1",
+        "serviceId": "workspaceevents"
       },
       {
         "userSymbol": "Drive",

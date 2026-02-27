@@ -1,17 +1,19 @@
 import { Auth } from '../../support/auth.js'
-import { getUserIdFromToken } from '@mcpher/gas-flex-cache'
 
-// these are the default models to match live apps script
-export const storeModels = {
-  SCRIPT: {
-    scriptId: ScriptApp.getScriptId()
-  },
-  USER: {
-    scriptId: ScriptApp.getScriptId(),
-    userId: getUserIdFromToken(ScriptApp.getOAuthToken())
-  },
-  DOCUMENT: {
-    scriptId: ScriptApp.getScriptId(),
-    documentId: Auth.getDocumentId()
+// Refactored to a function to avoid early initialization and platform-specific issues
+// This ensures getOAuthToken() is only called when a store is actually accessed
+export const getStoreModels = () => {
+  return {
+    SCRIPT: {
+      scriptId: ScriptApp.getScriptId()
+    },
+    USER: {
+      scriptId: ScriptApp.getScriptId(),
+      userId: Auth.getUserId()
+    },
+    DOCUMENT: {
+      scriptId: ScriptApp.getScriptId(),
+      documentId: Auth.getDocumentId()
+    }
   }
 }

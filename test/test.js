@@ -1,6 +1,5 @@
 // use package.json to direct to file:../ for local code testing
 import '@mcpher/gas-fakes'
-import { testXmlService } from './testxmlservice.js';
 
 import { initTests } from "./testinit.js";
 import { testDrive } from "./testdrive.js";
@@ -67,6 +66,8 @@ import { testChartsApp } from "./testchartsapp.js";
 import { testFormWebHack } from "./testformwebhack.js";
 import { testDriveSharing } from "./testdrivesharing.js";
 import { testDwdRefresh } from "./testdwdrefresh.js";
+import { testKSuiteDrive } from './testksuitedrive.js';
+import { testKSuiteDriveSharing } from './testksuitedrivesharing.js';
 // important - run this last for now - see https://github.com/brucemcpherson/gas-fakes/issues/118
 import { testGmail } from "./testgmail.js";
 import { testSandboxGmail } from "./testsandboxgmail.js";
@@ -76,6 +77,12 @@ export const testFakes = () => {
   const pack = initTests();
   const { unit } = pack;
 
+  console.log("\n----Test KSuite Integration----");
+  testKSuiteDrive(pack);
+  testKSuiteDriveSharing(pack);
+
+  console.log("\n----Test Sheets text----");
+  testSheetsText(pack);
 
   console.log("\n----Test Sheets DataValidations----");
   testSheetsDataValidations(pack);
@@ -83,6 +90,7 @@ export const testFakes = () => {
   testSheetsVui(pack);
   console.log("\n----Test Sheets Sets----");
   testSheetsSets(pack);
+
 
 
   console.log("\n----Test Enums----");
@@ -121,11 +129,24 @@ export const testFakes = () => {
   testWorkspaceEvents(pack);
 
 
+
   console.log("\n----Test calendar----");
   testCalendars(pack);
   console.log("\n----Test calendarsandbox----");
   testCalendarSandbox(pack);
 
+  console.log("\n----Test tasks----");
+  testTasks(pack);
+  console.log("\n----Test people----");
+  testPeople(pack);
+  console.log("\n----Test chat----");
+  testChat(pack);
+  console.log("\n----Test sandbox----");
+  testSandbox(pack);
+  console.log("\n----Test docs styles----");
+  testDocsStyles(pack);
+  console.log("\n----Test docs headers----");
+  testDocsHeaders(pack);
 
 
   console.log("\n----Test SheetsValues----");
@@ -133,8 +154,6 @@ export const testFakes = () => {
   console.log("\n----Test SheetsDeveloper----");
   testSheetsDeveloper(pack);
 
-  console.log("\n----Test Sheets text----");
-  testSheetsText(pack);
   console.log("\n----Test slides----");
   testSlides(pack);
   console.log("\n----Test slides text range----");
@@ -185,8 +204,6 @@ export const testFakes = () => {
   testSession(pack);
   console.log("\n----Test Utilities----");
   testUtilities(pack);
-  console.log("\n----Test XmlService----");
-  testXmlService(pack);
   console.log("\n----Test Stores----");
   testStores(pack);
 
@@ -195,18 +212,6 @@ export const testFakes = () => {
   testSheetsRange(pack);
   console.log("\n----TEST FILES COMPLETE----");
 
-  console.log("\n----Test tasks----");
-  testTasks(pack);
-  console.log("\n----Test people----");
-  testPeople(pack);
-  console.log("\n----Test chat----");
-  testChat(pack);
-  console.log("\n----Test sandbox----");
-  testSandbox(pack);
-  console.log("\n----Test docs styles----");
-  testDocsStyles(pack);
-  console.log("\n----Test docs headers----");
-  testDocsHeaders(pack);
 
   // important - run this last for now - see https://github.com/brucemcpherson/gas-fakes/issues/118
   console.log("\n----Test gmail----");

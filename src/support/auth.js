@@ -3,53 +3,82 @@ import is from "@sindresorhus/is";
 import { createHash } from "node:crypto";
 import { syncLog, syncError } from "./workersync/synclogger.js";
 
-const _authScopes = new Set([]);
-
-// all this stuff gets populated by the initial synced fxInit
-let _auth = null;
-let _projectId = null;
-let _accessToken = null;
-let _tokenExpiresAt = null;
+// Multi-identity storage
+const _identities = new Map();
+// Default to the first authorized platform if specified in environment
+let _platform = process.env.GF_PLATFORM_AUTH ? process.env.GF_PLATFORM_AUTH.split(',')[0] : 'workspace';
 let _manifest = null;
 let _clasp = null;
-let _activeUser = null;
-let _effectiveUser = null;
-let _tokenScopes = null;
-
-
 let _settings = null;
-const getActiveUser = () => _activeUser
-const getEffectiveUser = () => _effectiveUser
-const setActiveUser = (user) => (_activeUser = user);
-const setEffectiveUser = (user) => (_effectiveUser = user)
+
+// Initialize default workspace identity structure
+const createIdentityTemplate = () => ({
+  activeUser: null,
+  effectiveUser: null,
+  accessToken: null,
+  tokenExpiresAt: null,
+  tokenScopes: null,
+  authClient: null,
+  sourceClient: null,
+  projectId: null,
+  auth: null,
+  authMethod: null // To track 'adc' or 'dwd'
+});
+
+// Helper to get current identity
+const _getIdentity = (platform = _platform) => {
+  const p = platform === 'workspace' ? 'google' : platform;
+  if (!_identities.has(p)) {
+    _identities.set(p, createIdentityTemplate());
+  }
+  return _identities.get(p);
+};
+
+const getActiveUser = () => _getIdentity().activeUser;
+const getEffectiveUser = () => _getIdentity().effectiveUser;
+const setActiveUser = (user, platform = _platform) => (_getIdentity(platform).activeUser = user);
+const setEffectiveUser = (user, platform = _platform) => (_getIdentity(platform).effectiveUser = user);
+
 const setManifest = (manifest) => (_manifest = manifest);
 const setClasp = (clasp) => (_clasp = clasp);
 const getManifest = () => _manifest;
 const getClasp = () => _clasp;
 const getSettings = () => _settings;
-const getScriptId = () => getSettings().scriptId;
-const getDocumentId = () => getSettings().documentId;
-const setProjectId = (projectId) => (_projectId = projectId);
-const setAccessToken = (accessToken) => (_accessToken = accessToken);
+const getScriptId = () => getSettings()?.scriptId;
+const getDocumentId = () => getSettings()?.documentId;
+
+const setProjectId = (projectId, platform = _platform) => (_getIdentity(platform).projectId = projectId);
+const setAccessToken = (accessToken, platform = _platform) => (_getIdentity(platform).accessToken = accessToken);
 const setSettings = (settings) => (_settings = settings);
-const getCachePath = () => getSettings().cache;
-const getPropertiesPath = () => getSettings().properties;
+const getCachePath = () => getSettings()?.cache;
+const getPropertiesPath = () => getSettings()?.properties;
+const setPlatform = (platform) => {
+  _platform = platform;
+};
+const getPlatform = () => _platform;
 
+const getTimeZone = () => getManifest()?.timeZone;
+const getUserId = () => getEffectiveUser()?.id;
 
-const getTimeZone = () => getManifest().timeZone;
-const getUserId = () => getEffectiveUser().id;
-const setTokenScopes = (scopes) => (_tokenScopes = Array.isArray(scopes) ? scopes.join(" ") : scopes);
+const setTokenScopes = (scopes, platform = _platform) => {
+  _getIdentity(platform).tokenScopes = Array.isArray(scopes) ? scopes.join(" ") : scopes;
+};
+
 const getTokenScopes = () => {
-  if (_tokenScopes) return _tokenScopes;
-  // If not cached, we have to return the promise (which might break synchronous callers like ScriptApp)
+  const id = _getIdentity();
+  if (id.tokenScopes) return id.tokenScopes;
+  if (_platform === 'ksuite') return ""; // KSuite doesn't use standard OAuth scopes in same way
+  
+  // Google fallback
   return getAccessTokenInfo().then(info => {
-    _tokenScopes = info.tokenInfo.scope;
-    return _tokenScopes;
+    id.tokenScopes = info.tokenInfo.scope;
+    return id.tokenScopes;
   });
 };
+
 const getHashedUserId = () =>
   createHash("md5")
-    .update(getUserId() + "hud")
+    .update((getUserId() || "unknown") + "hud")
     .digest()
     .toString("hex");
 
@@ -61,15 +90,12 @@ const _getTokenInfo = async (client) => {
   if (typeof client.getTokenInfo === 'function') {
     tokenInfo = await client.getTokenInfo(token);
   } else {
-    // Fallback for clients like AwsClient that don't have getTokenInfo
-    // Call the Token Info API directly
     const response = await client.request({
       url: `https://oauth2.googleapis.com/tokeninfo?access_token=${token}`,
       method: 'GET'
     });
     tokenInfo = response.data;
     
-    // Ensure email is populated from subject if missing (WIF fallback)
     if (!tokenInfo.email && process.env.GOOGLE_WORKSPACE_SUBJECT) {
       tokenInfo.email = process.env.GOOGLE_WORKSPACE_SUBJECT;
     }
@@ -80,264 +106,175 @@ const _getTokenInfo = async (client) => {
     token
   }
 }
-// this is the effective user's token info
-// - In DWD: The impersonated user (the one we are acting as)
-// - In ADC: The actual signed-in user
+
 const getAccessTokenInfo = async () => {
-  if (!hasAuth()) throw `auth isnt set yet`;
-  return _getTokenInfo(_authClient);
+  const id = _getIdentity();
+  if (id.authClient) return _getTokenInfo(id.authClient);
+  if (_platform === 'ksuite') {
+    return { token: id.accessToken, tokenInfo: { email: id.effectiveUser?.email } };
+  }
+  throw `auth isnt set yet for platform ${_platform}`;
 }
 
-// this is the active identity's token info
-// - In DWD: The service account itself
-// - In ADC: Same as the effective user
 const getSourceAccessTokenInfo = async () => {
-  if (!_sourceClient) throw `source auth isnt set yet`;
-  return _getTokenInfo(_sourceClient);
+  const id = _getIdentity();
+  if (id.sourceClient) return _getTokenInfo(id.sourceClient);
+  if (_platform === 'ksuite') {
+    return { token: id.accessToken, tokenInfo: { email: id.activeUser?.email } };
+  }
+  throw `source auth isnt set yet for platform ${_platform}`;
 }
 
-
-// this is the access token allowed to do the work - the one for the effective user
-// - In DWD: The impersonated user
-// - In ADC: The actual signed-in user
 const getAccessToken = async () => {
-  if (!hasAuth()) throw `auth isnt set yet`;
+  const id = _getIdentity();
+  if (_platform === 'ksuite') return id.accessToken;
+  if (!id.authClient) throw `auth isnt set yet for platform ${_platform}`;
   return (await getAccessTokenInfo()).token;
 }
 
+const isTokenExpired = () => {
+  const id = _getIdentity();
+  return !id.accessToken || !id.tokenExpiresAt || Date.now() >= id.tokenExpiresAt;
+}
 
-const isTokenExpired = () =>
-  !_accessToken || !_tokenExpiresAt || Date.now() >= _tokenExpiresAt;
+const getAuthClient = () => _getIdentity().authClient;
+const getSourceClient = () => _getIdentity().sourceClient;
+const getAuthMethod = (platform = _platform) => _getIdentity(platform).authMethod;
 
-// the auth client is the one that has the scopes to do the work 
-// under adc, this is the source client
-// under service account, this is the impersonated client
-let _authClient = null;
-let _sourceClient = null;
-const getAuthClient = () => _authClient;
-const getSourceClient = () => _sourceClient;
-
-
-// We'll support ADC, or workload identity
-// and the service account must be allowed to impersonate the user
 const setAuth = async (scopes = [], mcpLoading = false) => {
   const mayLog = mcpLoading ? () => null : syncLog;
-  mayLog(`...initializing auth`)
+  const id = _getIdentity('google'); 
 
   try {
-    _auth = new GoogleAuth()
-    _projectId = await _auth.getProjectId()
-    mayLog(`...discovered project ID: ${_projectId}`)
+    id.auth = new GoogleAuth()
+    id.projectId = await id.auth.getProjectId()
 
-    // steering for auth type
     const saName = process.env.GOOGLE_SERVICE_ACCOUNT_NAME
     const authType = process.env.AUTH_TYPE?.toLowerCase()
     const useDwd = authType === 'dwd' || (authType !== 'adc' && saName)
 
     if (!useDwd) {
-      mayLog(`...using ADC`)
-      _authClient = await _auth.getClient({
-        scopes
-      })
-      _sourceClient = _authClient
+      id.authMethod = 'adc'
+      id.authClient = await id.auth.getClient({ scopes })
+      id.sourceClient = id.authClient
     } else {
-      if (!saName) {
-        throw new Error("Domain-Wide Delegation (DWD) requested or inferred, but GOOGLE_SERVICE_ACCOUNT_NAME is not set in environment.");
-      }
-      mayLog(`...using service account: ${saName}`)
-      const targetPrincipal = `${saName}@${_projectId}.iam.gserviceaccount.com`
-      mayLog(`...attempting to use service account: ${targetPrincipal}`)
-
-      /// _sourceClient is the identity of the person/thing running the code
-      const sourceScopes = scopes.filter(s => s === 'openid' || s === 'https://www.googleapis.com/auth/userinfo.email')
-      _sourceClient = await _auth.getClient(sourceScopes.length > 0 ? { scopes: sourceScopes } : {})
-
-      // now to get who the real user is
-      const { tokenInfo: userInfo } = await getSourceAccessTokenInfo()
+      if (!saName) throw new Error("DWD requested but GOOGLE_SERVICE_ACCOUNT_NAME is not set.");
       
-      // AWS tokens might not have email info
-      const saEmail = targetPrincipal
+      id.authMethod = 'dwd'
+      const targetPrincipal = `${saName}@${id.projectId}.iam.gserviceaccount.com`
+      
+      const sourceScopes = scopes.filter(s => s === 'openid' || s === 'https://www.googleapis.com/auth/userinfo.email')
+      id.sourceClient = await id.auth.getClient(sourceScopes.length > 0 ? { scopes: sourceScopes } : {})
+
+      const { tokenInfo: userInfo } = await _getTokenInfo(id.sourceClient);
       const userEmail = process.env.GOOGLE_WORKSPACE_SUBJECT || userInfo.email
       
-      if (userEmail) {
-        mayLog(`...user verified as: ${userEmail}`);
-      } else {
-        mayLog(`...warning: user identity could not be verified from token, using fallback`);
-      }
-
       const dwdClient = new OAuth2Client()
       dwdClient._token = null
       dwdClient._expiresAt = 0
 
       dwdClient.getAccessToken = async function () {
-        if (this._token && Date.now() < this._expiresAt - 60000) {
-          return { token: this._token }
-        }
-
+        if (this._token && Date.now() < this._expiresAt - 60000) return { token: this._token }
+        
         const iat = Math.floor(Date.now() / 1000)
-        const exp = iat + 3600
         const payload = {
-          iss: saEmail,
+          iss: targetPrincipal,
           sub: userEmail,
           aud: "https://oauth2.googleapis.com/token",
-          iat,
-          exp,
+          iat, exp: iat + 3600,
           scope: scopes.join(' ')
         }
 
-        // Sign the JWT via IAM API
-        const signUrl = `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${saEmail}:signJwt`
-        const signResponse = await _sourceClient.request({
-          url: signUrl,
+        const signResponse = await id.sourceClient.request({
+          url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${targetPrincipal}:signJwt`,
           method: 'POST',
-          data: {
-            payload: JSON.stringify(payload)
-          }
+          data: { payload: JSON.stringify(payload) }
         })
 
-        const { signedJwt } = signResponse.data
-
-        // Exchange JWT for access token
-        const tokenUrl = "https://oauth2.googleapis.com/token"
-        const tokenResponse = await fetch(tokenUrl, {
+        const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({
             grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-            assertion: signedJwt
+            assertion: signResponse.data.signedJwt
           })
         })
 
-        if (!tokenResponse.ok) {
-          const errorText = await tokenResponse.text()
-          throw new Error(`Failed to exchange JWT for token: ${errorText}`)
-        }
+        if (!tokenResponse.ok) throw new Error(`Failed to exchange JWT: ${await tokenResponse.text()}`)
 
         const tokenData = await tokenResponse.json()
         this._token = tokenData.access_token
         this._expiresAt = Date.now() + (tokenData.expires_in * 1000)
-        this.credentials = { access_token: this._token, expiry_date: this._expiresAt }
-
+        
+        if (!this.credentials) this.credentials = {};
+        this.credentials.access_token = this._token; 
+        
         return { token: this._token }
       }
 
-      // override request
-      const originalRequest = dwdClient.request.bind(dwdClient)
-      dwdClient.request = async function (options) {
-        await this.getAccessToken()
-        return originalRequest(options)
-      }
+      // Satisfy the 'No access token' check in google-auth-library
+      dwdClient.credentials = { access_token: 'dummy' };
+      dwdClient.refreshHandler = async () => {
+        const { token } = await dwdClient.getAccessToken();
+        return { access_token: token };
+      };
 
-      _authClient = dwdClient
-      _authClient.targetPrincipal = saEmail
-      _authClient.invalidateToken = function () {
-        this._token = null
-        this._expiresAt = 0
-        this.credentials = null
-      }
-      _authClient.refreshAccessToken = function () {
-        return this.getAccessToken()
-      }
-
-      mayLog(`...using Domain-Wide Delegation for user: ${userEmail}`)
-
-      // check we can get an access token
-      const { tokenInfo: authedTokenInfo } = await getAccessTokenInfo()
-      if (authedTokenInfo.email) {
-        mayLog(`...sa (acting as user) verified as: ${authedTokenInfo.email}`);
-      } else {
-        mayLog(`...sa (acting as user) token acquired successfully`);
-      }
+      id.authClient = dwdClient
     }
-
-
   } catch (error) {
-    mayLog(`...auth failed - check environment variables and workload identity: ${error}`)
     throw error
   }
-  return getAuth()
+  return id.authClient;
 }
 
-/**
- * force a token refresh on next request
- */
 const invalidateToken = () => {
-  if (hasAuth()) {
-    const client = getAuthClient();
-    if (client.invalidateToken) {
-      client.invalidateToken();
-    } else {
-      client.credentials = null;
-    }
+  const client = getAuthClient();
+  if (client) {
+    if (client.invalidateToken) client.invalidateToken();
+    else client.credentials = null;
   }
 }
 
-/**
- * if we're doing a fetch on drive API we need a special header
- */
 const googify = (options = {}) => {
   const { headers } = options;
+  if (!headers || _platform !== 'workspace' && _platform !== 'google') return options;
+  if (!headers.Authorization) return options;
 
-  // no auth, therefore no need
-  if (!headers || !hasAuth()) return options;
-
-  // if no authorization, we dont need this either
-  if (!Reflect.has(headers, "Authorization")) return options;
-
-  const projectId = getProjectId();
   return {
     ...options,
     headers: {
-      "x-goog-user-project": projectId,
+      "x-goog-user-project": getProjectId(),
       ...headers,
     },
   };
 };
 
-/**
- * @returns {string} the project id
- */
 const getProjectId = () => {
-  if (is.null(_projectId) || is.undefined(_projectId)) {
-    throw new Error(
-      "Project id not set - this means that the fxInit wasnt run"
-    );
+  const pid = _getIdentity().projectId;
+  if (is.null(pid) || is.undefined(pid)) {
+    if (_platform === 'ksuite') return null;
+    throw new Error("Project id not set - this means that the fxInit wasnt run");
   }
-  return _projectId;
+  return pid;
 };
 
-/**
- * @returns {Boolean} checks to see if auth has bee initialized yet
- */
-const hasAuth = () => Boolean(_authClient);
+const hasAuth = (platform = _platform) => {
+  const id = _getIdentity(platform);
+  // On main thread, we don't have authClient, but we have activeUser after successful fxInit
+  return Boolean(id.authClient || id.accessToken || id.activeUser);
+}
 
-
-/**
- * @returns {import("google-auth-library").AuthClient}
- */
 const getAuth = () => {
-  if (!hasAuth())
-    throw new Error(`auth hasnt been intialized with setAuth yet`);
-
+  if (!hasAuth()) throw new Error(`auth hasnt been intialized for platform ${_platform}`);
   return getAuthClient();
 };
 
-
-
-/**
- * why is this here ?
- */
 export const responseSyncify = (result) => {
-  if (!result) {
-    return {
-      status: 503,
-      statusCode: 503,
-      statusText: "Worker Error: No response object received from API call",
-      error: {
-        message: "Worker Error: No response object received from API call",
-      },
-    };
-  }
+  if (!result) return {
+    status: 503, statusCode: 503,
+    statusText: "Worker Error: No response object",
+    error: { message: "No response object" },
+  };
   return {
     status: result.status || result.statusCode,
     statusCode: result.status || result.statusCode,
@@ -351,14 +288,18 @@ export const responseSyncify = (result) => {
   };
 };
 
-const getAuthedScopes = () => _authScopes;
+// Helper to populate identity from sxInit response
+const setIdentity = (platform, data) => {
+  const id = _getIdentity(platform);
+  Object.assign(id, data);
+};
 
 export const Auth = {
   getAuth,
   hasAuth,
   getProjectId,
   setAuth,
-  getAuthedScopes,
+  setIdentity,
   googify,
   setProjectId,
   getUserId,
@@ -378,6 +319,7 @@ export const Auth = {
   setAccessToken,
   isTokenExpired,
   getAuthClient,
+  getAuthMethod,
   getSourceClient,
   getAccessTokenInfo,
   getSourceAccessTokenInfo,
@@ -386,5 +328,7 @@ export const Auth = {
   setEffectiveUser,
   getEffectiveUser,
   invalidateToken,
-  setTokenScopes
+  setTokenScopes,
+  setPlatform,
+  getPlatform
 };

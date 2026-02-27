@@ -95,7 +95,7 @@ const handleUncaughtError = (error) => {
   }
 };
 process.on('uncaughtException', handleUncaughtError);
-process.on('unhandledRejection', handleUncaughtError);
+process.on('unhandledRejection', handleUnhandledRejection);
 
 // 2. Listen for tasks from the main thread.
 parentPort.on('message', async (task) => {
@@ -115,18 +115,19 @@ parentPort.on('message', async (task) => {
       // sxInit is special: it creates the auth state and returns serializable info.
       result = await asyncFn(...task.args);
 
-      // await Auth.setAuth(result.scopes);
-      //Auth.setSettings(result.settings);
-      //Auth.setClasp(result.clasp);
-      //Auth.setManifest(result.manifest);
-      //Auth.setActiveUser(result.activeUser);
-      //Auth.setEffectiveUser(result.effectiveUser);
-
     } else {
       // All other sx* functions receive the worker's Auth object as their first argument.
-      if (!Auth.getProjectId()) {
-        throw new Error('[Worker] Not initialized. fxInit must be called first.');
+      
+      // CRITICAL: Set platform BEFORE checking auth, as hasAuth() depends on the current platform context.
+      if (task.platform) {
+        Auth.setPlatform(task.platform);
       }
+
+      // Use hasAuth() instead of getProjectId() to support platforms without project IDs (like KSuite)
+      if (!Auth.hasAuth()) {
+        throw new Error(`[Worker] Not initialized for platform '${Auth.getPlatform()}'. fxInit must be called first.`);
+      }
+      
       result = await asyncFn(Auth, ...task.args);
 
     }
@@ -142,3 +143,7 @@ parentPort.on('message', async (task) => {
     Atomics.notify(control, 0);
   }
 });
+
+function handleUnhandledRejection(reason, promise) {
+  handleUncaughtError(reason instanceof Error ? reason : new Error(String(reason)));
+}

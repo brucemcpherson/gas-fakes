@@ -2,7 +2,7 @@ import { Proxies } from '../../support/proxies.js'
 import { Syncit } from '../../support/syncit.js'
 import { Auth } from '../../support/auth.js'
 import { Utils } from '../../support/utils.js'
-import { storeModels } from './gasflex.js'
+import { getStoreModels } from './gasflex.js'
 import { newCacheDropin } from '@mcpher/gas-flex-cache'
 import { notYetImplemented } from '../../support/helpers.js'
 const { is } = Utils
@@ -193,9 +193,10 @@ const selectCache = (domain, kind, defaultExpirationSeconds) => {
   domain = validateProp(domain, StoreDomain, 'store_domain')
   const which = whichCache()
   if (which.type === "UPSTASH") {
-    const model = storeModels[domain]
+    const models = getStoreModels()
+    const model = models[domain]
     if (!model) {
-      throw new Error(`invalid store type model for ${cacheType}`)
+      throw new Error(`invalid store type model for ${domain}`)
     }
     return newCacheDropin({
       creds: {
