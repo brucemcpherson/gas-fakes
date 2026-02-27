@@ -606,6 +606,8 @@ const tools = [
 - [getting started](GETTING_STARTED.md) - how to handle authentication for restricted scopes.
 - [readme](README.md)
 - [gas fakes cli](gas-fakes-cli.md)
+- [ksuite poc](ksuite_poc.md)
+- [apps script - a lingua franca for workspace platforms](https://ramblings.mcpher.com/apps-script-a-lingua-franca/)
 - [running gas-fakes on google cloud run](https://github.com/brucemcpherson/gas-fakes-containers)
 - [running gas-fakes on google kubernetes engine](https://github.com/brucemcpherson/gas-fakes-containers)
 - [running gas-fakes on Amazon AWS lambda](https://github.com/brucemcpherson/gas-fakes-containers)

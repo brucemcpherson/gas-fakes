@@ -1199,7 +1199,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of files that remained in a previous iterator when the continuation token\n    was generated.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L138"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L145"
           },
           {
             "method": "continueFolderIterator(String)",
@@ -1208,7 +1208,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "A collection of folders that remained in a previous iterator when the continuation\n    token was generated.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L141"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L148"
           },
           {
             "method": "createFile(BlobSource)",
@@ -1217,7 +1217,7 @@
             "returnType": "File",
             "returnDescription": "The new file.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L118"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L125"
           },
           {
             "method": "createFile(String,String)",
@@ -1226,7 +1226,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L118"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L125"
           },
           {
             "method": "createFile(String,String,String)",
@@ -1235,7 +1235,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L118"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L125"
           },
           {
             "method": "createFolder(String)",
@@ -1244,7 +1244,7 @@
             "returnType": "Folder",
             "returnDescription": "The new folder.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L125"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L132"
           },
           {
             "method": "createShortcut(String)",
@@ -1271,7 +1271,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L157"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L164"
           },
           {
             "method": "getFileById(String)",
@@ -1280,7 +1280,7 @@
             "returnType": "File",
             "returnDescription": "The file with the given ID.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L47"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L54"
           },
           {
             "method": "getFileByIdAndResourceKey(String,String)",
@@ -1289,7 +1289,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L134"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L141"
           },
           {
             "method": "getFiles()",
@@ -1298,7 +1298,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of all files in the user's Drive.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L67"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L74"
           },
           {
             "method": "getFilesByName(String)",
@@ -1307,7 +1307,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of all files in the user's Drive that have the given name.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L85"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L92"
           },
           {
             "method": "getFilesByType(String)",
@@ -1316,7 +1316,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of all files in the user's Drive that have the given MIME\n    type.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L110"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L117"
           },
           {
             "method": "getFolderById(String)",
@@ -1325,7 +1325,7 @@
             "returnType": "Folder",
             "returnDescription": "The folder with the given ID.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L55"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L62"
           },
           {
             "method": "getFolderByIdAndResourceKey(String,String)",
@@ -1334,7 +1334,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L131"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L138"
           },
           {
             "method": "getFolders()",
@@ -1343,7 +1343,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "A collection of all folders in the user's Drive.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L75"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L82"
           },
           {
             "method": "getFoldersByName(String)",
@@ -1352,7 +1352,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "A collection of all folders in the user's Drive that have the given name.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L84"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L91"
           },
           {
             "method": "getRootFolder()",
@@ -1361,7 +1361,7 @@
             "returnType": "Folder",
             "returnDescription": "The root folder of the user's Drive.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L36"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L35"
           },
           {
             "method": "getStorageLimit()",
@@ -1370,7 +1370,7 @@
             "returnType": "Integer",
             "returnDescription": "The number of bytes the user is allowed to store in Drive.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L151"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L158"
           },
           {
             "method": "getStorageUsed()",
@@ -1379,7 +1379,7 @@
             "returnType": "Integer",
             "returnDescription": "The number of bytes the user is currently storing in Drive.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L154"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L161"
           },
           {
             "method": "getTrashedFiles()",
@@ -1388,7 +1388,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of files in the trash.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L144"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L151"
           },
           {
             "method": "getTrashedFolders()",
@@ -1397,7 +1397,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "A collection of folders in the trash.",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L147"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L154"
           },
           {
             "method": "searchFiles(String)",
@@ -1406,7 +1406,7 @@
             "returnType": "FileIterator",
             "returnDescription": "A collection of all files in the user's Drive that match the search\n    criteria.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L97"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L104"
           },
           {
             "method": "searchFolders(String)",
@@ -1415,7 +1415,7 @@
             "returnType": "FolderIterator",
             "returnDescription": "A collection of all folders in the user's Drive that match the search\n    criteria.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/driveapp/fakedriveapp.js#L101"
+            "implementationLink": "src/services/driveapp/fakedriveapp.js#L108"
           }
         ]
       },
@@ -1721,7 +1721,7 @@
             "returnType": "String",
             "returnDescription": "A string representation of the OAuth 2.0 token.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/scriptapp/app.js#L14"
+            "implementationLink": "src/services/scriptapp/app.js#L28"
           },
           {
             "method": "getProjectTriggers()",
@@ -1739,7 +1739,7 @@
             "returnType": "String",
             "returnDescription": "The script project's ID.",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/scriptapp/app.js#L124"
+            "implementationLink": "src/services/scriptapp/app.js#L135"
           },
           {
             "method": "getService()",
@@ -1811,7 +1811,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/scriptapp/app.js#L43"
+            "implementationLink": "src/services/scriptapp/app.js#L59"
           },
           {
             "method": "requireScopes(AuthMode,String)",
@@ -1820,7 +1820,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/scriptapp/app.js#L50"
+            "implementationLink": "src/services/scriptapp/app.js#L67"
           }
         ]
       },
@@ -22107,7 +22107,7 @@
             "returnType": "String",
             "returnDescription": "the cached value, or null if none was found",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/stores/fakestores.js#L117"
+            "implementationLink": "src/services/stores/fakestores.js#L5"
           },
           {
             "method": "getAll(String)",
@@ -22116,7 +22116,7 @@
             "returnType": "Object",
             "returnDescription": "a JavaScript Object containing the key/value pairs for all keys found in the cache",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L331"
+            "implementationLink": "src/services/stores/fakestores.js#L332"
           },
           {
             "method": "put(String,String)",
@@ -22125,7 +22125,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/stores/fakestores.js#L342"
+            "implementationLink": "src/services/stores/fakestores.js#L343"
           },
           {
             "method": "put(String,String,Integer)",
@@ -22134,7 +22134,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/stores/fakestores.js#L342"
+            "implementationLink": "src/services/stores/fakestores.js#L343"
           },
           {
             "method": "putAll(Object)",
@@ -22143,7 +22143,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L347"
+            "implementationLink": "src/services/stores/fakestores.js#L348"
           },
           {
             "method": "putAll(Object,Integer)",
@@ -22152,7 +22152,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L347"
+            "implementationLink": "src/services/stores/fakestores.js#L348"
           },
           {
             "method": "remove(String)",
@@ -22161,7 +22161,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/stores/fakestores.js#L356"
+            "implementationLink": "src/services/stores/fakestores.js#L357"
           },
           {
             "method": "removeAll(String)",
@@ -22170,7 +22170,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L361"
+            "implementationLink": "src/services/stores/fakestores.js#L362"
           }
         ]
       },
@@ -22357,7 +22357,7 @@
             "returnType": "Properties",
             "returnDescription": "this Properties store, for chaining",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L278"
+            "implementationLink": "src/services/stores/fakestores.js#L279"
           },
           {
             "method": "deleteProperty(String)",
@@ -22366,7 +22366,7 @@
             "returnType": "Properties",
             "returnDescription": "this Properties store, for chaining",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/stores/fakestores.js#L286"
+            "implementationLink": "src/services/stores/fakestores.js#L287"
           },
           {
             "method": "getKeys()",
@@ -22375,7 +22375,7 @@
             "returnType": "String[]",
             "returnDescription": "an array of all keys in the current Properties store",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L290"
+            "implementationLink": "src/services/stores/fakestores.js#L291"
           },
           {
             "method": "getProperties()",
@@ -22384,7 +22384,7 @@
             "returnType": "Object",
             "returnDescription": "a copy of all key-value pairs in the current Properties store",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L273"
+            "implementationLink": "src/services/stores/fakestores.js#L274"
           },
           {
             "method": "getProperty(String)",
@@ -22393,7 +22393,7 @@
             "returnType": "String",
             "returnDescription": "the value associated with the given key in the current Properties store",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/stores/fakestores.js#L301"
+            "implementationLink": "src/services/stores/fakestores.js#L302"
           },
           {
             "method": "setProperties(Object)",
@@ -22402,7 +22402,7 @@
             "returnType": "Properties",
             "returnDescription": "this Properties store, for chaining",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L306"
+            "implementationLink": "src/services/stores/fakestores.js#L307"
           },
           {
             "method": "setProperties(Object,Boolean)",
@@ -22411,7 +22411,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "in progress",
-            "implementationLink": "src/services/stores/fakestores.js#L306"
+            "implementationLink": "src/services/stores/fakestores.js#L307"
           },
           {
             "method": "setProperty(String,String)",
@@ -22420,7 +22420,7 @@
             "returnType": "",
             "returnDescription": "",
             "gas-fakes status": "completed",
-            "implementationLink": "src/services/stores/fakestores.js#L315"
+            "implementationLink": "src/services/stores/fakestores.js#L316"
           }
         ]
       },
