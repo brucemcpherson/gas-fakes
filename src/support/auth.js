@@ -21,7 +21,8 @@ const createIdentityTemplate = () => ({
   authClient: null,
   sourceClient: null,
   projectId: null,
-  auth: null
+  auth: null,
+  authMethod: null // To track 'adc' or 'dwd'
 });
 
 // Helper to get current identity
@@ -138,29 +139,28 @@ const isTokenExpired = () => {
 
 const getAuthClient = () => _getIdentity().authClient;
 const getSourceClient = () => _getIdentity().sourceClient;
+const getAuthMethod = (platform = _platform) => _getIdentity(platform).authMethod;
 
 const setAuth = async (scopes = [], mcpLoading = false) => {
   const mayLog = mcpLoading ? () => null : syncLog;
   const id = _getIdentity('google'); 
-  mayLog(`...initializing google auth`)
 
   try {
     id.auth = new GoogleAuth()
     id.projectId = await id.auth.getProjectId()
-    mayLog(`...discovered project ID: ${id.projectId}`)
 
     const saName = process.env.GOOGLE_SERVICE_ACCOUNT_NAME
     const authType = process.env.AUTH_TYPE?.toLowerCase()
     const useDwd = authType === 'dwd' || (authType !== 'adc' && saName)
 
     if (!useDwd) {
-      mayLog(`...using ADC`)
+      id.authMethod = 'adc'
       id.authClient = await id.auth.getClient({ scopes })
       id.sourceClient = id.authClient
     } else {
       if (!saName) throw new Error("DWD requested but GOOGLE_SERVICE_ACCOUNT_NAME is not set.");
       
-      mayLog(`...using service account: ${saName}`)
+      id.authMethod = 'dwd'
       const targetPrincipal = `${saName}@${id.projectId}.iam.gserviceaccount.com`
       
       const sourceScopes = scopes.filter(s => s === 'openid' || s === 'https://www.googleapis.com/auth/userinfo.email')
@@ -169,8 +169,6 @@ const setAuth = async (scopes = [], mcpLoading = false) => {
       const { tokenInfo: userInfo } = await _getTokenInfo(id.sourceClient);
       const userEmail = process.env.GOOGLE_WORKSPACE_SUBJECT || userInfo.email
       
-      if (userEmail) mayLog(`...user verified as: ${userEmail}`);
-
       const dwdClient = new OAuth2Client()
       dwdClient._token = null
       dwdClient._expiresAt = 0
@@ -222,10 +220,8 @@ const setAuth = async (scopes = [], mcpLoading = false) => {
       };
 
       id.authClient = dwdClient
-      mayLog(`...using Domain-Wide Delegation for user: ${userEmail}`)
     }
   } catch (error) {
-    mayLog(`...google auth failed: ${error}`)
     throw error
   }
   return id.authClient;
@@ -264,7 +260,8 @@ const getProjectId = () => {
 
 const hasAuth = (platform = _platform) => {
   const id = _getIdentity(platform);
-  return Boolean(id.authClient || id.accessToken);
+  // On main thread, we don't have authClient, but we have activeUser after successful fxInit
+  return Boolean(id.authClient || id.accessToken || id.activeUser);
 }
 
 const getAuth = () => {
@@ -322,6 +319,7 @@ export const Auth = {
   setAccessToken,
   isTokenExpired,
   getAuthClient,
+  getAuthMethod,
   getSourceClient,
   getAccessTokenInfo,
   getSourceAccessTokenInfo,

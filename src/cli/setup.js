@@ -41,10 +41,6 @@ async function findEnvFiles(dir) {
 export async function initializeConfiguration(options = {}) {
   let envPath;
 
-  // figure out which backends we are initializing
-  let platforms = options.backends || ["google"];
-  if (typeof platforms === "string") platforms = platforms.split(",");
-
   // need to figure out which env file we are operating on
   if (options.env) {
     envPath = path.resolve(process.cwd(), options.env);
@@ -96,21 +92,72 @@ export async function initializeConfiguration(options = {}) {
   }
 
   const responses = {};
+
+  // --- Step 1: Select Platforms ---
+  // If backends provided via CLI, use them, otherwise prompt
+  let platforms = options.backends;
+  if (!platforms || (Array.isArray(platforms) && platforms.length === 0)) {
+    const platformSelection = await prompts({
+      type: "multiselect",
+      name: "platforms",
+      message: "Select backends to initialize",
+      choices: [
+        { title: "Google Workspace", value: "google", selected: true },
+        { title: "Infomaniak KSuite", value: "ksuite", selected: existingConfig.KSUITE_TOKEN ? true : false },
+      ],
+      hint: "- Use space to select/deselect. Press Enter to submit.",
+    });
+
+    if (typeof platformSelection.platforms === "undefined" || platformSelection.platforms.length === 0) {
+      console.log("Initialization cancelled. At least one platform must be selected.");
+      return;
+    }
+    platforms = platformSelection.platforms;
+  }
   
-  // Set the requested platforms in the env file for steering
+  if (typeof platforms === "string") platforms = platforms.split(",");
   responses.GF_PLATFORM_AUTH = platforms.join(",");
 
-  // --- Google Workspace Configuration ---
-  if (platforms.includes("google") || platforms.includes("workspace")) {
+  // --- Step 2: Google Workspace Configuration ---
+  if (platforms.includes("google")) {
     console.log("\n--- Configuring Google Workspace backend ---");
-    
-    // first step is to check we have a manifest file if we are doing auth type dwd
-    if (options.authType === "dwd") {
-      const manifestPath = path.resolve(process.cwd(), "appsscript.json");
-      if (!fs.existsSync(manifestPath)) {
-        console.log("No manifest file found. Please create an appsscript.json file in the current directory with required scopes.");
+
+    // If authType is provided via CLI, use it directly, otherwise prompt
+    if (options.authType) {
+      console.log(`...using specified auth type: ${options.authType.toUpperCase()}`);
+      responses.AUTH_TYPE = options.authType;
+    } else {
+      const authTypeResponse = await prompts({
+        type: "select",
+        name: "AUTH_TYPE",
+        message: "Select Google authentication type",
+        choices: [
+          { title: "Domain-Wide Delegation (DWD)", value: "dwd", description: "Best for service-to-service with full user impersonation" },
+          { title: "Application Default Credentials (ADC)", value: "adc", description: "Standard gcloud-based auth" },
+        ],
+        initial: existingConfig.AUTH_TYPE === "adc" ? 1 : 0,
+      });
+
+      if (typeof authTypeResponse.AUTH_TYPE === "undefined") {
+        console.log("Initialization cancelled.");
         return;
       }
+      responses.AUTH_TYPE = authTypeResponse.AUTH_TYPE;
+    }
+
+    // Discover Scopes from appsscript.json
+    const manifestPath = path.resolve(process.cwd(), "appsscript.json");
+    let manifestScopes = [];
+    if (fs.existsSync(manifestPath)) {
+      try {
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+        manifestScopes = manifest.oauthScopes || [];
+        console.log(`...discovered ${manifestScopes.length} scopes in appsscript.json`);
+      } catch (err) {
+        console.warn("...warning: failed to parse appsscript.json. Using default scopes only.");
+      }
+    } else {
+      console.log("...appsscript.json not found. Using default scopes only.");
     }
 
     const DEFAULT_SCOPES_VALUES = [
@@ -118,171 +165,41 @@ export async function initializeConfiguration(options = {}) {
       "openid",
       "https://www.googleapis.com/auth/cloud-platform",
     ];
-    console.log(
-      "\nThe following default Google scopes are required for basic operations and will be enabled automatically:"
-    );
-    DEFAULT_SCOPES_VALUES.forEach((scope) => console.log(`  - ${scope}`));
-    responses.DEFAULT_SCOPES = DEFAULT_SCOPES_VALUES;
+    responses.DEFAULT_SCOPES = DEFAULT_SCOPES_VALUES.join(",");
+    responses.EXTRA_SCOPES = manifestScopes
+      .filter(s => !DEFAULT_SCOPES_VALUES.includes(s))
+      .join(",");
 
-    if (options.authType === "dwd") {
-      responses.AUTH_TYPE = "dwd";
-      // we need to get the scopes from the manifest file
-      const manifestPath = path.resolve(process.cwd(), "appsscript.json");
-      const manifest = JSON.parse(fs.readFileSync(manifestPath));
-      const scopes = manifest?.oauthScopes;
-      // remove any in manifest that are default anyway
-      responses.EXTRA_SCOPES = (scopes || []).filter(scope => !DEFAULT_SCOPES_VALUES.includes(scope));
-
-      // if we are doing dwd we need to ask for the service account name
-      const serviceAccountNameQuestion = {
-        type: "text",
-        name: "GOOGLE_SERVICE_ACCOUNT_NAME",
-        message: "Enter a service account name (it will be created if it doesnt already exist)",
-        initial: existingConfig.GOOGLE_SERVICE_ACCOUNT_NAME || "gas-fakes-sa",
-      };
-      const serviceAccountNameResponse = await prompts(serviceAccountNameQuestion);
-      if (typeof serviceAccountNameResponse.GOOGLE_SERVICE_ACCOUNT_NAME === "undefined") {
-        console.log("Initialization cancelled.");
-        return;
-      }
-      Object.assign(responses, serviceAccountNameResponse);
-    } else {
-      responses.AUTH_TYPE = "adc";
-      console.log("--------------------------------------------------");
-      console.log("Configuring .env for Google ADC");
-      console.log("Press Enter to accept the default value in brackets.");
-      console.log("Use Space to select/deselect scopes.");
-      console.log("--------------------------------------------------");
-    }
-
-    // --- Google Basic Info ---
-    const basicInfoQuestions = [
+    const googleQuestions = [
       {
         type: "text",
         name: "GOOGLE_CLOUD_PROJECT",
         message: "Enter your GCP Project ID",
-        initial:
-          existingConfig.GOOGLE_CLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || existingConfig.GCP_PROJECT_ID,
+        initial: existingConfig.GOOGLE_CLOUD_PROJECT || existingConfig.GCP_PROJECT_ID || "",
       },
       {
-        type: "text",
-        name: "DRIVE_TEST_FILE_ID",
-        message:
-          "Enter a test Drive file ID for authentication checks (optional)",
-        initial: existingConfig.DRIVE_TEST_FILE_ID || "",
+        type: responses.AUTH_TYPE === "dwd" ? "text" : null,
+        name: "GOOGLE_SERVICE_ACCOUNT_NAME",
+        message: "Enter service account name for DWD",
+        initial: existingConfig.GOOGLE_SERVICE_ACCOUNT_NAME || "gas-fakes-sa",
       },
+      {
+        type: responses.AUTH_TYPE === "adc" ? "text" : null,
+        name: "CLIENT_CREDENTIAL_FILE",
+        message: "Enter path to OAuth client credentials JSON (optional, required for restricted scopes)",
+        initial: existingConfig.CLIENT_CREDENTIAL_FILE || "",
+      }
     ];
 
-    const basicInfoResponses = await prompts(basicInfoQuestions);
-    if (typeof basicInfoResponses.GOOGLE_CLOUD_PROJECT === "undefined") {
+    const googleResponses = await prompts(googleQuestions);
+    if (typeof googleResponses.GOOGLE_CLOUD_PROJECT === "undefined") {
       console.log("Initialization cancelled.");
       return;
     }
-    Object.assign(responses, basicInfoResponses);
-
-    // --- Google Scopes (ADC only) ---
-    if (responses.AUTH_TYPE === "adc") {
-      const existingExtraScopes = existingConfig.EXTRA_SCOPES
-        ? existingConfig.EXTRA_SCOPES.split(",").filter((s) => s)
-        : [];
-      const extraScopeQuestion = {
-        type: "multiselect",
-        name: "EXTRA_SCOPES",
-        message: "Select any extra scopes your script requires",
-        choices: [
-          {
-            title: "Workspace resources",
-            value: "https://www.googleapis.com/auth/drive",
-          },
-          {
-            sensitivity: "sensitive",
-            title: "Calendar (full access)",
-            value: "https://www.googleapis.com/auth/calendar",
-          },
-          {
-            // actually labels are not sensitive
-            title: "Gmail labels",
-            value: "https://www.googleapis.com/auth/gmail.labels",
-          },
-          {
-            sensitivity: "sensitive",
-            title: "Gmail compose",
-            value: "https://www.googleapis.com/auth/gmail.compose",
-          },
-          {
-            sensitivity: "sensitive",
-            title: "Gmail modify",
-            value: "https://www.googleapis.com/auth/gmail.modify",
-          },
-          {
-            sensitivity: "sensitive",
-            title: "Gmail send",
-            value: "https://www.googleapis.com/auth/gmail.send",
-          },
-        ].map((scope) => ({
-          ...scope,
-          title: scope.sensitivity
-            ? `[${scope.sensitivity}] ${scope.title}`
-            : scope.title,
-          selected:
-            existingExtraScopes.length > 0
-              ? existingExtraScopes.includes(scope.value)
-              : scope.value === "https://www.googleapis.com/auth/drive",
-        })),
-        hint: "- Use space to select/deselect. Press Enter to submit.",
-      };
-
-      const sensitiveScopesList = extraScopeQuestion.choices.filter(
-        (scope) => scope.sensitivity
-      );
-
-      const extraScopeResponses = await prompts(extraScopeQuestion);
-
-      if (typeof extraScopeResponses.EXTRA_SCOPES === "undefined") {
-        console.log("Initialization cancelled.");
-        return;
-      }
-      Object.assign(responses, extraScopeResponses);
-
-      const selectedExtraScopes = responses.EXTRA_SCOPES || [];
-      const usesSensitiveScopes = sensitiveScopesList.some((s) =>
-        selectedExtraScopes.includes(s.value)
-      );
-
-      if (usesSensitiveScopes) {
-        console.log("\n--------------------------------------------------");
-        console.log("You have selected sensitive or restricted scopes. Google requires an OAuth client credential file for these.");
-        console.log("--------------------------------------------------");
-      }
-
-      const clientCredentialQuestion = {
-        type: "text",
-        name: "CLIENT_CREDENTIAL_FILE",
-        message: usesSensitiveScopes
-          ? "Enter the path and filename for your OAuth client credentials JSON"
-          : "Enter path to OAuth client credentials JSON (optional)",
-        initial: existingConfig.CLIENT_CREDENTIAL_FILE || "",
-        validate: (input) => {
-          const trimmedInput = input.trim();
-          if (usesSensitiveScopes && trimmedInput === "") return "Required for sensitive scopes.";
-          if (trimmedInput !== "") {
-            const resolvedPath = path.resolve(process.cwd(), trimmedInput);
-            if (!fs.existsSync(resolvedPath)) return `File not found at '${resolvedPath}'.`;
-          }
-          return true;
-        },
-      };
-
-      const clientCredentialResponse = await prompts(clientCredentialQuestion);
-      if (typeof clientCredentialResponse.CLIENT_CREDENTIAL_FILE === "undefined") {
-        console.log("Initialization cancelled.");
-        return;
-      }
-      Object.assign(responses, clientCredentialResponse);
-    }
+    Object.assign(responses, googleResponses);
   }
 
-  // --- Infomaniak KSuite Configuration ---
+  // --- Step 3: Infomaniak KSuite Configuration ---
   if (platforms.includes("ksuite")) {
     console.log("\n--- Configuring Infomaniak KSuite backend ---");
     const ksuiteQuestions = [
@@ -307,18 +224,18 @@ export async function initializeConfiguration(options = {}) {
     Object.assign(responses, ksuiteResponses);
   }
 
-  // --- Shared Remaining Config ---
+  // --- Step 4: Shared Remaining Config ---
   const remainingQuestions = [
     {
       type: "toggle",
       name: "QUIET",
-      message: "Run gas-fakes package in quiet mode",
+      message: "Run gas-fakes in quiet mode?",
       initial: existingConfig.QUIET === "true" ? true : false,
     },
     {
       type: "select",
       name: "LOG_DESTINATION",
-      message: "Enter logging destination",
+      message: "Logging destination",
       choices: [
         { title: "CONSOLE", value: "CONSOLE" },
         { title: "CLOUD", value: "CLOUD" },
@@ -332,10 +249,10 @@ export async function initializeConfiguration(options = {}) {
     {
       type: "select",
       name: "STORE_TYPE",
-      message: "Enter storage type",
+      message: "Internal storage type",
       choices: [
-        { title: "FILE", value: "FILE" },
-        { title: "UPSTASH", value: "UPSTASH" },
+        { title: "FILE (local)", value: "FILE" },
+        { title: "UPSTASH (Redis)", value: "UPSTASH" },
       ],
       initial: ["FILE", "UPSTASH"].indexOf(existingConfig.STORE_TYPE?.toUpperCase()) > -1
           ? ["FILE", "UPSTASH"].indexOf(existingConfig.STORE_TYPE.toUpperCase())
@@ -349,14 +266,6 @@ export async function initializeConfiguration(options = {}) {
     return;
   }
   Object.assign(responses, remainingResponses);
-
-  // Convert scope arrays to comma-separated strings for saving
-  if (Array.isArray(responses.DEFAULT_SCOPES)) {
-    responses.DEFAULT_SCOPES = responses.DEFAULT_SCOPES.join(",");
-  }
-  if (Array.isArray(responses.EXTRA_SCOPES)) {
-    responses.EXTRA_SCOPES = responses.EXTRA_SCOPES.join(",");
-  }
 
   if (responses.STORE_TYPE === "UPSTASH") {
     const upstashQuestions = [
@@ -408,7 +317,7 @@ export async function initializeConfiguration(options = {}) {
   }
 
   const envContent = Object.keys(finalConfig)
-    .map((key) => `${key}="${(finalConfig[key].toString() || "").trim()}"`)
+    .map((key) => `${key}="${(finalConfig[key] || "").toString().trim()}"`)
     .join("\n");
 
   fs.writeFileSync(envPath, envContent + "\n", "utf8");
@@ -416,145 +325,122 @@ export async function initializeConfiguration(options = {}) {
 }
 
 /**
- * Handles the 'auth' command to authenticate with a backend.
+ * Handles the 'auth' command to authenticate with configured backends.
  */
 export async function authenticateUser(options = {}) {
-  const backend = options.backend || "google";
-
-  if (backend === "ksuite") {
-    console.log("--- Authenticating KSuite ---");
-    const envPath = path.join(process.cwd(), ".env");
-    if (!fs.existsSync(envPath)) {
-      console.error(`Error: .env file not found at '${envPath}'`);
-      process.exit(1);
-    }
-    dotenv.config({ path: envPath, quiet: true });
-    if (!process.env.KSUITE_TOKEN) {
-      console.error("Error: KSUITE_TOKEN is not set in your .env file. Run 'init' first.");
-      process.exit(1);
-    }
-    console.log("KSuite uses token-based authentication. Validating token...");
-    // Validation would happen in the worker during execution
-    console.log("Token check passed (static validation). KSuite is ready.");
-    return;
-  }
-
-  // Default Google flow
-  await checkForGcloudCli();
-  const rootDirectory = process.cwd();
-  const envPath = path.join(rootDirectory, ".env");
-
+  const envPath = path.join(process.cwd(), ".env");
   if (!fs.existsSync(envPath)) {
     console.error(`Error: .env file not found at '${envPath}'`);
-    console.error("Please run 'init' first.");
     process.exit(1);
   }
-
   dotenv.config({ path: envPath, quiet: true });
 
-  const {
-    GOOGLE_CLOUD_PROJECT,
-    GCP_PROJECT_ID,
-    DEFAULT_SCOPES,
-    EXTRA_SCOPES,
-    CLIENT_CREDENTIAL_FILE,
-    AC,
-    AUTH_TYPE,
-    GOOGLE_SERVICE_ACCOUNT_NAME
-  } = process.env;
-
-  const projectId = GOOGLE_CLOUD_PROJECT || GCP_PROJECT_ID;
-  if (!projectId) {
-    console.error("Error: GOOGLE_CLOUD_PROJECT is not set in your .env file.");
-    process.exit(1);
-  }
-
-  const scopes = Array.from(
-    new Set([
-      ...(DEFAULT_SCOPES || "").split(","),
-      ...(EXTRA_SCOPES || "").split(","),
-    ])
-  ).filter((s) => s).join(",");
-  const driveAccessFlag = "--enable-gdrive-access";
-
-  console.log(`...requesting scopes ${scopes}`);
-
-  let clientFlag = "";
-  const activeConfig = AC || "default";
+  let platforms = (process.env.GF_PLATFORM_AUTH || "google").split(",");
   
-  if (AUTH_TYPE === "adc") {
-    if (CLIENT_CREDENTIAL_FILE) {
-      let clientPath = path.isAbsolute(CLIENT_CREDENTIAL_FILE) 
-        ? CLIENT_CREDENTIAL_FILE 
-        : path.join(rootDirectory, CLIENT_CREDENTIAL_FILE);
-      if (fs.existsSync(clientPath)) clientFlag = `--client-id-file="${clientPath}"`;
-    }
-
-    try {
-      execSync("gcloud auth revoke --quiet", { stdio: "ignore", shell: true });
-      execSync("gcloud auth application-default revoke --quiet", { stdio: "ignore", shell: true });
-    } catch (e) {}
-
-    try {
-      execSync(`gcloud config configurations describe "${activeConfig}"`, { stdio: "ignore", shell: true });
-    } catch (error) {
-      runCommandSync(`gcloud config configurations create "${activeConfig}"`);
-    }
-    runCommandSync(`gcloud config configurations activate "${activeConfig}"`);
+  // If specific backend requested via CLI, only auth that one
+  if (options.backend) {
+    platforms = [options.backend];
   }
 
-  console.log(`Setting project to: ${projectId}`);
-  runCommandSync(`gcloud config set project ${projectId}`);
-  runCommandSync(`gcloud config set billing/quota_project ${projectId}`);
-
-  console.log("Initiating user login...");
-  runCommandSync(`gcloud auth login ${driveAccessFlag}`);
-
-  if (AUTH_TYPE === "adc") {
-    console.log("Initiating Application Default Credentials (ADC) login...");
-    runCommandSync(`gcloud auth application-default login --scopes="${scopes}" ${clientFlag}`);
-    runCommandSync(`gcloud auth application-default set-quota-project ${projectId}`);
-  }
-
-  if (AUTH_TYPE === "dwd") {
-    console.log("Initiating keyless domain-wide delegation authentication...");
-    const current_user = execSync("gcloud config get-value account", { shell: true }).toString().trim();
-    const sa_email = `${GOOGLE_SERVICE_ACCOUNT_NAME}@${projectId}.iam.gserviceaccount.com`;
-    
-    let existing_sa = false;
-    try {
-      execSync(`gcloud iam service-accounts describe "${sa_email}"`, { stdio: "ignore", shell: true });
-      existing_sa = true;
-    } catch (error) {}
-
-    if (existing_sa) {
-      const { action } = await prompts({
-        type: "select",
-        name: "action",
-        message: `Service account ${sa_email} exists. Action?`,
-        choices: [
-          { title: "Keep existing", value: "keep" },
-          { title: "Recreate", value: "replace" },
-        ],
-      });
-      if (action === "replace") {
-        runCommandSync(`gcloud iam service-accounts delete "${sa_email}" --quiet`);
-        runCommandSync(`gcloud iam service-accounts create "${GOOGLE_SERVICE_ACCOUNT_NAME}" --display-name "${GOOGLE_SERVICE_ACCOUNT_NAME}"`);
+  for (const platform of platforms) {
+    if (platform === "ksuite") {
+      console.log("\n--- Validating KSuite Token ---");
+      if (!process.env.KSUITE_TOKEN) {
+        console.error("Error: KSUITE_TOKEN not found in .env.");
+        continue;
       }
-    } else {
-      runCommandSync(`gcloud iam service-accounts create "${GOOGLE_SERVICE_ACCOUNT_NAME}" --display-name "${GOOGLE_SERVICE_ACCOUNT_NAME}"`);
+      // Simple length/format check for now
+      if (process.env.KSUITE_TOKEN.length < 20) {
+        console.error("Error: KSUITE_TOKEN appears invalid.");
+      } else {
+        console.log("KSuite token format validated.");
+      }
     }
 
-    runCommandSync(`gcloud projects add-iam-policy-binding "${projectId}" --member="serviceAccount:${sa_email}" --role="roles/editor" --quiet`);
-    runCommandSync(`gcloud iam service-accounts add-iam-policy-binding "${sa_email}" --member="serviceAccount:${sa_email}" --role="roles/iam.serviceAccountTokenCreator" --quiet`);
-    runCommandSync(`gcloud iam service-accounts add-iam-policy-binding "${sa_email}" --member="user:${current_user}" --role="roles/iam.serviceAccountTokenCreator" --quiet`);
-    
-    const saUniqueId = execSync(`gcloud iam service-accounts describe "${sa_email}" --format="value(uniqueId)"`, { shell: true }).toString().trim();
-    console.log(`\nDomain-Wide Delegation setup needed at: https://admin.google.com/ac/owl/domainwidedelegation`);
-    console.log(`Client ID: ${saUniqueId}\nScopes: ${scopes}`);
+    if (platform === "google") {
+      console.log("\n--- Authenticating Google Workspace ---");
+      await checkForGcloudCli();
+      
+      const {
+        GOOGLE_CLOUD_PROJECT,
+        DEFAULT_SCOPES,
+        EXTRA_SCOPES,
+        CLIENT_CREDENTIAL_FILE,
+        AC,
+        AUTH_TYPE,
+        GOOGLE_SERVICE_ACCOUNT_NAME
+      } = process.env;
+
+      const projectId = GOOGLE_CLOUD_PROJECT;
+      if (!projectId) {
+        console.error("Error: GOOGLE_CLOUD_PROJECT is not set.");
+        continue;
+      }
+
+      const scopes = Array.from(new Set([
+        ...(DEFAULT_SCOPES || "").split(","),
+        ...(EXTRA_SCOPES || "").split(","),
+      ])).filter(s => s).join(",");
+
+      console.log(`...requesting scopes: ${scopes}`);
+
+      const driveAccessFlag = "--enable-gdrive-access";
+      const activeConfig = AC || "default";
+
+      if (AUTH_TYPE === "adc") {
+        let clientFlag = "";
+        if (CLIENT_CREDENTIAL_FILE) {
+          const clientPath = path.resolve(process.cwd(), CLIENT_CREDENTIAL_FILE);
+          if (fs.existsSync(clientPath)) clientFlag = `--client-id-file="${clientPath}"`;
+        }
+
+        console.log("Revoking previous ADC credentials...");
+        try { execSync("gcloud auth application-default revoke --quiet", { stdio: "ignore", shell: true }); } catch (e) {}
+
+        console.log(`Setting up gcloud config: ${activeConfig}`);
+        try { execSync(`gcloud config configurations describe "${activeConfig}"`, { stdio: "ignore", shell: true }); } 
+        catch (e) { runCommandSync(`gcloud config configurations create "${activeConfig}"`); }
+        runCommandSync(`gcloud config configurations activate "${activeConfig}"`);
+        
+        runCommandSync(`gcloud config set project ${projectId}`);
+        runCommandSync(`gcloud config set billing/quota_project ${projectId}`);
+        
+        console.log("Logging in...");
+        runCommandSync(`gcloud auth login ${driveAccessFlag}`);
+        
+        console.log("Setting up ADC...");
+        runCommandSync(`gcloud auth application-default login --scopes="${scopes}" ${clientFlag}`);
+        runCommandSync(`gcloud auth application-default set-quota-project ${projectId}`);
+      }
+
+      if (AUTH_TYPE === "dwd") {
+        const current_user = execSync("gcloud config get-value account", { shell: true }).toString().trim();
+        const sa_email = `${GOOGLE_SERVICE_ACCOUNT_NAME}@${projectId}.iam.gserviceaccount.com`;
+        
+        console.log(`...service account: ${sa_email}`);
+        
+        let sa_exists = false;
+        try { execSync(`gcloud iam service-accounts describe "${sa_email}"`, { stdio: "ignore", shell: true }); sa_exists = true; } catch (e) {}
+
+        if (!sa_exists) {
+          console.log(`...creating service account: ${GOOGLE_SERVICE_ACCOUNT_NAME}`);
+          runCommandSync(`gcloud iam service-accounts create "${GOOGLE_SERVICE_ACCOUNT_NAME}" --display-name "${GOOGLE_SERVICE_ACCOUNT_NAME}"`);
+        }
+
+        console.log("...applying IAM permissions");
+        runCommandSync(`gcloud projects add-iam-policy-binding "${projectId}" --member="serviceAccount:${sa_email}" --role="roles/editor" --quiet`);
+        runCommandSync(`gcloud iam service-accounts add-iam-policy-binding "${sa_email}" --member="serviceAccount:${sa_email}" --role="roles/iam.serviceAccountTokenCreator" --quiet`);
+        runCommandSync(`gcloud iam service-accounts add-iam-policy-binding "${sa_email}" --member="user:${current_user}" --role="roles/iam.serviceAccountTokenCreator" --quiet`);
+        
+        const saUniqueId = execSync(`gcloud iam service-accounts describe "${sa_email}" --format="value(uniqueId)"`, { shell: true }).toString().trim();
+        console.log(`\nIMPORTANT: Add this to Admin Console (Domain-Wide Delegation):`);
+        console.log(`URL: https://admin.google.com/ac/owl/domainwidedelegation`);
+        console.log(`Client ID: ${saUniqueId}\nScopes: ${scopes}`);
+      }
+    }
   }
 
-  console.log("\nAuthentication process finished.");
+  console.log("\n--- All requested authentications completed ---");
 }
 
 /**

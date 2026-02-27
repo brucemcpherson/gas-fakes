@@ -17,18 +17,21 @@ import { join, dirname } from 'node:path';
 const hasEnvFileFlag = process.execArgv.some(arg => arg.startsWith('--env-file'));
 
 if (!hasEnvFileFlag) {
+  // Suppress dotenv logs/tips
+  process.env.DOTENV_CONFIG_NO_TIP = 'true';
+  
   const mainScript = process.argv[1];
   if (mainScript) {
     // Try to find .env in the same directory as the main entry point script
     const envPath = join(dirname(mainScript), '.env');
     if (existsSync(envPath)) {
-      dotenv.config({ path: envPath, override: true });
+      dotenv.config({ path: envPath, override: true, quiet: true });
     } else {
       // Fallback to default dotenv behavior (CWD)
-      dotenv.config({ override: true });
+      dotenv.config({ override: true, quiet: true });
     }
   } else {
     // Fallback if mainScript is not available (e.g. REPL)
-    dotenv.config({ override: true });
+    dotenv.config({ override: true, quiet: true });
   }
 }

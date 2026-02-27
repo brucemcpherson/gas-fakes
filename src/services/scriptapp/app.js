@@ -16,10 +16,12 @@ let _initialized = false
 let _platformAuth = process.env.GF_PLATFORM_AUTH ? process.env.GF_PLATFORM_AUTH.split(',') : ['google']
 
 const ensureInit = () => {
-  if (!_initialized) {
+  // If already initialized OR if another service already triggered Auth, skip
+  if (!_initialized && !Auth.hasAuth()) {
     _initialized = true 
     Syncit.fxInit({ platformAuth: _platformAuth })
   }
+  _initialized = true; // Mark as initialized even if Auth was already present
 }
 
 /**
@@ -150,7 +152,7 @@ if (typeof globalThis[name] === typeof undefined) {
         set __platformAuth(value) {
           const newVal = Array.isArray(value) ? value : [value];
           
-          if (_initialized) {
+          if (_initialized || Auth.hasAuth()) {
             // Check if all requested platforms are already authorized
             const missing = newVal.filter(p => !Auth.hasAuth(p));
             if (missing.length > 0) {
@@ -187,7 +189,7 @@ if (typeof globalThis[name] === typeof undefined) {
     // Explicitly trigger init ONLY for properties that require authorized backend data
     const triggerProps = ['getOAuthToken', '__getSourceOAuthToken', 'requireAllScopes', 'requireScopes', '__projectId', '__userId', 'getScriptId'];
 
-    if (!_initialized && triggerProps.includes(prop)) {
+    if (triggerProps.includes(prop)) {
       ensureInit();
     }
 

@@ -12,6 +12,7 @@ import { readFile, writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { KSuiteDrive } from './ksuite/kdrive.js';
 
+let _loggedSummary = false;
 
 /**
  * initialize ke stuff at the beginning such as manifest content and settings
@@ -30,16 +31,13 @@ export const sxInit = async ({ manifestPath, claspPath, settingsPath, cachePath,
 
   // Default to google if nothing specified
   const platforms = platformAuth || (process.env.GF_PLATFORM_AUTH ? process.env.GF_PLATFORM_AUTH.split(',') : ['google']);
-  syncLog(`...sxInit initializing for platforms: ${platforms.join(', ')}`);
 
   // get a file and parse if it exists
   const getIfExists = async (file) => {
     try {
       const content = await readFile(file, { encoding: 'utf8' })
-      syncLog(`...using ${file}`);
       return JSON.parse(content)
     } catch (err) {
-      syncLog(`...didnt find ${file} ... skipping`);
       return {}
     }
   }
@@ -60,14 +58,10 @@ export const sxInit = async ({ manifestPath, claspPath, settingsPath, cachePath,
   settings.cache = settings.cache || cachePath
   settings.properties = settings.properties || propertiesPath
 
-  syncLog(`...cache will be in ${settings.cache}`);
-  syncLog(`...properties will be in ${settings.properties}`);
-
   const strSet = JSON.stringify(settings, null, 2)
   if (JSON.stringify(_settings, null, 2) !== strSet) {
     try {
       await mkdir(settingsDir, { recursive: true })
-      syncLog(`...writing to ${settingsPath}`);
       await writeFile(settingsPath, strSet, { flag: 'w' })
     } catch (err) {
       syncWarn(`...unable to write settings file: ${err}`)
@@ -111,7 +105,8 @@ export const sxInit = async ({ manifestPath, claspPath, settingsPath, cachePath,
         activeUser,
         effectiveUser,
         projectId: Auth.getProjectId(),
-        tokenScopes: effectiveInfo.tokenInfo.scopes
+        tokenScopes: effectiveInfo.tokenInfo.scopes,
+        authMethod: Auth.getAuthMethod('google')
       };
 
       // Set current worker identity to google for remainder of init if needed
@@ -130,7 +125,6 @@ export const sxInit = async ({ manifestPath, claspPath, settingsPath, cachePath,
       syncWarn("ksuite requested in platformAuth but KSUITE_TOKEN is missing from environment.");
     } else {
       try {
-        syncLog("...initializing ksuite auth");
         const kDrive = new KSuiteDrive(kToken);
         const accountId = await kDrive.getAccountId();
         
@@ -146,15 +140,34 @@ export const sxInit = async ({ manifestPath, claspPath, settingsPath, cachePath,
           activeUser: kUser,
           effectiveUser: kUser,
           accessToken: kToken,
-          projectId: null
+          projectId: null,
+          authMethod: 'token'
         };
         
         Auth.setIdentity('ksuite', identities.ksuite);
-        syncLog(`...ksuite user verified: ${kUser.email}`);
       } catch (err) {
         syncWarn(`KSuite authentication failed: ${err.message}`);
         if (!platforms.includes('google')) throw err;
       }
+    }
+  }
+
+  // Final Summary Report (Concise, single instance)
+  if (!_loggedSummary) {
+    const summary = Object.keys(identities).map(p => {
+      const id = identities[p];
+      const isImpersonating = id.activeUser?.email !== id.effectiveUser?.email;
+      const userPart = isImpersonating 
+        ? `${id.activeUser?.email} impersonating ${id.effectiveUser?.email}` 
+        : id.effectiveUser?.email;
+      
+      const methodPart = id.authMethod ? ` via ${id.authMethod.toUpperCase()}` : '';
+      return `${p}${methodPart} (${userPart})`;
+    }).join(', ');
+    
+    if (summary) {
+      syncLog(`...authorized backends: ${summary}`);
+      _loggedSummary = true;
     }
   }
 
