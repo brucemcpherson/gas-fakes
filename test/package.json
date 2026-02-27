@@ -14,6 +14,7 @@
     "testlock": "node testlock.js execute",
     "testdrive": "GF_PLATFORM_AUTH=google node testdrive.js execute",
     "testksuitedrive": "GF_PLATFORM_AUTH=ksuite node testksuitedrive.js execute",
+    "testmultibackend": "node testmultibackend.js execute",
     "testksuitedrivesharing": "GF_PLATFORM_AUTH=ksuite node testksuitedrivesharing.js execute",
     "testsheetsdatavalidations": "node testsheetsdatavalidations.js execute",
     "testsheetspermissions": "node testsheetspermissions.js execute",
