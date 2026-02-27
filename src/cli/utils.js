@@ -73,11 +73,11 @@ export async function checkForGcloudCli() {
 /**
  * Helper function to run a shell command sync (used in setup).
  */
-export function runCommandSync(command) {
+export function runCommandSync(command, silent = false) {
   try {
     // shell: true is explicitly added to ensure compatibility on Windows,
     // especially for handling interactive commands or batch files like gcloud.cmd
-    execSync(command, { stdio: "inherit", shell: true });
+    execSync(command, { stdio: silent ? "ignore" : "inherit", shell: true });
   } catch (error) {
     console.error(`\nError executing command: ${command}`);
     process.exit(1);

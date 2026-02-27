@@ -43,7 +43,9 @@ gas-fakes init
 
 ### Supported Backends
 
-`gas-fakes` now supports multiple backends simultaneously. During `init`, you can select one or more:
+`gas-fakes` now supports multiple backends simultaneously. Note that as from v2.1.0, the auth process has been streamlined to support this. for more details see [gas-fakes-cli](gas-fakes-cli.md) and [v2.1.0 release notes](./versionnotes/v2.1.0.md). 
+
+During `init`, you can select one or more:
 
 | Backend | Authentication Method | Best Use Case |
 | :--- | :--- | :--- |

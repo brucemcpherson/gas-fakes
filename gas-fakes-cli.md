@@ -20,35 +20,48 @@ npm install -g @mcpher/gas-fakes
 
 ### 2. Authentication
 
-See the [Getting Started](https://github.com/brucemcpherson/gas-fakes/blob/main/GETTING_STARTED.md) for more information on authentication.
-
+`gas-fakes` supports multiple authentication backends, including Google Workspace and Infomaniak KSuite.
 
 #### Setup with the gas-fakes Command-Line Tool
 
-Ayou can use the `gas-fakes` command-line interface (CLI) to assist with the setup. Before you begin, please have your Google Cloud Project ID ready.
+You can use the `gas-fakes` command-line interface (CLI) to assist with the setup.
 
-First, create a `.env` file to store your project configuration:
+First, create a `.env` file to store your project configuration. The `init` command will prompt you to select the backends you wish to use (Google, KSuite, or both).
 
-to use domain wide delegation and a keyless service account
+To initialize Google with Domain Wide Delegation (default):
 ```bash
 gas-fakes init
 ```
-or, to use Application default credentials
+
+To initialize Google with Application Default Credentials (ADC):
 ```bash
 gas-fakes init --auth-type adc
 ```
 
-Next, authorize the tool. This command will guide you through the process of logging into your Google account and setting up the necessary credentials:
+To initialize multiple backends at once:
+```bash
+gas-fakes init -b google -b ksuite
+```
+
+Next, authorize the tool. This command will guide you through the process of logging into your accounts. By default, it authenticates Google.
 
 ```bash
 gas-fakes auth
 ```
 
-If you need to enable the required Google APIs for your project, you can do so with the following command. This will ensure that all necessary services are accessible. Please check how to use this command using the help message as follows.
+To authenticate a specific backend like KSuite:
+```bash
+gas-fakes auth --backend ksuite
+```
+
+If you need to enable the required Google APIs for your project, you can do so with the following command:
 
 ```bash
 gas-fakes enableAPIs --help
 ```
+
+> **Note on Scopes:** Starting with v2.1.0, `gas-fakes` automatically discovers required scopes by reading your `appsscript.json` file, simplifying the setup for both ADC and DWD.
+> **Note on .env:** Your active platforms are stored in the `GF_PLATFORM_AUTH` environment variable (e.g., `GF_PLATFORM_AUTH=google,ksuite`).
 
 ## Basic Usage
 
@@ -128,6 +141,45 @@ gas-fakes -s "const rootFolder = DriveApp.getRootFolder(); const rootFolderName 
 ```
 
 This will produce the same output as the file-based example.
+
+## Multi-Backend Support (KSuite)
+
+Starting with version 2.1.0, `gas-fakes` supports Infomaniak KSuite (kDrive) alongside Google Workspace. This allows you to run standard Google Apps Script code against non-Google platforms by simply switching the "platform" in your script.
+
+### Switching Platforms
+
+You can steer `gas-fakes` to use a specific backend by setting the `ScriptApp.__platform` property.
+
+- `ScriptApp.__platform = 'workspace'` (Default): Targets Google APIs.
+- `ScriptApp.__platform = 'ksuite'`: Targets Infomaniak KSuite APIs.
+
+**Example:**
+
+```javascript
+// Switch to KSuite
+ScriptApp.__platform = 'ksuite';
+
+// This standard GAS code now runs against Infomaniak kDrive!
+const root = DriveApp.getRootFolder();
+console.log("KSuite Root Folder:", root.getName()); 
+
+const folder = root.createFolder("KSuite-Test");
+folder.createFile("hello.txt", "This was created on kDrive via standard GAS code.");
+```
+
+### Setup for KSuite
+
+1.  Initialize the KSuite backend:
+    ```bash
+    gas-fakes init -b ksuite
+    ```
+2.  Add your Infomaniak API token to your `.env` file:
+    ```env
+    KSUITE_TOKEN=your_infomaniak_api_token
+    ```
+3.  Ensure your `GF_PLATFORM_AUTH` includes `ksuite`.
+
+For more details, see the [KSuite POC](ksuite_poc.md) documentation.
 
 ## Sandbox Security
 

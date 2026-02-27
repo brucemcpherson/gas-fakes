@@ -428,12 +428,14 @@ export async function authenticateUser(options = {}) {
         }
 
         console.log("...applying IAM permissions");
-        runCommandSync(`gcloud projects add-iam-policy-binding "${projectId}" --member="serviceAccount:${sa_email}" --role="roles/editor" --quiet`);
-        runCommandSync(`gcloud iam service-accounts add-iam-policy-binding "${sa_email}" --member="serviceAccount:${sa_email}" --role="roles/iam.serviceAccountTokenCreator" --quiet`);
-        runCommandSync(`gcloud iam service-accounts add-iam-policy-binding "${sa_email}" --member="user:${current_user}" --role="roles/iam.serviceAccountTokenCreator" --quiet`);
+        runCommandSync(`gcloud projects add-iam-policy-binding "${projectId}" --member="serviceAccount:${sa_email}" --role="roles/editor" --quiet`, true);
+        runCommandSync(`gcloud iam service-accounts add-iam-policy-binding "${sa_email}" --member="serviceAccount:${sa_email}" --role="roles/iam.serviceAccountTokenCreator" --quiet`, true);
+        runCommandSync(`gcloud iam service-accounts add-iam-policy-binding "${sa_email}" --member="user:${current_user}" --role="roles/iam.serviceAccountTokenCreator" --quiet`, true);
         
         const saUniqueId = execSync(`gcloud iam service-accounts describe "${sa_email}" --format="value(uniqueId)"`, { shell: true }).toString().trim();
-        console.log(`\nIMPORTANT: Add this to Admin Console (Domain-Wide Delegation):`);
+        console.log(`\n\x1b[1;33m************************************************************************`);
+        console.log(`IMPORTANT: Add this to Admin Console (Domain-Wide Delegation):`);
+        console.log(`************************************************************************\x1b[0m`);
         console.log(`URL: https://admin.google.com/ac/owl/domainwidedelegation`);
         console.log(`Client ID: ${saUniqueId}\nScopes: ${scopes}`);
       }
