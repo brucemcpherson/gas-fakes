@@ -33,6 +33,9 @@ This is the central method of the class. It orchestrates the process of finding 
 
 ```javascript
 load(manifest) {
+  if (!manifest && !Auth.hasAuth()) {
+    Syncit.fxInit();
+  }
   manifest = manifest || Auth.getManifest();
   if (!manifest) {
     throw new Error('manifest not found in auth and not provided');
@@ -41,12 +44,12 @@ load(manifest) {
 }
 ```
 
-1.  **Manifest Resolution**: It takes an optional `manifest` object. If one isn't provided, it attempts to retrieve the manifest of the current project using `Auth.getManifest()`.
+1.  **Manifest Resolution**: It takes an optional `manifest` object. If one isn't provided, it attempts to retrieve the manifest of the current project using `Auth.getManifest()`. If the environment hasn't been initialized yet, it calls `Syncit.fxInit()` to perform lazy initialization, ensuring that the project's `appsscript.json` is loaded.
 
 2.  **Recursive Loading**:
     - It defines an inner function, `recurseManifests`, that processes a given manifest to find its dependencies.
     - Inside this function, `newFakeLibHandler(manifest).fetchLibraries()` is called to extract the list of libraries from the current manifest.
-    - It iterates through each discovered library. If the library hasn't already been loaded (by checking its presence in `libMap`), it's added.
+    - It iterates through each discovered library (if any). If the library hasn't already been loaded (by checking its presence in `libMap`), it's added.
     - Crucially, if a newly discovered library itself has dependencies (indicated by the presence of `lib.libraries`), the `recurseManifests` function is called again with that library's manifest. This recursive step ensures that the entire dependency tree is traversed.
 
 3.  **Injection**:

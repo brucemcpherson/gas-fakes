@@ -1,5 +1,6 @@
 import { Proxies } from '../../support/proxies.js';
 import { Auth } from '../../support/auth.js';
+import { Syncit } from '../../support/syncit.js';
 import { newFakeLibHandler } from './fakelibhandler.js';
 
 export const newFakeLibHandlerApp = (...args) => {
@@ -20,6 +21,9 @@ class FakeLibHandlerApp {
 
 
   load(manifest) {
+    if (!manifest && !Auth.hasAuth()) {
+      Syncit.fxInit();
+    }
     manifest = manifest || Auth.getManifest();
     if (!manifest) {
       throw new Error('manifest not found in auth and not provided');
@@ -28,15 +32,17 @@ class FakeLibHandlerApp {
 
     const recurseManifests = (manifest) => {
       const libs = newFakeLibHandler(manifest).fetchLibraries();
-      libs.forEach((lib) => {
-        if (!this.libMap.has(lib.libraryId)) {
-          this.libMap.set(lib.libraryId, lib);
-          console.log(`...loading ${lib.libraryId} - ${lib.userSymbol}`)
-          if (lib.libraries) {
-            recurseManifests(lib.manifest)
+      if (libs) {
+        libs.forEach((lib) => {
+          if (!this.libMap.has(lib.libraryId)) {
+            this.libMap.set(lib.libraryId, lib);
+            console.log(`...loading ${lib.libraryId} - ${lib.userSymbol}`)
+            if (lib.libraries) {
+              recurseManifests(lib.manifest)
+            }
           }
-        }
-      })
+        })
+      }
     }
     recurseManifests(manifest)
     
