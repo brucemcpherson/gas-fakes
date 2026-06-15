@@ -1,0 +1,6 @@
+{
+  "name": "gas-fakes-agent",
+  "version": "1.0.0",
+  "description": "Local Apps Script emulation and QA testing sandbox plugin",
+  "skills": ["skills/gf_agent/SKILL.md"]
+}
