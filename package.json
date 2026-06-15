@@ -35,7 +35,7 @@
     "includes": "node ./doccreation/include-docs.js",
     "progress": "cd ./doccreation && bash pipeline.sh",
     "docs": "npm run includes && npm run progress && npm run gf_agent",
-    "gf_agent": "node ./gf_agent/scripts/builder.js"
+    "gf_agent": "node ./skills/gf_agent/scripts/builder.js"
   },
   "name": "@mcpher/gas-fakes",
   "author": "bruce mcpherson",

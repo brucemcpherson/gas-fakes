@@ -33,7 +33,7 @@ It features complete support for:
 See the [Local Web Development Guide](notes/local-web-development.md) for full details.
 
 ### Natural Language Automation with `@gf_agent`
-With the introduction of the `gf_agent` skill for Gemini CLI and the built-in MCP server, you can now automate Google Workspace tasks using natural language. This specialized agent understands the full range of `gas-fakes` services and can generate and execute code locally based on your plain English prompts. Whether it's summarizing emails in a Google Doc or analyzing spreadsheet data, you can now do it directly from your terminal using plain English. See the [gf_agent documentation](gf_agent/README.md) for more details.
+With the introduction of the `gf_agent` skill for Gemini CLI and the built-in MCP server, you can now automate Google Workspace tasks using natural language. This specialized agent understands the full range of `gas-fakes` services and can generate and execute code locally based on your plain English prompts. Whether it's summarizing emails in a Google Doc or analyzing spreadsheet data, you can now do it directly from your terminal using plain English. See the [gf_agent documentation](skills/gf_agent/README.md) for more details.
 
 > **Note on `appsscript.json`:** For full fidelity with live Apps Script, you should have a manifest available. However, as a workaround for "pure" `gas-fakes` projects where there is no intention to run in live Apps Script, if `appsscript.json` is missing or has no scopes, the runtime will automatically emulate one using the `DEFAULT_SCOPES` and `EXTRA_SCOPES` defined in your `.env` file, and will default the script's `timeZone` to `America/New_York` (or `GF_TIMEZONE`).
 
@@ -213,7 +213,7 @@ As I mentioned earlier, to take this further, I'm going to need a lot of help to
 - [omlx setup](notes/omlx-setup.md)
 - [Natural Language Automation with Gemini Skills & MCP Server](notes/gemini-skills-mcp.md) - new skills-based agent approach.
 - [Add agent skills to gf_agent](https://ramblings.mcpher.com/add-skills-gf_agent/)
-- [gf_agent documentation](../gf_agent/README.md) - instructions for the Gemini CLI automation agent and MCP server.
+- [gf_agent documentation](../skills/gf_agent/README.md) - instructions for the Gemini CLI automation agent and MCP server.
 - [gas fakes cli](notes/gas-fakes-cli.md)
 - [local add-on and webapp development with gas-fakes](notes/local-web-development.md)
 - [Bringing the webapp home](https://ramblings.mcpher.com/local-apps-script-webapp-and-ui-emulation/)

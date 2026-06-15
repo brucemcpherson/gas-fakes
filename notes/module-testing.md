@@ -178,7 +178,7 @@ execute `bash togas.sh` to copy all files to apps script IDE. All tests can be r
 - [omlx setup](../notes/omlx-setup.md)
 - [Natural Language Automation with Gemini Skills & MCP Server](../notes/gemini-skills-mcp.md) - new skills-based agent approach.
 - [Add agent skills to gf_agent](https://ramblings.mcpher.com/add-skills-gf_agent/)
-- [gf_agent documentation](../../gf_agent/README.md) - instructions for the Gemini CLI automation agent and MCP server.
+- [gf_agent documentation](../../skills/gf_agent/README.md) - instructions for the Gemini CLI automation agent and MCP server.
 - [gas fakes cli](../notes/gas-fakes-cli.md)
 - [local add-on and webapp development with gas-fakes](../notes/local-web-development.md)
 - [Bringing the webapp home](https://ramblings.mcpher.com/local-apps-script-webapp-and-ui-emulation/)

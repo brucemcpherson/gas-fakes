@@ -14,7 +14,7 @@ This guide provides a consolidated set of instructions to get you up and running
 The key principle is to use the exact same synchronous code you would write for Apps Script. `gas-fakes` handles the complexities of authentication and the asynchronous nature of the underlying Google Workspace APIs for you.
 
 ### Natural Language Automation with `@gf_agent`
-You can now use the specialized `gf_agent` skill for Gemini CLI to automate tasks using natural language. The `gas-fakes init` process will offer to automatically install this skill and configure the built-in MCP server for you. This allows you to perform complex Workspace operations—like searching Drive or summarizing emails—using plain English prompts directly from your terminal. For more information, see the [gf_agent README](gf_agent/README.md).
+You can now use the specialized `gf_agent` skill for Gemini CLI to automate tasks using natural language. The `gas-fakes init` process will offer to automatically install this skill and configure the built-in MCP server for you. This allows you to perform complex Workspace operations—like searching Drive or summarizing emails—using plain English prompts directly from your terminal. For more information, see the [gf_agent README](skills/gf_agent/README.md).
 
 ## Prerequisites
 
@@ -226,7 +226,7 @@ const root = DriveApp.getRootFolder(); // Returns Google Drive root
 - [omlx setup](notes/omlx-setup.md)
 - [Natural Language Automation with Gemini Skills & MCP Server](notes/gemini-skills-mcp.md) - new skills-based agent approach.
 - [Add agent skills to gf_agent](https://ramblings.mcpher.com/add-skills-gf_agent/)
-- [gf_agent documentation](../gf_agent/README.md) - instructions for the Gemini CLI automation agent and MCP server.
+- [gf_agent documentation](../skills/gf_agent/README.md) - instructions for the Gemini CLI automation agent and MCP server.
 - [gas fakes cli](notes/gas-fakes-cli.md)
 - [local add-on and webapp development with gas-fakes](notes/local-web-development.md)
 - [Bringing the webapp home](https://ramblings.mcpher.com/local-apps-script-webapp-and-ui-emulation/)

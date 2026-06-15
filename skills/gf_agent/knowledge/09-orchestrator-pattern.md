@@ -11,7 +11,7 @@ When an agent attempts to handle multiple services (e.g., Spreadsheet, Drive, an
 Upon receiving a user request, the agent acts as an **Orchestrator**. 
 - **Identify Services**: Determine exactly which Apps Script services are required (e.g., `SpreadsheetApp`, `DriveApp`).
 - **Decomposition**: Break the request into service-specific sub-tasks.
-- **Service Verification**: Verify that the required services and classes exist by checking the local `skills/` directory within the `gf_agent` skill.
+- **Service Verification**: Verify that the required services and classes exist by checking the local `skills/` directory within the `skills/gf_agent` skill.
 
 ### 2. The Service Agent Phase (Context Compression)
 For each identified service, the main agent MUST invoke a **sub-agent** (e.g., `generalist`) to perform the deep research.
@@ -29,7 +29,7 @@ For each identified service, the main agent MUST invoke a **sub-agent** (e.g., `
     - If the user is operating outside the repository (end-user mode), the sub-agent MUST ALWAYS use the `main` branch.
   - **Command Template**:
   - `curl -s https://raw.githubusercontent.com/brucemcpherson/gas-fakes/{BRANCH_NAME}/progress/{Service}.md | awk '/^## Class: \[{ClassName}\]/{flag=1; print; next} /^## Class:/{if(flag) {flag=0; exit}} flag'`
-  - *(Note: `{Service}.md` is case-sensitive. Check `gf_agent/skills/` for the exact casing, e.g., `Spreadsheet.md`)*
+  - *(Note: `{Service}.md` is case-sensitive. Check `skills/gf_agent/skills/` for the exact casing, e.g., `Spreadsheet.md`)*
 
 ### 3. Synthesis and Execution
 Once all required service-specific knowledge is gathered:

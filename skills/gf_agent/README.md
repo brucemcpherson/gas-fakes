@@ -16,26 +16,18 @@ Before using the agent or the MCP tools, you **must** configure your local envir
 
 *Note: You can skip these manual steps if you already chose to install the Gemini skills during the `gas-fakes init` process. The `init` command will automatically detect if you are in a local clone and link the skills appropriately.*
 
-### 1. Install the Skill Agent
+### 1. Install the Plugin Agent
 
 **For General Users:**
-You can install the `gf_agent` directly from this repository. To install **only** this skill:
+You can install the `gas-fakes-agent` directly from this repository using the Antigravity CLI (`agy`):
 ```bash
-gemini skills install https://github.com/brucemcpherson/gas-fakes.git --path gf_agent
+agy plugin install https://github.com/tanaikech/gas-fakes.git
 ```
-*Note: This repository contains multiple specialized skills (for development, maintenance, etc.). Omitting the `--path` flag will install all of them.*
 
 **For Contributors & Developers:**
-Do **not** use the `install` command with the remote URL, as it will download a cached copy that is difficult to edit. Because `gf_agent` is a subfolder of the main `gas-fakes` repository, use Git Sparse Checkout to isolate it:
-
+You can install the plugin from your local clone:
 ```bash
-mkdir gf_agent_standalone && cd gf_agent_standalone
-git init
-git remote add origin https://github.com/brucemcpherson/gas-fakes.git
-git config core.sparseCheckout true
-echo "gf_agent/*" >> .git/info/sparse-checkout
-git pull origin main
-gemini skills link ./gf_agent
+agy plugin install .
 ```
 
 ### 2. Configure the MCP Server
