@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { workerData } from 'worker_threads';
 
-const { mainScriptPath, funcName, args, isTemplate, templateString, env } = workerData;
+const { mainScriptPath, funcName, args, isTemplate, templateString, templateProps, env } = workerData;
 const control = new Int32Array(workerData.controlBuf);
 const dataView = new Uint8Array(workerData.dataBuf);
 const textEncoder = new TextEncoder();
@@ -43,21 +43,38 @@ async function run() {
     let result;
 
     if (isTemplate) {
-      // Evaluate template
-      // We pass the userModule context to allow access to functions like Include
-      result = templateString.replace(/<\?!=?\s*([\s\S]+?)\s*\?>/g, (match, expression) => {
+      // Merge userModule exports + template instance properties (e.g. tmpl.content) into eval scope.
+      // Template properties take precedence so that e.g. <?!= content ?> resolves correctly.
+      const evalScope = { ...userModule, ...(templateProps || {}) };
+      const scopeKeys = Object.keys(evalScope);
+      const scopeVals = Object.values(evalScope);
+
+      const htmlEscape = (s) => String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+      // GAS scriptlet types:
+      //   <?  code ?>        — execute, no output
+      //   <?= expr ?>        — HTML-escaped output
+      //   <?!= expr ?>       — raw/unescaped output
+      result = templateString.replace(/<\?(!=?|=)?\s*([\s\S]+?)\s*\?>/g, (match, sigil, expression) => {
+        const isOutput = sigil === '=' || sigil === '!=';
+        const isRaw    = sigil === '!=';
         try {
-           // We use the userModule exports as the scope for template expressions
-           const func = new Function(...Object.keys(userModule), `return ${expression}`);
-           const exprResult = func(...Object.values(userModule));
-           
-           if (exprResult && typeof exprResult.getContent === 'function') {
-               return exprResult.getContent();
-           }
-           return typeof exprResult !== 'undefined' ? exprResult : '';
+          if (!isOutput) {
+            // Code-only block: execute for side-effects, return nothing
+            new Function(...scopeKeys, expression)(...scopeVals);
+            return '';
+          }
+          const func = new Function(...scopeKeys, `return (${expression})`);
+          const exprResult = func(...scopeVals);
+          const str = (exprResult && typeof exprResult.getContent === 'function')
+            ? exprResult.getContent()
+            : (typeof exprResult !== 'undefined' ? String(exprResult) : '');
+          return isRaw ? str : htmlEscape(str);
         } catch (e) {
-           console.error(`gas-fakes template evaluation error for scriptlet '${expression}':`, e.message);
-           return match;
+          console.error(`gas-fakes template evaluation error for scriptlet '${expression}':`, e.message);
+          return match;
         }
       });
     } else {

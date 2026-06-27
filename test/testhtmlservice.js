@@ -65,6 +65,43 @@ export const testHtmlService = (pack) => {
     t.is(evaluated.getContent(), "Hello Gemini", "evaluate processes tags");
   });
 
+  unit.section("HtmlTemplate scriptlet types", t => {
+    // <?= expr ?> — HTML-escaped output
+    const tmplEscaped = HtmlService.createTemplate('<?= val ?>');
+    tmplEscaped.val = '<b>bold</b>';
+    t.is(tmplEscaped.evaluate().getContent(), '&lt;b&gt;bold&lt;/b&gt;', '<?= ?> escapes HTML entities');
+
+    // <?!= expr ?> — raw/unescaped output
+    const tmplRaw = HtmlService.createTemplate('<?!= val ?>');
+    tmplRaw.val = '<b>bold</b>';
+    t.is(tmplRaw.evaluate().getContent(), '<b>bold</b>', '<?!= ?> outputs raw HTML unescaped');
+
+    // <? code ?> — execute for side effects, no output
+    const tmplCode = HtmlService.createTemplate('before<? var x = 42; ?>after');
+    t.is(tmplCode.evaluate().getContent(), 'beforeafter', '<? ?> produces no output');
+
+    // <? code ?> side-effect variable accessible in later <?= ?>
+    const tmplSideEffect = HtmlService.createTemplate('<? var msg = "hi"; ?><?= msg ?>');
+    t.is(tmplSideEffect.evaluate().getContent(), 'hi', 'variable set in <? ?> is accessible in <?= ?>');
+
+    // templateProps: multiple properties resolved in scriptlets
+    const tmplMulti = HtmlService.createTemplate('<?= first ?> <?!= second ?>');
+    tmplMulti.first = 'Hello';
+    tmplMulti.second = '<World>';
+    t.is(tmplMulti.evaluate().getContent(), 'Hello <World>', 'multiple templateProps resolve correctly');
+
+    // numeric and boolean props
+    const tmplNum = HtmlService.createTemplate('<?= count ?>');
+    tmplNum.count = 42;
+    t.is(tmplNum.evaluate().getContent(), '42', 'numeric templateProp renders as string');
+
+    // mixed static text and scriptlets
+    const tmplMixed = HtmlService.createTemplate('<h1><?= title ?></h1><p><?!= body ?></p>');
+    tmplMixed.title = 'My & Title';
+    tmplMixed.body = '<em>content</em>';
+    t.is(tmplMixed.evaluate().getContent(), '<h1>My &amp; Title</h1><p><em>content</em></p>', 'mixed static and scriptlet output');
+  });
+
   unit.section("HtmlService file loading", t => {
     let error;
     try {
