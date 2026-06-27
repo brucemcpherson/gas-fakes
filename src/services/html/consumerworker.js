@@ -45,9 +45,18 @@ async function run() {
     if (isTemplate) {
       // Merge userModule exports + template instance properties (e.g. tmpl.content) into eval scope.
       // Template properties take precedence so that e.g. <?!= content ?> resolves correctly.
+      // Filter out JS reserved words and invalid identifiers — ES module namespaces may expose
+      // keys like 'default' which cannot be used as Function parameter names.
+      const JS_RESERVED = new Set(['default','class','return','function','var','let','const',
+        'if','else','for','while','do','break','continue','switch','case','new','delete',
+        'typeof','instanceof','void','throw','try','catch','finally','import','export',
+        'async','await','yield','super','this','debugger','with','in','of','static']);
       const evalScope = { ...userModule, ...(templateProps || {}) };
-      const scopeKeys = Object.keys(evalScope);
-      const scopeVals = Object.values(evalScope);
+      const validEntries = Object.entries(evalScope).filter(
+        ([k]) => !JS_RESERVED.has(k) && /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k)
+      );
+      const scopeKeys = validEntries.map(([k]) => k);
+      const scopeVals = validEntries.map(([, v]) => v);
 
       const htmlEscape = (s) => String(s)
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
