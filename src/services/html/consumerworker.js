@@ -63,29 +63,41 @@ async function run() {
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
       // GAS scriptlet types:
-      //   <?  code ?>        — execute, no output
+      //   <?  code ?>        — execute, no output (supports control flow: if/else/for/})
       //   <?= expr ?>        — HTML-escaped output
       //   <?!= expr ?>       — raw/unescaped output
-      result = templateString.replace(/<\?(!=?|=)?\s*([\s\S]+?)\s*\?>/g, (match, sigil, expression) => {
-        const isOutput = sigil === '=' || sigil === '!=';
-        const isRaw    = sigil === '!=';
-        try {
-          if (!isOutput) {
-            // Code-only block: execute for side-effects, return nothing
-            new Function(...scopeKeys, expression)(...scopeVals);
-            return '';
+      //
+      // Compile the entire template into ONE function so that control-flow scriptlets
+      // like <? if (x) { ?> ... <? } ?> share a single execution context.
+      {
+        const SCRIPTLET_RE = /<\?(!=?|=)?\s*([\s\S]+?)\s*\?>/g;
+        let code = 'let _out = "";\n';
+        let lastIndex = 0;
+        let m;
+        SCRIPTLET_RE.lastIndex = 0;
+        while ((m = SCRIPTLET_RE.exec(templateString)) !== null) {
+          const before = templateString.slice(lastIndex, m.index);
+          if (before) code += `_out += ${JSON.stringify(before)};\n`;
+          const sigil = m[1], expr = m[2];
+          if (!sigil) {
+            code += `${expr}\n`;
+          } else if (sigil === '=') {
+            code += `_out += _he(${expr});\n`;
+          } else {
+            code += `{ let _rv=(${expr}); _out += (_rv&&typeof _rv.getContent==='function')?_rv.getContent():(typeof _rv!=='undefined'?String(_rv):''); }\n`;
           }
-          const func = new Function(...scopeKeys, `return (${expression})`);
-          const exprResult = func(...scopeVals);
-          const str = (exprResult && typeof exprResult.getContent === 'function')
-            ? exprResult.getContent()
-            : (typeof exprResult !== 'undefined' ? String(exprResult) : '');
-          return isRaw ? str : htmlEscape(str);
-        } catch (e) {
-          console.error(`gas-fakes template evaluation error for scriptlet '${expression}':`, e.message);
-          return match;
+          lastIndex = m.index + m[0].length;
         }
-      });
+        const tail = templateString.slice(lastIndex);
+        if (tail) code += `_out += ${JSON.stringify(tail)};\n`;
+        code += 'return _out;';
+        try {
+          result = new Function('_he', ...scopeKeys, code)(htmlEscape, ...scopeVals);
+        } catch (e) {
+          console.error('gas-fakes template compilation error:', e.message);
+          result = templateString;
+        }
+      }
     } else {
       // Run function
       const func = userModule[funcName] || globalThis[funcName];
