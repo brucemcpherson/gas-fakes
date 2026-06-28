@@ -148,6 +148,11 @@ export const sxInit = async ({ manifestPath, claspPath, settingsPath, cachePath,
         token: effectiveInfo.token
       }
 
+      if (!effectiveUser.email) {
+        syncWarn(`...Warning: Could not resolve user email from OAuth token. Session.getActiveUser().getEmail() will return undefined.`);
+        syncWarn(`...To fix: add 'openid' and 'https://www.googleapis.com/auth/userinfo.email' to your appsscript.json scopes and re-run 'gas-fakes auth', or set GOOGLE_WORKSPACE_SUBJECT=your@email.com in your .env.`);
+      }
+
       identities.google = {
         activeUser,
         effectiveUser,

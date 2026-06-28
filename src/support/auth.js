@@ -108,10 +108,12 @@ const _getTokenInfo = async (client) => {
       method: 'GET'
     });
     tokenInfo = response.data;
+  }
 
-    if (!tokenInfo.email && process.env.GOOGLE_WORKSPACE_SUBJECT) {
-      tokenInfo.email = process.env.GOOGLE_WORKSPACE_SUBJECT;
-    }
+  // Universal fallback: some token types (e.g. authorized_user ADC without openid/userinfo.email
+  // scopes) return no email in tokeninfo. GOOGLE_WORKSPACE_SUBJECT provides it explicitly.
+  if (!tokenInfo.email && process.env.GOOGLE_WORKSPACE_SUBJECT) {
+    tokenInfo.email = process.env.GOOGLE_WORKSPACE_SUBJECT;
   }
 
   return {
