@@ -1,0 +1,7 @@
+fastapi==0.115.5
+uvicorn==0.32.1
+google-auth==2.48.0
+google-auth-oauthlib==1.2.1
+google-cloud-secret-manager==2.23.0
+httpx==0.28.1
+python-multipart==0.0.12
