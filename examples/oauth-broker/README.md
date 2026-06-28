@@ -1,17 +1,16 @@
-# OAuth Broker — WIF → User OAuth Bridge for Workspace + Apps Script
+# OAuth Broker — per-user Workspace identity for containerised deployments
 
-A production-ready Cloud Run service that bridges Workload Identity Federation
-(WIF) container deployments to real per-user Google Workspace identity, without
-Domain-Wide Delegation.
+A production-ready Cloud Run service that gives containerised agents real
+per-user Google Workspace identity, without Domain-Wide Delegation.
 
 Source: [curtiskrygier/appsscript-oauth-broker](https://github.com/curtiskrygier/appsscript-oauth-broker)
 
 ## The problem
 
 `scripts.run` and Workspace APIs require a **user** OAuth token. A container
-authenticated via WIF has a service account identity — it can reach GCP APIs,
-but cannot call Drive, Docs, or Apps Script on behalf of a real user. DWD
-bridges this in some environments, but is tightly restricted in enterprise
+running as a service account identity can reach GCP APIs, but cannot call
+Drive, Docs, or Apps Script on behalf of a real user. DWD bridges this in
+some environments, but is restricted or unavailable in many enterprise
 Google Workspace orgs.
 
 ## The solution
@@ -30,10 +29,11 @@ Agent (every invocation, no user present)
   └─→ scripts.run  /  Drive API  /  Docs API  (as the real user)
 ```
 
-The container uses its WIF-derived service account identity to authenticate to
-the broker and to Secret Manager. The user's refresh token handles the Workspace
-execution layer. These are two separate identity concerns — WIF handles
-infrastructure, OAuth handles Workspace.
+The broker authenticates to Secret Manager using the container's ambient GCP
+credentials (Cloud Run service account, ADC, or Workload Identity Federation
+— the broker itself is identity-agnostic at that layer). The user's refresh
+token handles the Workspace execution layer. These are two separate identity
+concerns.
 
 ## Structure
 
@@ -99,11 +99,11 @@ result = scripts_run(token, "myGasFunction", {"param": "value"})
 
 ## Testing locally with gas-fakes
 
-`AUTH_TYPE=user_oauth` (added in the companion PR) lets you test broker-injected
-credentials locally without deploying Cloud Run. Set the three env vars to a
-real refresh token obtained from a local broker run or `gcloud auth
-application-default login`, and gas-fakes will initialize with that user
-identity — the same path production takes.
+`AUTH_TYPE=user_oauth` (added in the companion PR) lets you test
+broker-injected credentials locally without deploying Cloud Run. Set the
+three env vars to a real refresh token (from a local broker run or
+`gcloud auth application-default login`) and gas-fakes initialises with
+that user identity — the same path production takes.
 
 ```bash
 export AUTH_TYPE=user_oauth
@@ -118,13 +118,15 @@ See `.env.example` for a full configuration reference.
 
 ## Security notes
 
-- **PKCE** prevents authorisation code interception even if the redirect URI is
-  observed in transit.
+- **PKCE** prevents authorisation code interception even if the redirect URI
+  is observed in transit.
 - **HMAC-signed state** prevents CSRF on the callback.
 - **Bearer secret** on `/token` ensures only your agent can request tokens.
 - **Per-user secrets** in Secret Manager: one secret per email, named
-  `workspace-token-{email}`. The broker SA has `secretAccessor` only.
-- **Revocation**: users can revoke at `myaccount.google.com/permissions`. Clean
-  up the Secret Manager entry on `invalid_grant` (the broker handles this
-  automatically by returning `auth_required`).
-- Refresh tokens don't expire unless unused for 6 months or explicitly revoked.
+  `workspace-token-{email}`. The broker SA needs `secretAccessor` only.
+- **Revocation**: users can revoke at `myaccount.google.com/permissions`.
+  The broker returns `auth_required` on `invalid_grant`, signalling that
+  the user needs to re-enrol. Clean up the Secret Manager entry at that
+  point.
+- Refresh tokens don't expire unless unused for 6 months or explicitly
+  revoked.
