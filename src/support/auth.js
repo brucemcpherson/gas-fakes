@@ -161,11 +161,32 @@ const setAuth = async (scopes = [], mcpLoading = false) => {
   const id = _getIdentity('google');
 
   try {
+    const authType = process.env.AUTH_TYPE?.toLowerCase()
+
+    // user_oauth: caller-supplied refresh token — no ADC or service account required.
+    // Designed for OAuth broker / WIF deployments where credentials are injected at
+    // invocation time (e.g. read from Secret Manager) rather than discovered from
+    // the environment. Set GF_OAUTH_CLIENT_ID, GF_OAUTH_CLIENT_SECRET, and
+    // GF_USER_REFRESH_TOKEN, then AUTH_TYPE=user_oauth in your .env.
+    if (authType === 'user_oauth') {
+      const clientId = process.env.GF_OAUTH_CLIENT_ID
+      const clientSecret = process.env.GF_OAUTH_CLIENT_SECRET
+      const refreshToken = process.env.GF_USER_REFRESH_TOKEN
+      if (!clientId || !clientSecret || !refreshToken) {
+        throw new Error(
+          'AUTH_TYPE=user_oauth requires GF_OAUTH_CLIENT_ID, GF_OAUTH_CLIENT_SECRET, and GF_USER_REFRESH_TOKEN to be set.'
+        )
+      }
+      id.authMethod = 'user_oauth'
+      const userClient = new OAuth2Client({ clientId, clientSecret })
+      userClient.setCredentials({ refresh_token: refreshToken })
+      id.authClient = userClient
+      id.sourceClient = userClient
+    } else {
     id.auth = new GoogleAuth()
     id.projectId = await id.auth.getProjectId()
 
     const saName = process.env.GOOGLE_SERVICE_ACCOUNT_NAME
-    const authType = process.env.AUTH_TYPE?.toLowerCase()
     const useDwd = authType === 'dwd' || (authType !== 'adc' && saName)
 
     if (!useDwd) {
@@ -268,6 +289,7 @@ const setAuth = async (scopes = [], mcpLoading = false) => {
 
       id.authClient = dwdClient
     }
+    } // end else (ADC / DWD)
   } catch (error) {
     throw error
   }
@@ -300,6 +322,7 @@ const getProjectId = () => {
   const pid = _getIdentity().projectId;
   if (is.null(pid) || is.undefined(pid)) {
     if (_platform === 'ksuite') return null;
+    if (_getIdentity().authMethod === 'user_oauth') return null;
     throw new Error("Project id not set - this means that the fxInit wasnt run");
   }
   return pid;
