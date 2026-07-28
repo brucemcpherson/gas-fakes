@@ -8,12 +8,14 @@ import { wrapupTest, trasher } from './testassist.js';
  * Runs a query against a BigQuery view and summarizes the unique owners per loadId.
  * @param {object} pack - The test packing object (optional).
  */
-export const testBigQueryView = (pack) => {
+
+const testBigQueryView = (pack) => {
   const toTrash = [];
   const { unit, fixes } = pack || initTests();
 
   // 1. Determine the Project ID
-  const projectId = process.env.GOOGLE_CLOUD_PROJECT || "gas-fakes-474508";
+  const projectId = ScriptApp.isFake ? process.env.GOOGLE_CLOUD_PROJECT : getProjectIdFromToken()
+
 
   // 2. Define the SQL query
   const querySql = `

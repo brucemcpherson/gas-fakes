@@ -13,6 +13,11 @@ var getUserIdFromToken = (accessToken) => {
   }
   return tokenInfo.sub
 }
+const getProjectIdFromToken = () => {
+  const tokenInfo = getTokenInfo (ScriptApp.getOAuthToken())
+  const clientClientId = tokenInfo.azp || tokenInfo.aud;
+  return clientClientId.split('-')[0];
+}
 
 const getTokenInfo = (accessToken) => {
   if (typeof accessToken !== 'string' || !accessToken) {

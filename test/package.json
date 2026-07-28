@@ -106,7 +106,7 @@
     "testbigqueryview": "node testbigqueryview.js execute"
   },
   "name": "test-gas-fakes",
-  "version": "2.5.6",
+  "version": "2.5.7",
   "license": "MIT",
   "main": "test.js",
   "description": "test gas-fakes on both live and local apps script - version number should match the gas-fakes version number it tests",
