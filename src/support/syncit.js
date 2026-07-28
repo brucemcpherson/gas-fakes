@@ -18,6 +18,7 @@ import { formsCacher } from "./formscacher.js";
 import { slidesCacher } from "./slidescacher.js";
 import { sheetsCacher } from "./sheetscacher.js";
 import { calendarCacher } from "./calendarcacher.js";
+import { bigqueryCacher } from "./bigquerycacher.js";
 import is from "@sindresorhus/is";
 import { callSync } from "./workersync/synchronizer.js";
 
@@ -491,6 +492,13 @@ const fxCalendar = (args) =>
     cacher: calendarCacher,
     idField: "calendarId",
   });
+const fxBigQuery = (args) =>
+  fxGeneric({
+    ...args,
+    serviceName: "BigQuery",
+    cacher: bigqueryCacher,
+    idField: "projectId",
+  });
 
 // const fxGetImagesFromXlsx = (args) => callSync("sxGetImagesFromXlsx", args);
 
@@ -512,6 +520,7 @@ export const Syncit = {
   fxForms,
   fxGmail,
   fxCalendar,
+  fxBigQuery,
   fxDriveExport,
   fxGetAccessToken,
   fxGetAccessTokenInfo,

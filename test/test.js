@@ -75,6 +75,8 @@ import { testCalendars } from './testcalendars.js';
 import { testCalendarSandbox } from './testcalendarsandbox.js';
 import { testTasks } from './testtasks.js';
 import { testWorkspaceEvents } from './testworkspaceevents.js';
+import { testAdvBigQuery } from './testadvbigquery.js';
+import { testBigQueryView } from './testbigqueryview.js';
 import { testLogger } from "./testlogger.js";
 import { testBase } from "./testbase.js";
 import { testMimeType } from './testmimetype.js';
@@ -209,6 +211,10 @@ export const testFakes = () => {
 
   console.log("\n----Test tasks----");
   testTasks(pack);
+  console.log("\n----Test BigQuery----");
+  testAdvBigQuery(pack);
+  console.log("\n----Test BigQuery View----");
+  testBigQueryView(pack);
   console.log("\n----Test people----");
   testPeople(pack);
   console.log("\n----Test chat----");
