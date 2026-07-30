@@ -20,29 +20,23 @@ export class FakeHtmlTemplate {
   }
 
   evaluate() {
-    let evaluatedContent = this._content;
+    // Collect all non-private, non-function template properties (e.g. tmpl.content = html)
+    const templateProps = {};
+    for (const key of Object.keys(this)) {
+      if (!key.startsWith('_') && typeof this[key] !== 'function') {
+        templateProps[key] = this[key];
+      }
+    }
 
-    let workerResult = null;
+    let evaluatedContent = this._content;
     try {
       const ctx = new ServerWorkerContext();
-      workerResult = ctx.evaluateTemplate(this._content);
+      const workerResult = ctx.evaluateTemplate(this._content, templateProps);
+      if (workerResult) evaluatedContent = workerResult;
     } catch (e) {
       console.error(e);
       throw e;
     }
-
-    if (workerResult) {
-       evaluatedContent = workerResult;
-    }
-
-    // Final pass for explicitly set template properties
-    evaluatedContent = evaluatedContent.replace(/<\?=\s*([^?]+)\s*\?>/g, (match, varName) => {
-      const trimmedVarName = varName.trim();
-      if (typeof this[trimmedVarName] !== 'undefined') {
-        return this[trimmedVarName];
-      }
-      return match; 
-    });
 
     return new FakeHtmlOutput(evaluatedContent);
   }

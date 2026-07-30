@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { workerData } from 'worker_threads';
 
-const { mainScriptPath, funcName, args, isTemplate, templateString, env } = workerData;
+const { mainScriptPath, funcName, args, isTemplate, templateString, templateProps, env } = workerData;
 const control = new Int32Array(workerData.controlBuf);
 const dataView = new Uint8Array(workerData.dataBuf);
 const textEncoder = new TextEncoder();
@@ -43,23 +43,61 @@ async function run() {
     let result;
 
     if (isTemplate) {
-      // Evaluate template
-      // We pass the userModule context to allow access to functions like Include
-      result = templateString.replace(/<\?!=?\s*([\s\S]+?)\s*\?>/g, (match, expression) => {
-        try {
-           // We use the userModule exports as the scope for template expressions
-           const func = new Function(...Object.keys(userModule), `return ${expression}`);
-           const exprResult = func(...Object.values(userModule));
-           
-           if (exprResult && typeof exprResult.getContent === 'function') {
-               return exprResult.getContent();
-           }
-           return typeof exprResult !== 'undefined' ? exprResult : '';
-        } catch (e) {
-           console.error(`gas-fakes template evaluation error for scriptlet '${expression}':`, e.message);
-           return match;
+      // Merge userModule exports + template instance properties (e.g. tmpl.content) into eval scope.
+      // Template properties take precedence so that e.g. <?!= content ?> resolves correctly.
+      // Filter out JS reserved words and invalid identifiers — ES module namespaces may expose
+      // keys like 'default' which cannot be used as Function parameter names.
+      const JS_RESERVED = new Set(['default','class','return','function','var','let','const',
+        'if','else','for','while','do','break','continue','switch','case','new','delete',
+        'typeof','instanceof','void','throw','try','catch','finally','import','export',
+        'async','await','yield','super','this','debugger','with','in','of','static']);
+      const evalScope = { ...userModule, ...(templateProps || {}) };
+      const validEntries = Object.entries(evalScope).filter(
+        ([k]) => !JS_RESERVED.has(k) && /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k)
+      );
+      const scopeKeys = validEntries.map(([k]) => k);
+      const scopeVals = validEntries.map(([, v]) => v);
+
+      const htmlEscape = (s) => String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+      // GAS scriptlet types:
+      //   <?  code ?>        — execute, no output (supports control flow: if/else/for/})
+      //   <?= expr ?>        — HTML-escaped output
+      //   <?!= expr ?>       — raw/unescaped output
+      //
+      // Compile the entire template into ONE function so that control-flow scriptlets
+      // like <? if (x) { ?> ... <? } ?> share a single execution context.
+      {
+        const SCRIPTLET_RE = /<\?(!=?|=)?\s*([\s\S]+?)\s*\?>/g;
+        let code = 'let _out = "";\n';
+        let lastIndex = 0;
+        let m;
+        SCRIPTLET_RE.lastIndex = 0;
+        while ((m = SCRIPTLET_RE.exec(templateString)) !== null) {
+          const before = templateString.slice(lastIndex, m.index);
+          if (before) code += `_out += ${JSON.stringify(before)};\n`;
+          const sigil = m[1], expr = m[2];
+          if (!sigil) {
+            code += `${expr}\n`;
+          } else if (sigil === '=') {
+            code += `_out += _he(${expr});\n`;
+          } else {
+            code += `{ let _rv=(${expr}); _out += (_rv&&typeof _rv.getContent==='function')?_rv.getContent():(typeof _rv!=='undefined'?String(_rv):''); }\n`;
+          }
+          lastIndex = m.index + m[0].length;
         }
-      });
+        const tail = templateString.slice(lastIndex);
+        if (tail) code += `_out += ${JSON.stringify(tail)};\n`;
+        code += 'return _out;';
+        try {
+          result = new Function('_he', ...scopeKeys, code)(htmlEscape, ...scopeVals);
+        } catch (e) {
+          console.error('gas-fakes template compilation error:', e.message);
+          result = templateString;
+        }
+      }
     } else {
       // Run function
       const func = userModule[funcName] || globalThis[funcName];

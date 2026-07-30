@@ -115,10 +115,11 @@ export class ServerWorkerContext {
   /**
    * Synchronously evaluates a template string in a fresh consumer instance.
    */
-  evaluateTemplate(templateString) {
+  evaluateTemplate(templateString, templateProps = {}) {
     return this._executeSyncWorker({
       isTemplate: true,
-      templateString
+      templateString,
+      templateProps
     });
   }
 
