@@ -233,3 +233,27 @@ Instead of relying on external web searches, which can be slow, prone to outdate
 1.  **Efficiency:** Local searches are instantaneous compared to network latency.
 2.  **Offline Access:** Documentation is available even without an internet connection.
 3.  **Guaranteed Accuracy:** The JSON file provides a guaranteed, static snapshot of the documentation, ensuring that the syntax and usage details match the expected environment, eliminating ambiguity found in general web searches.
+
+### Apps Script Advanced BigQuery Service Emulation
+- **Emulation Architecture**: Emulating the Advanced BigQuery Service (`BigQuery`) requires:
+  - Defining the factory methods and creators properties list (e.g. `newQueryRequest`, `newDataset`, etc.) in `bqpropslist.js` for `advClassMaker` to construct objects with matching getters, setters, and `toString()` JSON stringifiers.
+  - Implementing sub-resource classes like `FakeAdvBigQueryDatasets`, `FakeAdvBigQueryJobs`, etc., extending `FakeAdvResource` and calling `Syncit.fxBigQuery`.
+  - Creating `bqapis.js` to construct the standard Google BigQuery v2 client using `google.bigquery({ version: 'v2', auth })` from `googleapis`.
+  - Registering the sync task runner `sxBigQuery` in `sxbigquery.js` and integrating it with `sxfunctions.js` and `Syncit.js` (`fxBigQuery`).
+
+
+## 💡 Code Design, Performance, and gas-fakes Parity Guidelines
+
+To maintain full transferability and prevent API quota limits, strictly adhere to these design principles:
+
+### 1. Synchronous Code Nature (gas-fakes Parity)
+- **Concept**: `gas-fakes` emulates the synchronous nature of Google Apps Script APIs using fiber/worker threads.
+- **Rule**: Avoid writing code using `async`/`await` or promises when calling Google Workspace API methods (e.g. `BigQuery.Jobs.query`, `SpreadsheetApp.create`, etc.). 
+- **Benefit**: Writing synchronous code ensures that scripts and tests are 100% transferable to the live Google Apps Script environment without modification.
+
+### 2. Quota & Rate-Limit Optimization (`setValues` over `appendRow`)
+- **Concept**: Making repeated individual API calls (such as in a loop using `sheet.appendRow()`) generates multiple HTTP REST requests, leading to Google API rate limits and quota errors (e.g., HTTP 429 quota exceptions).
+- **Rule**: Collect data into a two-dimensional array first, grab the full target range using `sheet.getRange(startRow, startCol, numRows, numCols)`, and update everything in a single, atomic operation using `.setValues(twoDArray)`.
+- **Benefit**: Reduces network round-trips to one single highly optimized call, avoiding 429 errors and significantly speeding up execution.
+
+

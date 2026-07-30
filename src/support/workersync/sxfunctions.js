@@ -11,6 +11,7 @@ export * from "../sxgmail.js";
 export * from "../sxcalendar.js";
 export * from "../sxxlsx.js";
 export * from "../sxtoken.js";
+export * from "../sxbigquery.js";
 
 
 
