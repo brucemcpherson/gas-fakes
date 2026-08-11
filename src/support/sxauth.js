@@ -13,6 +13,8 @@ import path from 'path';
 import { KSuiteDrive } from './ksuite/kdrive.js';
 import { getMsGraphToken, mapGasScopesToMsGraph } from './msgraph/msauth.js';
 import { MsGraph } from './msgraph/msclient.js';
+import { CodaConstants } from './coda/constants.js';
+import { fetchCodaProfile } from './coda/codaauth.js';
 
 let _loggedSummary = false;
 
@@ -189,7 +191,7 @@ export const sxInit = async ({ manifestPath, claspPath, settingsPath, cachePath,
         process.exit(1);
       }
 
-      if (!platforms.includes('ksuite') && !platforms.includes('msgraph')) throw err;
+      if (!platforms.includes('ksuite') && !platforms.includes('msgraph') && !platforms.includes('coda')) throw err;
     }
   }
 
@@ -223,7 +225,44 @@ export const sxInit = async ({ manifestPath, claspPath, settingsPath, cachePath,
         Auth.setIdentity('ksuite', identities.ksuite);
       } catch (err) {
         syncWarn(`KSuite authentication failed: ${err.message}`);
-        if (!platforms.includes('google') && !platforms.includes('msgraph')) throw err;
+        if (!platforms.includes('google') && !platforms.includes('msgraph') && !platforms.includes('coda')) throw err;
+      }
+    }
+  }
+
+  // --- Coda Auth Block ---
+  if (platforms.includes('coda')) {
+    const codaKey = process.env.CODA_API_KEY;
+    if (!codaKey) {
+      syncWarn("coda requested in platformAuth but CODA_API_KEY is missing from environment.");
+    } else {
+      try {
+        Auth.setPlatform('coda');
+        let codaUser = {
+          id: CodaConstants.DEFAULT_USER_ID,
+          email: process.env.CODA_USER_EMAIL || CodaConstants.DEFAULT_USER_EMAIL,
+          name: CodaConstants.DEFAULT_USER_NAME,
+          token: codaKey
+        };
+
+        try {
+          codaUser = await fetchCodaProfile(codaKey);
+        } catch (fetchErr) {
+          syncWarn(`Coda profile fetch failed, using fallback identity: ${fetchErr.message}`);
+        }
+
+        identities.coda = {
+          activeUser: codaUser,
+          effectiveUser: codaUser,
+          accessToken: codaKey,
+          projectId: null,
+          authMethod: 'token'
+        };
+
+        Auth.setIdentity('coda', identities.coda);
+      } catch (err) {
+        syncWarn(`Coda authentication failed: ${err.message}`);
+        if (!platforms.includes('google') && !platforms.includes('msgraph') && !platforms.includes('ksuite')) throw err;
       }
     }
   }
@@ -270,7 +309,7 @@ export const sxInit = async ({ manifestPath, claspPath, settingsPath, cachePath,
       }
     } catch (err) {
       syncWarn(`Microsoft Graph authentication failed: ${err.message}`);
-      if (!platforms.includes('google') && !platforms.includes('ksuite')) throw err;
+      if (!platforms.includes('google') && !platforms.includes('ksuite') && !platforms.includes('coda')) throw err;
     }
   }
 

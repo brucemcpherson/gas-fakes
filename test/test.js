@@ -100,6 +100,7 @@ import { testMultiBackend } from "./testmultibackend.js";
 import { testGmail } from "./testgmail.js";
 import { testSandboxGmail } from "./testsandboxgmail.js";
 import { testDriveNew } from "./testdrivenew.js";
+import { testCoda } from "./testcoda.js";
 import { testHtmlService } from "./testhtmlservice.js";
 
 
@@ -118,6 +119,9 @@ export const testFakes = () => {
 
   console.log("\n----Test multi-backend----");
   testMultiBackend(pack);
+
+  console.log("\n----Test Coda----");
+  testCoda(pack);
 
   console.log("\n----Test JDBC Basics----");
   testJdbc(pack);

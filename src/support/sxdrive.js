@@ -15,6 +15,10 @@ import { getDriveApiClient } from '../services/advdrive/drapis.js';
 import { translateFieldsToV2 } from './utils.js';
 import { KSuiteDrive } from './ksuite/kdrive.js';
 import { OneDrive } from './msgraph/onedrive.js';
+import { handleCodaDrive } from './coda/codadrive.js';
+import { googleMimeTypes } from '../../src/services/mimetype/googlemimetypes.js'
+
+const folderType = googleMimeTypes.FOLDER
 
 const handleOneDrive = async (Auth, { prop, method, params }) => {
   const token = await Auth.getAccessToken();
@@ -80,7 +84,7 @@ const handleOneDrive = async (Auth, { prop, method, params }) => {
   }
 
   if (prop === 'files' && method === 'create') {
-    const isDir = params.resource?.mimeType === 'application/vnd.google-apps.folder';
+    const isDir = params.resource?.mimeType === folderType;
     if (isDir) {
       const parentId = params.resource?.parents?.[0];
       const data = await oneDrive.createDirectory(parentId, params.resource.name);
@@ -175,7 +179,7 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
       const result = await kDrive.listFiles(dirId);
       let files = result.files;
 
-      const subDirs = files.filter(f => f.mimeType === 'application/vnd.google-apps.folder');
+      const subDirs = files.filter(f => f.mimeType === folderType);
       for (const dir of subDirs) {
         // Skip root references
         if (dir.id === '1' || dir.name === 'Private' || dir.name === 'Common') continue;
@@ -198,8 +202,8 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
     // Manual filtering
     if (mimeTypeFilter) {
       files = files.filter(f => {
-        const isFolder = f.mimeType === 'application/vnd.google-apps.folder';
-        const match = f.mimeType === mimeTypeFilter || (mimeTypeFilter === 'application/vnd.google-apps.folder' && isFolder);
+        const isFolder = f.mimeType === folderType;
+        const match = f.mimeType === mimeTypeFilter || (mimeTypeFilter === folderType && isFolder);
         return mimeTypeExclude ? !match : match;
       });
     }
@@ -219,7 +223,7 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
 
   if (prop === 'files' && method === 'create') {
     // Check if it's a directory
-    const isDir = params.resource?.mimeType === 'application/vnd.google-apps.folder';
+    const isDir = params.resource?.mimeType === folderType;
     if (isDir) {
       const parentId = params.resource?.parents?.[0];
       const data = await kDrive.createDirectory(parentId, params.resource.name);
@@ -342,6 +346,9 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
   throw new Error(`KSuite Drive API ${prop}.${method} not implemented in POC`);
 };
 
+
+
+
 export const sxDrive = async (Auth, { prop, method, params, options }) => {
 
   if (Auth.getPlatform() === 'ksuite') {
@@ -350,6 +357,10 @@ export const sxDrive = async (Auth, { prop, method, params, options }) => {
 
   if (Auth.getPlatform() === 'msgraph') {
     return handleOneDrive(Auth, { prop, method, params, options });
+  }
+
+  if (Auth.getPlatform() === 'coda') {
+    return handleCodaDrive(Auth, { prop, method, params, options });
   }
 
   const apiClient = getDriveApiClient();
@@ -390,8 +401,12 @@ export const sxDrive = async (Auth, { prop, method, params, options }) => {
 
 export const sxStreamUpMedia = async (Auth, { resource, bytes, fields, method, mimeType, fileId, params }) => {
 
+  if (Auth.getPlatform() === 'coda') {
+   
+  }
+
   if (Auth.getPlatform() === 'msgraph') {
-    const isDir = (resource?.mimeType || mimeType) === 'application/vnd.google-apps.folder';
+    const isDir = (resource?.mimeType || mimeType) === folderType;
     const token = await Auth.getAccessToken();
     const oneDrive = new OneDrive(token);
     const parentId = resource?.parents?.[0];
@@ -433,7 +448,7 @@ export const sxStreamUpMedia = async (Auth, { resource, bytes, fields, method, m
   }
 
   if (Auth.getPlatform() === 'ksuite') {
-    const isDir = (resource?.mimeType || mimeType) === 'application/vnd.google-apps.folder';
+    const isDir = (resource?.mimeType || mimeType) === folderType;
     const token = process.env.KSUITE_TOKEN;
     const kDrive = new KSuiteDrive(token);
     const parentId = resource?.parents?.[0];
@@ -637,6 +652,10 @@ export const sxDriveMedia = async (Auth, { id: fileId }) => {
       metadata: meta,
       response: { status: 200 }
     };
+  }
+
+  if (Auth.getPlatform() === 'coda') {
+    
   }
 
   return sxStreamer({

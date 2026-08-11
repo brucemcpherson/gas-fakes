@@ -145,6 +145,11 @@ export async function initializeConfiguration(options = {}) {
           value: "ksuite",
           selected: currentPlatforms.includes("ksuite")
         },
+        {
+          title: "Coda",
+          value: "coda",
+          selected: currentPlatforms.includes("coda")
+        },
       ],
       hint: "- Use space to select/deselect. Press Enter to submit.",
     });
@@ -536,6 +541,25 @@ export async function initializeConfiguration(options = {}) {
     Object.assign(responses, ksuiteResponses);
   }
 
+  // --- Step 4.5: Coda Configuration ---
+  if (platforms.includes("coda")) {
+    console.log("\n--- Configuring Coda backend ---");
+    const codaQuestions = [
+      {
+        type: "password",
+        name: "CODA_API_KEY",
+        message: "Enter your Coda API Key",
+        initial: existingConfig.CODA_API_KEY || "",
+      }
+    ];
+    const codaResponses = await prompts(codaQuestions);
+    if (typeof codaResponses.CODA_API_KEY === "undefined") {
+      console.log("Initialization cancelled.");
+      return;
+    }
+    Object.assign(responses, codaResponses);
+  }
+
   // --- Step 5: Shared Remaining Config ---
   const remainingQuestions = [
     {
@@ -626,6 +650,9 @@ export async function initializeConfiguration(options = {}) {
   if (responses.STORE_TYPE !== "UPSTASH") {
     finalConfig.UPSTASH_REDIS_REST_TOKEN = "";
     finalConfig.UPSTASH_REDIS_REST_URL = "";
+  }
+  if (!platforms.includes("coda")) {
+    finalConfig.CODA_API_KEY = "";
   }
 
   const envContent = Object.keys(finalConfig)
@@ -789,6 +816,19 @@ export async function authenticateUser(options = {}) {
   }
 
   for (const platform of platforms) {
+    if (platform === "coda") {
+      console.log("\n--- Validating Coda API Key ---");
+      if (!process.env.CODA_API_KEY) {
+        console.error("Error: CODA_API_KEY not found in .env.");
+        continue;
+      }
+      if (process.env.CODA_API_KEY.length < 10) {
+        console.error("Error: CODA_API_KEY appears invalid (too short).");
+      } else {
+        console.log("Coda API Key format validated.");
+      }
+    }
+
     if (platform === "ksuite") {
       console.log("\n--- Validating KSuite Token ---");
       if (!process.env.KSUITE_TOKEN) {

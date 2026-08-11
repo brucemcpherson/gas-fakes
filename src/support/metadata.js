@@ -8,9 +8,11 @@ const require = createRequire(import.meta.url);
  */
 export function initMetadata(packageJsonPath = '../../package.json') {
   // add the version number to gasfakes metadata
+
   if (!globalThis.GasFakes) globalThis.GasFakes = {};
   const pjson = require(packageJsonPath);
   if (!globalThis.GasFakes.metadata) globalThis.GasFakes.metadata =  {}
   globalThis.GasFakes.metadata.version = pjson.version
+
   return globalThis.GasFakes;
 }

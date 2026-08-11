@@ -1,12 +1,15 @@
-import { Proxies } from '../../support/proxies.js'
-import { Syncit } from '../../support/syncit.js'
-import { Auth } from '../../support/auth.js'
-import { Utils } from '../../support/utils.js'
-import { getStoreModels } from './gasflex.js'
-import { newCacheDropin } from '@mcpher/gas-flex-cache'
-import { notYetImplemented } from '../../support/helpers.js'
-const { is } = Utils
+
+import { Proxies } from '../../support/proxies.js';
+import { Syncit } from '../../support/syncit.js';
+import { Auth } from '../../support/auth.js';
+import { Utils } from '../../support/utils.js';
+import { getStoreModels } from './gasflex.js';
+import { newCacheDropin } from '@mcpher/gas-flex-cache';
+import { notYetImplemented } from '../../support/helpers.js';
 import { slogger } from "../../support/slogger.js";
+
+const { is } = Utils;
+
 /**
  * what these props mean
  * store_type = currently upstash or file - it defines the back end and maps to env variable

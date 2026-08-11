@@ -1,7 +1,8 @@
 export const Platforms = {
   GOOGLE: 'google',
   KSUITE: 'ksuite',
-  MSGRAPH: 'msgraph'
+  MSGRAPH: 'msgraph',
+  CODA: 'coda'
 };
 
 export const PlatformDefaults = {

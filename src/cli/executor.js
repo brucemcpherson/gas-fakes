@@ -145,7 +145,7 @@ function generateExecutionScript({ scriptText, useSandbox, sandboxConfig }) {
     "}",
     "return runGas();",
   ].join("\n");
-
+  
   return { mainScript, gasScript };
 }
 
@@ -179,7 +179,7 @@ export async function executeGasScript(options) {
       `\n--- Generated GAS ---\n${gasScript}\n--- End Generated GAS ---\n`
     );
   }
-
+ 
   if (gas_library && gas_library.length > 0) {
     const libs = gas_library.reduce((ar, { identifier, libScript }) => {
       if (mainScript.includes(identifier)) {
@@ -204,4 +204,6 @@ export async function executeGasScript(options) {
     const output = typeof res == "string" ? res : JSON.stringify(res);
     console.log(output);
   }
+
+  
 }

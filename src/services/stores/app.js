@@ -5,9 +5,11 @@
  * We do this by using a proxy, intercepting calls to the 
  * initial sigleton and diverting them to a completed one
  */
+//import { newFakeService } from './fakestores.js'
+//import { Proxies } from '../../support/proxies.js'
 import { newFakeService } from './fakestores.js'
 import { Proxies } from '../../support/proxies.js'
-
+// ... rest of registerApp ...
 // This will eventually hold a proxy for each of the services
 let _propertiesApp = null
 let _cacheApp = null

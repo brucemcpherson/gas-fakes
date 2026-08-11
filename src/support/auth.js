@@ -76,7 +76,7 @@ const setTokenScopes = (scopes, platform = _platform) => {
 const getTokenScopes = () => {
   const id = _getIdentity();
   if (id.tokenScopes) return id.tokenScopes;
-  if (_platform === 'ksuite') return "";
+  if (_platform === 'ksuite' || _platform === 'coda') return "";
 
   // If we have an authClient, we might be able to discover them
   if (id.authClient) {
@@ -125,7 +125,7 @@ const _getTokenInfo = async (client) => {
 const getAccessTokenInfo = async () => {
   const id = _getIdentity();
   if (id.authClient) return _getTokenInfo(id.authClient);
-  if (_platform === 'ksuite' || _platform === 'msgraph') {
+  if (_platform === 'ksuite' || _platform === 'msgraph' || _platform === 'coda') {
     return { token: id.accessToken, tokenInfo: { email: id.effectiveUser?.email } };
   }
   throw `auth isnt set yet for platform ${_platform}`;
@@ -134,7 +134,7 @@ const getAccessTokenInfo = async () => {
 const getSourceAccessTokenInfo = async () => {
   const id = _getIdentity();
   if (id.sourceClient) return _getTokenInfo(id.sourceClient);
-  if (_platform === 'ksuite' || _platform === 'msgraph') {
+  if (_platform === 'ksuite' || _platform === 'msgraph' || _platform === 'coda') {
     return { token: id.accessToken, tokenInfo: { email: id.activeUser?.email } };
   }
   throw `source auth isnt set yet for platform ${_platform}`;
@@ -142,7 +142,7 @@ const getSourceAccessTokenInfo = async () => {
 
 const getAccessToken = async () => {
   const id = _getIdentity();
-  if (_platform === 'ksuite' || _platform === 'msgraph') return id.accessToken;
+  if (_platform === 'ksuite' || _platform === 'msgraph' || _platform === 'coda') return id.accessToken;
   if (!id.authClient) throw `auth isnt set yet for platform ${_platform}`;
   return (await getAccessTokenInfo()).token;
 }
@@ -321,7 +321,7 @@ const googify = (options = {}) => {
 const getProjectId = () => {
   const pid = _getIdentity().projectId;
   if (is.null(pid) || is.undefined(pid)) {
-    if (_platform === 'ksuite') return null;
+    if (_platform === 'ksuite' || _platform === 'coda') return null;
     if (_getIdentity().authMethod === 'user_oauth') return null;
     throw new Error("Project id not set - this means that the fxInit wasnt run");
   }

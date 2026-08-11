@@ -2,6 +2,7 @@ import { Proxies } from '../../support/proxies.js';
 import { Auth } from '../../support/auth.js';
 import { Syncit } from '../../support/syncit.js';
 import { newFakeLibHandler } from './fakelibhandler.js';
+import { newFakeLibrary } from './fakelibrary.js';
 
 export const newFakeLibHandlerApp = (...args) => {
   return Proxies.guard(new FakeLibHandlerApp(...args));

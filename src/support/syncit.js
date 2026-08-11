@@ -1,9 +1,9 @@
-// this one is locally patched for now
-// import makeSynchronous from 'make-synchronous';
 import path from "path";
-import { Auth } from "./auth.js";
 import { randomUUID } from "node:crypto";
 import mime from "mime";
+import is from "@sindresorhus/is";
+import { Auth } from "./auth.js";
+import { callSync } from "./workersync/synchronizer.js";
 import { minFields } from "./helpers.js";
 import { mergeParamStrings } from "./utils.js";
 import {
@@ -19,9 +19,6 @@ import { slidesCacher } from "./slidescacher.js";
 import { sheetsCacher } from "./sheetscacher.js";
 import { calendarCacher } from "./calendarcacher.js";
 import { bigqueryCacher } from "./bigquerycacher.js";
-import is from "@sindresorhus/is";
-import { callSync } from "./workersync/synchronizer.js";
-
 const manifestDefaultPath = "./appsscript.json";
 const claspDefaultPath = "./.clasp.json";
 const propertiesDefaultPath = "/tmp/gas-fakes/properties";
