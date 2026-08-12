@@ -33,5 +33,8 @@ export const googleMimeTypes = {
   RTF: "application/rtf",
   SHORTCUT: "application/vnd.google-apps.shortcut",
   SVG: "image/svg+xml",
-  ZIP: "application/zip",
+  ZIP: "application/zip"
 };
+export const gooType = "application/vnd.google-apps";
+export const isGoogleType = (mimeType) =>
+  mimeType && mimeType.substring(0, gooType.length) === gooType;

@@ -127,6 +127,40 @@ class DocsResource {
   update(docId, body) { return this.client.patch(`docs/${docId}`, body); }
   publish(docId, body) { return this.client.put(`docs/${docId}/publish`, body); }
   unpublish(docId) { return this.client.delete(`docs/${docId}/publish`); }
+
+  /**
+   * Creates a doc and initializes it with text content
+   * @param {string} title - File/doc title
+   * @param {string} text - Plain text or Markdown content
+   * @param {string} [folderId] - Optional destination folder ID
+   */
+  async createWithContent(title, text, folderId) {
+    const docPayload = { title };
+    if (folderId && folderId !== 'root') {
+      docPayload.folderId = folderId;
+    }
+
+    // 1. Create the Doc
+    const doc = await this.create(docPayload);
+
+    // 2. Add the text content to the root/first page if content was provided
+    if (text) {
+      const pages = await this.client.pages.list(doc.id, { limit: 1 });
+      const firstPage = pages.items?.[0];
+
+      if (firstPage) {
+        // Coda Pages API accepts canvasContent formatted as plain text, HTML, or markdown
+        await this.client.pages.update(doc.id, firstPage.id, {
+          canvasContent: {
+            format: 'markdown',
+            content: text,
+          },
+        });
+      }
+    }
+
+    return doc;
+  }
 }
 
 class PagesResource {
@@ -137,7 +171,24 @@ class PagesResource {
   create(docId, body) { return this.client.post(`docs/${docId}/pages`, body); }
   update(docId, pageIdOrName, body) { return this.client.put(`docs/${docId}/pages/${pageIdOrName}`, body); }
   delete(docId, pageIdOrName) { return this.client.delete(`docs/${docId}/pages/${pageIdOrName}`); }
+
+  /**
+   * Sets canvas content for an existing page
+   * @param {string} docId 
+   * @param {string} pageId 
+   * @param {string} content - Markdown or plain text
+   */
+  async setContent(docId, pageId, content) {
+    return this.update(docId, pageId, {
+      canvasContent: {
+        format: 'markdown',
+        content,
+      },
+    });
+  }
 }
+
+
 
 class TablesResource {
   constructor(client) { this.client = client; }

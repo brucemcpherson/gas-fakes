@@ -26,11 +26,15 @@ const cacheDefaultPath = "/tmp/gas-fakes/cache";
 
 // Helper to ensure init has happened before any worker call
 const safeCallSync = (method, ...args) => {
+  console.log('Main thread: Calling worker task...');
   if (method !== 'sxInit' && !Auth.hasAuth()) {
     // Attempt lazy initialization
+    console.log('Main thread: calling fxInit');
     fxInit();
   }
-  return callSync(method, ...args);
+  const result = callSync(method, ...args);
+  console.log(`[callSync ${method}]`)
+  return result
 };
 
 // note that functions like Sheets.newGridRange() etc create objects that contain get and set functions

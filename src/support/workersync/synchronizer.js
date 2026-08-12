@@ -1,5 +1,3 @@
-
-
 import { Worker } from 'worker_threads';
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -56,7 +54,6 @@ const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
 // The single, long-lived worker
-
 const worker = new Worker(path.resolve(__dirname, 'worker.js'), {
   env: { ...process.env, GF_WORKER: 'true' }
 });
@@ -89,12 +86,8 @@ worker.on('exit', (code) => {
 // Send the shared buffers to the worker once and wait for it to confirm initialization
 Atomics.store(control, CONTROL_INDICES.STATUS, 2); // Set status to "worker_init"
 worker.postMessage({ controlBuf, dataBuf });
-const ALONGTIME = 15 * 60 * 1000
-const waitStatus = Atomics.wait(control, CONTROL_INDICES.STATUS, 2, ALONGTIME); // Wait for worker to set status to "free" (0)
-if (waitStatus === 'timed-out') {
-  worker.terminate();
-  throw new Error(`Worker thread failed to initialize within ${ALONGTIME}ms`);
-}
+Atomics.wait(control, CONTROL_INDICES.STATUS, 2); // Wait for worker to set status to "free" (0)
+
 // Allow the main process to exit even if the worker is still running.
 worker.unref();
 

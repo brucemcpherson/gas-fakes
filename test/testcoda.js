@@ -2,6 +2,8 @@ import "@mcpher/gas-fakes";
 import { initTests } from "./testinit.js";
 import { wrapupTest, createTrashCollector, trasher, checkBackend } from "./testassist.js";
 
+console.log (DriveApp.getRootFolder().getName())
+
 export const testCoda = (pack) => {
   const isCodaActive = checkBackend('coda');
   const currentPlatform = ScriptApp.__platform;
@@ -19,6 +21,14 @@ export const testCoda = (pack) => {
 
     const root = DriveApp.getRootFolder();
     t.is(root.getName(), "My docs", "Should be in Coda root folder 'My docs'");
+
+    const top = root.getFiles() 
+    /*
+    while (top.hasNext()) {
+        const f = top.next();
+        t.true(is.nonEmptyString(f.getName()));
+    }
+        */
   });
 
 
