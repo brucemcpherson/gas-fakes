@@ -71,6 +71,7 @@ export class FakeDriveFolder extends FakeDriveMeta {
    * @return {FakeDriveFileIterator}
    */
   getFiles() {
+    // on coda root, this.getId() will be the workspace id
     return this.folderApp.getFiles({ parentId: this.getId(), folderTypes: false })
   }
 

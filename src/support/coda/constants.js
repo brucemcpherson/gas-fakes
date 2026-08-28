@@ -11,6 +11,7 @@ export const CodaConstants = {
     'folder': 'application/vnd.google-apps.folder',
     'doc': 'application/vnd.coda.doc',
     'table': 'application/vnd.google-apps.spreadsheet',
-    'workspace': 'application/vnd.google-apps.folder'
+    'workspace': 'application/vnd.google-apps.folder',
+    'workspace_root': 'application/vnd.google-apps.folder'
   }
 };

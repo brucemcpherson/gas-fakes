@@ -9,7 +9,7 @@ import { wrapupTest, trasher } from './testassist.js';
  * @param {object} pack - The test packing object (optional).
  */
 
-const testBigQueryView = (pack) => {
+export const testBigQueryView = (pack) => {
   const toTrash = [];
   const { unit, fixes } = pack || initTests();
 

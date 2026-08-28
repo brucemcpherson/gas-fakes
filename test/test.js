@@ -117,8 +117,8 @@ export const testFakes = () => {
   console.log("\n----Test Sheets Formatting----");
   testSheetsFormatting(pack);
 
-  console.log("\n----Test multi-backend----");
-  testMultiBackend(pack);
+  //console.log("\n----Test multi-backend----");
+  //testMultiBackend(pack);
 
   console.log("\n----Test Coda----");
   testCoda(pack);

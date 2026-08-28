@@ -1,26 +1,67 @@
 import { newCodaAPI } from "./codaapi.js";
-import { CodaConstants } from './constants.js'
-import { googleMimeTypes } from '../../services/mimetype/googlemimetypes.js'
-import { isFolderOnly, filterOut } from '../helpers.js'
+import { CodaConstants } from "./constants.js";
+import { isTextMimeType } from "../googlemimetypes.js";
+import { isFolderOnly, isFolder } from "../helpers.js";
+import { convertDriveQueryToCoda } from "./codaquery.js";
+import { newFakeBlob } from "../../services/utilities/fakeblob.js";
+import is from "@sindresorhus/is";
 
-
-const folderType = googleMimeTypes.FOLDER
-
+// we need this because we couldnt pass a blob via the worker as its non-serializable
+// and coda only supports text media uploads for now
+const prepareMediaBlob = ({ mimeType, bytes, name }) => {
+  if (isTextMimeType(mimeType)) {
+    return newFakeBlob(bytes, mimeType, name);
+  } else {
+    throw new Error("only support text content for coda for now");
+  }
+};
 export const handleCodaDrive = async (
   Auth,
-  { prop, method, params, media, resource, options },
+  {
+    prop = "files",
+    method,
+    params: googleParams,
+    bytes, //this should be bytes
+    mimeType, // the mimeType of the bytes
+    resource, // this should contain the requied mimeType
+    options,
+    fileId,
+  },
 ) => {
-  // ... (existing helper definitions)
-
   const token = await Auth.getAccessToken();
   const coda = newCodaAPI(token, options);
-  const fResource = isFolderOnly(params) ? "folders" : "docs";
 
+
+  // coda has an entirely different approach for queries so we'll need to do a comprehensive translation where equivalents exist
+  // and we have to drop the fields query too
+  let { fields, ...params } = googleParams;
+  if (params.q) {
+    params = convertDriveQueryToCoda(params.q);
+  }
+  // the file id could be in either depenind ont where we're called from
+  const codaId = fileId || params.fileId;
+
+  // various ways we could be talking about a folder or a doc
+  // the paraneters might contain a mimetype filer, or the resource itself might contain a mimetype filtwe
+  const fResource =
+    isFolderOnly(googleParams) || isFolder(resource) || codaId?.startsWith ('fl-') ? "folders" : "docs";
+  
+  // its possible that the folderId is actually a workspaceId, so we need to drop the folder filter
+  if (params.folderId?.startsWith("ws-")) {
+    params.workspaceId = params.folderId;
+    // we also need to add the inFolder= false parameter as we want to only include things at the top level
+    params.inFolder = false;
+    delete params.folderId;
+  }
+  
   switch (prop) {
     case "files":
       switch (method) {
         case "get": {
-          const file = await coda[fResource].get(params.fileId);
+          if (!codaId) {
+            throw new Error("no coda fileId found for update method");
+          }
+          const file = await coda[fResource].get(codaId);
           return {
             data: translateFile(file),
             response: { status: 200 },
@@ -28,29 +69,46 @@ export const handleCodaDrive = async (
         }
 
         case "list": {
+          // listing at workspace level will have a workspaceId 
+          // list at folder level will have a folderId     
           let result = await coda[fResource].list(params);
-          const files = filterOut(params, result?.items || []);
+          const files = result?.items || [];
           return {
             data: { files: files ? files.map(translateFile) : files },
             response: { status: 200 },
           };
         }
 
-        // --- Handle File Creation (e.g. DriveApp.createFile or files.create) ---
         case "create": {
           const name = resource?.name || params?.name || "Untitled";
           const parents = resource?.parents || params?.parents || [];
-          const folderId = parents[0] !== "root" ? parents[0] : undefined;
 
-          // Extract plain text from media body if present
-          let textContent = "";
-          if (media?.body) {
-            textContent = typeof media.body === "string" 
-              ? media.body 
-              : media.body.toString("utf-8");
+          // Normalize folderId: null/'root'/undefined means top-level workspace
+          let folderId = parents[0];
+          if (folderId === "root") {
+            folderId = undefined; // Top-level workspace creation
           }
 
-          const createdDoc = await coda.docs.createWithContent(name, textContent, folderId);
+          let createdDoc = null;
+          if (fResource === "docs") {
+            const blob = prepareMediaBlob({ mimeType, bytes, name });
+            const media = blob.getDataAsString();
+            createdDoc = await coda.docs.createItem({
+              name,
+              folderId,
+              media,
+            });
+          } else {
+            if (bytes) {
+              throw new Error(
+                "Cannot add binary media content directly to a folder.",
+              );
+            }
+            createdDoc = await coda.folders.createItem({
+              name,
+              folderId,
+            });
+          }
 
           return {
             data: translateFile(createdDoc),
@@ -60,33 +118,18 @@ export const handleCodaDrive = async (
 
         // --- Handle File/Content Update ---
         case "update": {
-          const fileId = params?.fileId;
-          if (!fileId) throw new Error("fileId is required for files.update");
-
-          // 1. If metadata/name needs updating
-          if (resource?.name) {
-            await coda.docs.update(fileId, { title: resource.name });
+          if (!codaId) {
+            throw new Error("no coda fileId found for update method");
           }
-
-          // 2. If content needs updating
-          if (media?.body) {
-            const textContent = typeof media.body === "string"
-              ? media.body
-              : media.body.toString("utf-8");
-
-            const pages = await coda.pages.list(fileId, { limit: 1 });
-            const primaryPage = pages.items?.[0];
-
-            if (primaryPage) {
-              await coda.pages.setContent(fileId, primaryPage.id, textContent);
+          if (resource && Reflect.has(resource, "trashed")) {
+            // in coda we need to issue a delete as opposed to just settings a property
+            if (resource.trashed) {
+              return await coda[fResource].delete(codaId);
+            } else {
+              throw new Error("...undelete no implemented in coda");
             }
           }
-
-          const updatedDoc = await coda.docs.get(fileId);
-          return {
-            data: translateFile(updatedDoc),
-            response: { status: 200 },
-          };
+          throw new Error(`coda drive update not fully implemented yet`);
         }
 
         default:
@@ -100,21 +143,36 @@ export const handleCodaDrive = async (
 const translateFile = (codaItem) => {
   if (!codaItem) return null;
 
-  const id = codaItem.id ? String(codaItem.id) : undefined;
-  const isFolder = codaItem.type === "folder" || codaItem.type === "workspace";
+  const id = codaItem.id === 'root' ? String(codaItem.workspaceId) : codaItem.id ;
+  if (!codaItem.id) {
+    throw new Error (`failed to get coda id for ${JSON.stringify(codaItem)}`)
+  }
+  // Handle Parent Mapping for Google Drive compatibility
+  let parents = null;
 
-  // Determine parent ID: Coda uses parentFolder.id, parentFolderId, or workspace.id
-  const parentId =
-    codaItem.parentFolder?.id ||
-    codaItem.parentFolderId ||
-    codaItem.folder?.id ||
-    codaItem.workspace?.id ||
-    null;
+  let isRoot = codaItem.type === "workspace_root"
+  if (isRoot) {
+    parents = []; // Root container has no parent
+  } else if (codaItem.folder?.id) {
+    parents = [String(codaItem.folder.id)]; // Item lives inside a Coda folder
+  } else if (codaItem.parentFolder?.id) {
+    parents = [String(codaItem.parentFolder.id)]; // Coda Subfolder parent
+  } else {
+    // If no parent folder is defined, it lives in the root Workspace
+    const { workspace } = codaItem
+    if (!workspace?.id) {
+      throw new Error (`failed to get coda workspace id for ${JSON.stringify(codaItem)}`)
+    }
+    parents = [workspace.id];
+  }
 
-  // Map to Google Drive MIME types
-  let mimeType = CodaConstants.TYPES[codaItem.type] 
+  // Map MIME types
+  let mimeType = CodaConstants.TYPES[codaItem.type];
+  if (!mimeType) {
+    throw new Error ('unknown coda type', codaItem.type)
+  }
 
-  // Handle ISO date strings (Coda uses ISO-8601 strings, e.g. "2026-08-11T14:30:00.000Z")
+
   const createdTime = codaItem.createdAt
     ? new Date(codaItem.createdAt).toISOString()
     : null;
@@ -123,23 +181,32 @@ const translateFile = (codaItem) => {
       ? new Date(codaItem.updatedAt || codaItem.lastModifiedAt).toISOString()
       : createdTime;
 
+  const __platformCustom = {
+    docSize: codaItem.docSize,
+    href: codaItem.href,
+    type: codaItem.type,
+    owner: codaItem.owner,
+    ownerName: codaItem.ownerName,
+    sourceDoc: codaItem.sourceDoc,
+    workspace: codaItem.workspace,
+    canEdit: codaItem.canEdit,
+    workspaceId: codaItem.workspaceId
+  };
+
   return {
     id,
-    name: codaItem.name || (id === "root" ? "Coda Root" : "Untitled"),
+    name: codaItem.name,
     mimeType,
     kind: "drive#file",
     createdTime,
     modifiedTime,
-    size: "0", // Coda API doesn't expose byte sizes for docs/folders
-    parents: parentId ? [String(parentId)] : [],
-    trashed: Boolean(codaItem.isTrashed || codaItem.trashed),
+    size: "0",
+    parents,
+    trashed: false,
     description: codaItem.description || "",
-    webViewLink: codaItem.browserLink || codaItem.href || "",
-    capabilities: {
-      canEdit: !codaItem.isReadOnly,
-      canRename: !codaItem.isReadOnly,
-      canDelete: !codaItem.isReadOnly,
-      canAddChildren: isFolder,
-    },
+    webViewLink: codaItem.browserLink,
+    __platformCustom,
+    __rootRequested: isRoot,
+    platform: "coda"
   };
 };

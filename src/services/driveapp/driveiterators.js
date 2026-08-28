@@ -153,7 +153,8 @@ export const getParentsIterator = ({
   // and would prevent it. - this still needs more thought on whether this is all handled properly
   // I think we should be ok because the individual file access will be blocked if not allowed
   // but we need to be able to get root folder if it's a parent of an allowed
-  const rooter = (id) => (!ScriptApp.__behavior.isAccessible(id) && DriveApp.getRootFolder().getId() === id) ? 'root' : id
+  const rooter = (id) => (!ScriptApp.__behavior.isAccessible(id) && ScriptApp.__behavior.isRegisteredRoot(id)) ? 'root' : id
+
   function* filesink() {
     // the result tank, we just get them all by id - will return the usual minfields
     // and will also stick them in cache
@@ -219,7 +220,7 @@ const fileLister = ({
     const result = Drive.Files.list(params)
     return result
   } catch (err) {
-    console.error(err)
+    console.error('...failed iterating over ${JSON.stringify(params)}')
     throw new Error(err)
   }
 

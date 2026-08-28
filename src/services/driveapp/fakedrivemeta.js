@@ -35,6 +35,10 @@ export class FakeDriveMeta {
     // The resource platform takes precedence over ScriptApp.__platform.
     // ScriptApp.__platform is only used to determine the backend for new resources.
     this.platform = ScriptApp.__platform || "google"
+    // check root check is reliable
+    if (!is.boolean(this.meta.__rootRequested)) {
+      throw new Error(`failed to determine root requested status on ${JSON.stringify(this.meta)}`)
+    }
   }
 
   /**
@@ -68,10 +72,8 @@ export class FakeDriveMeta {
     }
   }
   get __isRoot() {
-    // Strictly ID-based detection is most resilient to MS Graph propagation delays
-    // where new items might briefly appear to have no parents.
-    const rootId = globalThis.DriveApp?.getRootFolder()?.getId();
-    return this.getId() === 'root' || this.getId() === rootId;
+    // this will have been checked for reliability in the constructor
+    return this.meta.__rootRequested
   }
   /**
    * for enhancing the file with fields not retrieved by default

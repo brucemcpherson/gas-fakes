@@ -4,8 +4,7 @@ import { settleAsBlob } from "../utilities/fakeblob.js"
 import { Syncit } from "../../support/syncit.js"
 import { checkResponse, improveFileCache } from "../../support/filecache.js"
 import { getFilesIterator } from './driveiterators.js';
-
-const { is } = Utils
+import is from '@sindresorhus/is'
 
 /**
  * methods shared between driveapp and folder
@@ -166,6 +165,9 @@ class FakeFolderApp {
     const result = Syncit.fxStreamUpMedia({ fields: minFields, blob, file: { mimeType, name, ...file } })
     const { data, response } = result
     checkResponse(data?.id, response, false)
+    if (!data) {
+      throw new Error ('failed to add media to file:' + name)
+    }
     ScriptApp.__behavior.addFile(data.id)
     improveFileCache(data.id, data)
     return DriveApp.__settleClass(result.data)

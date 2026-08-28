@@ -6,42 +6,42 @@
  * - arguments and returns must be serializable ie. primitives or plain objects
  */
 
-import { responseSyncify } from './auth.js';
-import { sxRetry } from './sxretry.js';
-import intoStream from 'into-stream';
-import { getStreamAsBuffer } from 'get-stream';
-import { syncWarn, syncError, syncLog } from './workersync/synclogger.js';
-import { getDriveApiClient } from '../services/advdrive/drapis.js';
-import { translateFieldsToV2 } from './utils.js';
-import { KSuiteDrive } from './ksuite/kdrive.js';
-import { OneDrive } from './msgraph/onedrive.js';
-import { handleCodaDrive } from './coda/codadrive.js';
-import { googleMimeTypes } from '../../src/services/mimetype/googlemimetypes.js'
-
-const folderType = googleMimeTypes.FOLDER
+import { responseSyncify } from "./auth.js";
+import { sxRetry } from "./sxretry.js";
+import intoStream from "into-stream";
+import { getStreamAsBuffer } from "get-stream";
+import { syncWarn, syncError, syncLog } from "./workersync/synclogger.js";
+import { getDriveApiClient } from "../services/advdrive/drapis.js";
+import { translateFieldsToV2 } from "./utils.js";
+import { KSuiteDrive } from "./ksuite/kdrive.js";
+import { OneDrive } from "./msgraph/onedrive.js";
+import { handleCodaDrive } from "./coda/codadrive.js";
+import { isFolder } from "./helpers.js";
 
 const handleOneDrive = async (Auth, { prop, method, params }) => {
   const token = await Auth.getAccessToken();
   const oneDrive = new OneDrive(token);
 
-  if (prop === 'files' && method === 'get') {
-    const isMedia = params.alt === 'media' || (params.params && params.params.alt === 'media');
+  if (prop === "files" && method === "get") {
+    const isMedia =
+      params.alt === "media" ||
+      (params.params && params.params.alt === "media");
 
     if (isMedia) {
       const data = await oneDrive.downloadFile(params.fileId);
       return {
         data: Array.from(data),
-        response: { status: 200 }
+        response: { status: 200 },
       };
     }
     const data = await oneDrive.getFile(params.fileId);
     return {
       data,
-      response: { status: 200 }
+      response: { status: 200 },
     };
   }
 
-  if (prop === 'files' && method === 'list') {
+  if (prop === "files" && method === "list") {
     let parentId = null;
     let nameFilter = null;
     let mimeOp = null;
@@ -66,55 +66,72 @@ const handleOneDrive = async (Auth, { prop, method, params }) => {
     let files = result.files;
 
     if (mimeType) {
-      files = files.filter(f => mimeOp === '!=' ? f.mimeType !== mimeType : f.mimeType === mimeType);
+      files = files.filter((f) =>
+        mimeOp === "!=" ? f.mimeType !== mimeType : f.mimeType === mimeType,
+      );
     }
 
     if (nameFilter) {
       const lowerFilter = nameFilter.toLowerCase().trim();
-      files = files.filter(f => f.name && f.name.toLowerCase().trim() === lowerFilter);
+      files = files.filter(
+        (f) => f.name && f.name.toLowerCase().trim() === lowerFilter,
+      );
     }
 
     return {
       data: {
         files,
-        nextPageToken: result.nextLink
+        nextPageToken: result.nextLink,
       },
-      response: { status: 200 }
+      response: { status: 200 },
     };
   }
 
-  if (prop === 'files' && method === 'create') {
-    const isDir = params.resource?.mimeType === folderType;
+  if (prop === "files" && method === "create") {
+    const isDir = isFolder(params.resource);
     if (isDir) {
       const parentId = params.resource?.parents?.[0];
-      const data = await oneDrive.createDirectory(parentId, params.resource.name);
+      const data = await oneDrive.createDirectory(
+        parentId,
+        params.resource.name,
+      );
       return {
         data,
-        response: { status: 200 }
+        response: { status: 200 },
       };
     }
   }
 
-  if (prop === 'files' && method === 'update') {
+  if (prop === "files" && method === "update") {
     if (params.resource && params.resource.name) {
-      const data = await oneDrive.renameFile(params.fileId, params.resource.name);
+      const data = await oneDrive.renameFile(
+        params.fileId,
+        params.resource.name,
+      );
       return { data, response: { status: 200 } };
     }
     if (params.addParents) {
       const data = await oneDrive.moveFile(params.fileId, params.addParents);
       return { data, response: { status: 200 } };
     }
-    if (params.resource && typeof params.resource.trashed === 'boolean') {
+    if (params.resource && typeof params.resource.trashed === "boolean") {
       if (params.resource.trashed) {
         await oneDrive.deleteFile(params.fileId);
       }
-      return { data: { id: params.fileId, trashed: params.resource.trashed }, response: { status: 200 } };
+      return {
+        data: { id: params.fileId, trashed: params.resource.trashed },
+        response: { status: 200 },
+      };
     }
   }
 
-  if (prop === 'files' && method === 'copy') {
+  if (prop === "files" && method === "copy") {
     const parentId = params.resource?.parents?.[0];
-    const data = await oneDrive.copyFile(params.fileId, parentId, params.resource?.name);
+    const data = await oneDrive.copyFile(
+      params.fileId,
+      parentId,
+      params.resource?.name,
+    );
     return { data, response: { status: 200 } };
   }
 
@@ -125,30 +142,32 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
   const token = process.env.KSUITE_TOKEN;
   const kDrive = new KSuiteDrive(token);
 
-  if (method === 'getDriveId') {
+  if (method === "getDriveId") {
     const driveId = await kDrive.getDriveId();
     return { data: driveId, response: { status: 200 } };
   }
 
-  if (prop === 'files' && method === 'get') {
+  if (prop === "files" && method === "get") {
     // Be very flexible about where 'alt' might be
-    const isMedia = params.alt === 'media' || (params.params && params.params.alt === 'media');
+    const isMedia =
+      params.alt === "media" ||
+      (params.params && params.params.alt === "media");
 
     if (isMedia) {
       const data = await kDrive.downloadFile(params.fileId);
       return {
         data: Array.from(data),
-        response: { status: 200 }
+        response: { status: 200 },
       };
     }
     const data = await kDrive.getFile(params.fileId);
     return {
       data,
-      response: { status: 200 }
+      response: { status: 200 },
     };
   }
 
-  if (prop === 'files' && method === 'list') {
+  if (prop === "files" && method === "list") {
     // extract filters from q
     let parentId = null;
     let mimeTypeFilter = null;
@@ -161,7 +180,7 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
 
       const mimeMatch = params.q.match(/mimeType\s*(!?=)\s*'([^']*)'/);
       if (mimeMatch) {
-        mimeTypeExclude = mimeMatch[1] === '!=';
+        mimeTypeExclude = mimeMatch[1] === "!=";
         mimeTypeFilter = mimeMatch[2];
       }
 
@@ -179,10 +198,11 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
       const result = await kDrive.listFiles(dirId);
       let files = result.files;
 
-      const subDirs = files.filter(f => f.mimeType === folderType);
+      const subDirs = files.filter(isFolder);
       for (const dir of subDirs) {
         // Skip root references
-        if (dir.id === '1' || dir.name === 'Private' || dir.name === 'Common') continue;
+        if (dir.id === "1" || dir.name === "Private" || dir.name === "Common")
+          continue;
         const subFiles = await getAllFilesRecursive(dir.id, depth + 1);
         files = files.concat(subFiles);
       }
@@ -190,7 +210,7 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
     };
 
     let files;
-    if (parentId && parentId !== 'root') {
+    if (parentId && parentId !== "root") {
       const result = await kDrive.listFiles(parentId);
       files = result.files;
     } else {
@@ -201,41 +221,42 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
 
     // Manual filtering
     if (mimeTypeFilter) {
-      files = files.filter(f => {
-        const isFolder = f.mimeType === folderType;
-        const match = f.mimeType === mimeTypeFilter || (mimeTypeFilter === folderType && isFolder);
+      files = files.filter((f) => {
+        const match =
+          f.mimeType === mimeTypeFilter ||
+          (isFolder ({mimeType: mimeTypeFilter}) && isFolder(f));
         return mimeTypeExclude ? !match : match;
       });
     }
 
     if (nameFilter) {
-      files = files.filter(f => f.name === nameFilter);
+      files = files.filter((f) => f.name === nameFilter);
     }
 
     return {
       data: {
         files,
-        nextPageToken: null
+        nextPageToken: null,
       },
-      response: { status: 200 }
+      response: { status: 200 },
     };
   }
 
-  if (prop === 'files' && method === 'create') {
+  if (prop === "files" && method === "create") {
     // Check if it's a directory
-    const isDir = params.resource?.mimeType === folderType;
+    const isDir = isFolder(params.resource);
     if (isDir) {
       const parentId = params.resource?.parents?.[0];
       const data = await kDrive.createDirectory(parentId, params.resource.name);
       return {
         data,
-        response: { status: 200 }
+        response: { status: 200 },
       };
     }
   }
 
-  if (prop === 'files' && method === 'update') {
-    if (params.resource && Reflect.has(params.resource, 'trashed')) {
+  if (prop === "files" && method === "update") {
+    if (params.resource && Reflect.has(params.resource, "trashed")) {
       if (params.resource.trashed) {
         await kDrive.deleteFile(params.fileId);
       } else {
@@ -244,7 +265,7 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
       const data = await kDrive.getFile(params.fileId);
       return {
         data,
-        response: { status: 200 }
+        response: { status: 200 },
       };
     }
 
@@ -253,7 +274,7 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
       const data = await kDrive.getFile(params.fileId);
       return {
         data,
-        response: { status: 200 }
+        response: { status: 200 },
       };
     }
 
@@ -262,82 +283,90 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
       const data = await kDrive.moveFile(params.fileId, params.addParents);
       return {
         data,
-        response: { status: 200 }
+        response: { status: 200 },
       };
     }
   }
 
-  if (prop === 'files' && method === 'copy') {
+  if (prop === "files" && method === "copy") {
     const parentId = params.resource?.parents?.[0];
-    const data = await kDrive.copyFile(params.fileId, parentId, params.resource?.name);
+    const data = await kDrive.copyFile(
+      params.fileId,
+      parentId,
+      params.resource?.name,
+    );
     return {
       data,
-      response: { status: 200 }
+      response: { status: 200 },
     };
   }
 
-  if (prop === 'permissions') {
-    if (method === 'list') {
+  if (prop === "permissions") {
+    if (method === "list") {
       const shareLink = await kDrive.getShareLink(params.fileId);
       const effUser = Auth.getEffectiveUser();
       const permissions = [
         {
-          id: 'owner',
-          type: 'user',
-          role: 'owner',
+          id: "owner",
+          type: "user",
+          role: "owner",
           emailAddress: effUser.email,
-          displayName: effUser.name || effUser.email
-        }
+          displayName: effUser.name || effUser.email,
+        },
       ];
       if (shareLink) {
         permissions.push({
-          id: 'anyoneWithLink',
-          type: 'anyone',
-          role: shareLink.capabilities?.can_edit ? 'writer' : (shareLink.capabilities?.can_comment ? 'commenter' : 'reader'),
-          allowFileDiscovery: false
+          id: "anyoneWithLink",
+          type: "anyone",
+          role: shareLink.capabilities?.can_edit
+            ? "writer"
+            : shareLink.capabilities?.can_comment
+              ? "commenter"
+              : "reader",
+          allowFileDiscovery: false,
         });
       }
       return {
         data: { permissions },
-        response: { status: 200 }
+        response: { status: 200 },
       };
     }
 
-    if (method === 'create') {
-      if (params.resource.type === 'anyone') {
+    if (method === "create") {
+      if (params.resource.type === "anyone") {
         const settings = {
-          can_edit: params.resource.role === 'writer',
-          can_comment: params.resource.role === 'commenter',
-          right: 'public'
+          can_edit: params.resource.role === "writer",
+          can_comment: params.resource.role === "commenter",
+          right: "public",
         };
         const data = await kDrive.createShareLink(params.fileId, settings);
         return {
-          data: { id: 'anyoneWithLink', ...params.resource },
-          response: { status: 200 }
+          data: { id: "anyoneWithLink", ...params.resource },
+          response: { status: 200 },
         };
       }
     }
 
-    if (method === 'delete') {
-      if (params.permissionId === 'anyoneWithLink') {
+    if (method === "delete") {
+      if (params.permissionId === "anyoneWithLink") {
         await kDrive.deleteShareLink(params.fileId);
         return {
           data: {},
-          response: { status: 204 }
+          response: { status: 204 },
         };
       }
     }
 
-    if (method === 'update') {
-      if (params.permissionId === 'anyoneWithLink') {
+    if (method === "update") {
+      if (params.permissionId === "anyoneWithLink") {
         const settings = {
-          can_edit: params.resource.role === 'writer',
-          can_comment: params.resource.role === 'commenter'
+          can_edit: params.resource.role === "writer",
+          can_comment: params.resource.role === "commenter",
         };
         await kDrive.updateShareLink(params.fileId, settings);
         return {
-          data: { id: 'anyoneWithLink', ...params.resource },
-          response: { status: 200 }
+          data: { id: "anyoneWithLink", ...params.resource },
+          response: { status: 200 },
         };
       }
     }
@@ -346,43 +375,49 @@ const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
   throw new Error(`KSuite Drive API ${prop}.${method} not implemented in POC`);
 };
 
-
-
-
 export const sxDrive = async (Auth, { prop, method, params, options }) => {
-
-  if (Auth.getPlatform() === 'ksuite') {
+  if (Auth.getPlatform() === "ksuite") {
     return handleKSuiteDrive(Auth, { prop, method, params, options });
   }
 
-  if (Auth.getPlatform() === 'msgraph') {
+  if (Auth.getPlatform() === "msgraph") {
     return handleOneDrive(Auth, { prop, method, params, options });
   }
 
-  if (Auth.getPlatform() === 'coda') {
+  if (Auth.getPlatform() === "coda") {
     return handleCodaDrive(Auth, { prop, method, params, options });
   }
 
   const apiClient = getDriveApiClient();
   const tag = `sxDrive for ${prop}.${method}`;
 
-  return sxRetry(Auth, tag, async () => {
-    return apiClient[prop][method](params, options);
-  }, {
-    extraRetryCheck: (error, response) => {
-      // handle invalid field selection - sometimes old files dont support createdTime or modifiedTime
-      // we'll try to fallback to createdDate and modifiedDate
-      const isInvalidField = error?.message?.includes("Invalid field selection") && (params?.fields?.includes("createdTime") || params?.fields?.includes("modifiedTime"));
+  return sxRetry(
+    Auth,
+    tag,
+    async () => {
+      return apiClient[prop][method](params, options);
+    },
+    {
+      extraRetryCheck: (error, response) => {
+        // handle invalid field selection - sometimes old files dont support createdTime or modifiedTime
+        // we'll try to fallback to createdDate and modifiedDate
+        const isInvalidField =
+          error?.message?.includes("Invalid field selection") &&
+          (params?.fields?.includes("createdTime") ||
+            params?.fields?.includes("modifiedTime"));
 
-      if (isInvalidField) {
-        const fileId = params?.fileId ? ` for file ${params.fileId}` : "";
-        syncWarn(`Invalid field selection error on Drive API call ${prop}.${method}${fileId}. Retrying with v2 field names...`);
-        params.fields = translateFieldsToV2(params.fields);
-        return true;
-      }
-      return false;
-    }
-  });
+        if (isInvalidField) {
+          const fileId = params?.fileId ? ` for file ${params.fileId}` : "";
+          syncWarn(
+            `Invalid field selection error on Drive API call ${prop}.${method}${fileId}. Retrying with v2 field names...`,
+          );
+          params.fields = translateFieldsToV2(params.fields);
+          return true;
+        }
+        return false;
+      },
+    },
+  );
 };
 
 /**
@@ -399,24 +434,27 @@ export const sxDrive = async (Auth, { prop, method, params, options }) => {
  * @return {DriveResponse} from the drive api
  */
 
-export const sxStreamUpMedia = async (Auth, { resource, bytes, fields, method, mimeType, fileId, params }) => {
-
-  if (Auth.getPlatform() === 'coda') {
-   
+export const sxStreamUpMedia = async (
+  Auth,
+  { resource, bytes, fields, method, mimeType, fileId, params },
+) => {
+  if (Auth.getPlatform() === "coda") {
+    //we dont need to specify the prop here, as the handler will decide whether its a file or folder resource based on the mimeType
+    return handleCodaDrive(Auth, { method, params, bytes, resource, mimeType, fileId  });
   }
 
-  if (Auth.getPlatform() === 'msgraph') {
-    const isDir = (resource?.mimeType || mimeType) === folderType;
+  if (Auth.getPlatform() === "msgraph") {
+    const isDir = isFolder(resource)
     const token = await Auth.getAccessToken();
     const oneDrive = new OneDrive(token);
     const parentId = resource?.parents?.[0];
 
-    if (method === 'update') {
+    if (method === "update") {
       if (resource?.name) {
         const data = await oneDrive.renameFile(fileId, resource.name);
         return {
           data: { ...data, id: fileId, name: resource.name },
-          response: { status: 200 }
+          response: { status: 200 },
         };
       }
       if (params && params.addParents) {
@@ -424,11 +462,14 @@ export const sxStreamUpMedia = async (Auth, { resource, bytes, fields, method, m
         return { data, response: { status: 200 } };
       }
       // Handle trash
-      if (resource && typeof resource.trashed === 'boolean') {
+      if (resource && typeof resource.trashed === "boolean") {
         if (resource.trashed) {
           await oneDrive.deleteFile(fileId);
         }
-        return { data: { id: fileId, trashed: resource.trashed }, response: { status: 200 } };
+        return {
+          data: { id: fileId, trashed: resource.trashed },
+          response: { status: 200 },
+        };
       }
       if (bytes) {
         const data = await oneDrive.uploadFile(null, null, bytes, null, fileId);
@@ -442,27 +483,32 @@ export const sxStreamUpMedia = async (Auth, { resource, bytes, fields, method, m
       const data = await oneDrive.createDirectory(parentId, resource?.name);
       return { data, response: { status: 200 } };
     } else {
-      const data = await oneDrive.uploadFile(parentId, resource?.name || 'Untitled', bytes, resource?.mimeType || mimeType);
+      const data = await oneDrive.uploadFile(
+        parentId,
+        resource?.name || "Untitled",
+        bytes,
+        resource?.mimeType || mimeType,
+      );
       return { data, response: { status: 200 } };
     }
   }
 
-  if (Auth.getPlatform() === 'ksuite') {
-    const isDir = (resource?.mimeType || mimeType) === folderType;
+  if (Auth.getPlatform() === "ksuite") {
+    const isDir = isFolder(resource) || isFolder({mimeType});
     const token = process.env.KSUITE_TOKEN;
     const kDrive = new KSuiteDrive(token);
     const parentId = resource?.parents?.[0];
 
-    if (method === 'update') {
+    if (method === "update") {
       if (resource?.name) {
         const data = await kDrive.renameFile(fileId, resource.name);
         return {
           data: { ...data, id: fileId, name: resource.name },
-          response: { status: 200 }
+          response: { status: 200 },
         };
       }
 
-      if (resource && Reflect.has(resource, 'trashed')) {
+      if (resource && Reflect.has(resource, "trashed")) {
         if (resource.trashed) {
           await kDrive.deleteFile(fileId);
         } else {
@@ -471,7 +517,7 @@ export const sxStreamUpMedia = async (Auth, { resource, bytes, fields, method, m
         const data = await kDrive.getFile(fileId);
         return {
           data,
-          response: { status: 200 }
+          response: { status: 200 },
         };
       }
 
@@ -480,7 +526,7 @@ export const sxStreamUpMedia = async (Auth, { resource, bytes, fields, method, m
         const data = await kDrive.moveFile(fileId, params.addParents);
         return {
           data,
-          response: { status: 200 }
+          response: { status: 200 },
         };
       }
 
@@ -489,7 +535,7 @@ export const sxStreamUpMedia = async (Auth, { resource, bytes, fields, method, m
         const data = await kDrive.uploadFile(null, null, bytes, null, fileId);
         return {
           data,
-          response: { status: 200 }
+          response: { status: 200 },
         };
       }
 
@@ -498,42 +544,49 @@ export const sxStreamUpMedia = async (Auth, { resource, bytes, fields, method, m
         const data = await kDrive.getFile(fileId);
         return {
           data,
-          response: { status: 200 }
+          response: { status: 200 },
         };
       }
 
       // other updates not yet implemented
-      throw new Error(`sxStreamUpMedia: update method for KSuite not fully implemented (fileId: ${fileId}, resource: ${JSON.stringify(resource)})`);
+      throw new Error(
+        `sxStreamUpMedia: update method for KSuite not fully implemented (fileId: ${fileId}, resource: ${JSON.stringify(resource)})`,
+      );
     }
 
     if (isDir) {
       const data = await kDrive.createDirectory(parentId, resource?.name);
       return {
         data,
-        response: { status: 200 }
+        response: { status: 200 },
       };
     } else {
-      const data = await kDrive.uploadFile(parentId, resource?.name || 'Untitled', bytes, resource?.mimeType || mimeType);
+      const data = await kDrive.uploadFile(
+        parentId,
+        resource?.name || "Untitled",
+        bytes,
+        resource?.mimeType || mimeType,
+      );
       return {
         data,
-        response: { status: 200 }
+        response: { status: 200 },
       };
     }
   }
 
   // this is the node drive service
-  const drive = getDriveApiClient()
+  const drive = getDriveApiClient();
 
   // set up the media
   // if there is no media, it will create an empty version of the file
-  let media = null
+  let media = null;
   if (bytes) {
-    const buffer = Buffer.from(bytes)
-    const body = intoStream(buffer)
+    const buffer = Buffer.from(bytes);
+    const body = intoStream(buffer);
     media = {
       mimeType,
-      body
-    }
+      body,
+    };
   }
 
   try {
@@ -542,62 +595,59 @@ export const sxStreamUpMedia = async (Auth, { resource, bytes, fields, method, m
       fields,
       fileId,
       media,
-      ...params
-    }
+      ...params,
+    };
 
-    const created = await drive.files[method](pack)
+    const created = await drive.files[method](pack);
     return {
       data: created.data,
-      response: responseSyncify(created)
-    }
-
+      response: responseSyncify(created),
+    };
   } catch (err) {
-    syncError('failed in syncit fxStreamUpMedia', err);
-    const response = err?.response
+    syncError("failed in syncit fxStreamUpMedia", err);
+    const response = err?.response;
     return {
       data: null,
-      response: responseSyncify(response)
-    }
+      response: responseSyncify(response),
+    };
   }
-
-}
-const sxStreamer = async ({
-  params,
-  options = {},
-  method = 'get' }) => {
+};
+const sxStreamer = async ({ params, options = {}, method = "get" }) => {
   try {
     // this is the node drive service
     const drive = getDriveApiClient();
     const streamed = await drive.files[method](params, {
-      responseType: 'stream',
-      ...options
-    })
-    const response = responseSyncify(streamed)
+      responseType: "stream",
+      ...options,
+    });
+    const response = responseSyncify(streamed);
     if (response.status === 200) {
-      const buf = await getStreamAsBuffer(streamed.data)
-      const data = Array.from(buf)
+      const buf = await getStreamAsBuffer(streamed.data);
+      const data = Array.from(buf);
 
       return {
         data,
-        response
-      }
+        response,
+      };
     } else {
       return {
         data: null,
-        response
-      }
+        response,
+      };
     }
   } catch (err) {
     // We don't want to crash the worker if the API call fails
     // (e.g. exporting a non-exportable file)
-    const response = responseSyncify(err?.response || { status: err?.code || 500, statusText: err?.message })
+    const response = responseSyncify(
+      err?.response || { status: err?.code || 500, statusText: err?.message },
+    );
     return {
       data: null,
       response,
-      error: err?.response?.data || err?.message || err
-    }
+      error: err?.response?.data || err?.message || err,
+    };
   }
-}
+};
 /**
  * sync a call to export data from drive
  * @param {object} p pargs
@@ -605,23 +655,22 @@ const sxStreamer = async ({
  * @return {SxResult} from the api
  */
 export const sxDriveExport = async (Auth, { id: fileId, mimeType }) => {
-
-  if (Auth.getPlatform() === 'ksuite') {
-    throw new Error('sxDriveExport not implemented for KSuite in POC');
+  if (Auth.getPlatform() === "ksuite") {
+    throw new Error("sxDriveExport not implemented for KSuite in POC");
   }
 
-  if (Auth.getPlatform() === 'msgraph') {
-    throw new Error('sxDriveExport not implemented for MS Graph in POC');
+  if (Auth.getPlatform() === "msgraph") {
+    throw new Error("sxDriveExport not implemented for MS Graph in POC");
   }
 
   return sxStreamer({
     params: {
       fileId,
-      mimeType
-    }, method: 'export'
-  })
-
-}
+      mimeType,
+    },
+    method: "export",
+  });
+};
 /**
  * sync a call to download data from drive
  * @param {object} p pargs
@@ -629,8 +678,7 @@ export const sxDriveExport = async (Auth, { id: fileId, mimeType }) => {
  * @return {SxResult} from the api
  */
 export const sxDriveMedia = async (Auth, { id: fileId }) => {
-
-  if (Auth.getPlatform() === 'msgraph') {
+  if (Auth.getPlatform() === "msgraph") {
     const token = await Auth.getAccessToken();
     const oneDrive = new OneDrive(token);
     const data = await oneDrive.downloadFile(fileId);
@@ -638,11 +686,11 @@ export const sxDriveMedia = async (Auth, { id: fileId }) => {
     return {
       data: Array.from(data),
       metadata: meta,
-      response: { status: 200 }
+      response: { status: 200 },
     };
   }
 
-  if (Auth.getPlatform() === 'ksuite') {
+  if (Auth.getPlatform() === "ksuite") {
     const token = process.env.KSUITE_TOKEN;
     const kDrive = new KSuiteDrive(token);
     const data = await kDrive.downloadFile(fileId);
@@ -650,29 +698,27 @@ export const sxDriveMedia = async (Auth, { id: fileId }) => {
     return {
       data: Array.from(data),
       metadata: meta,
-      response: { status: 200 }
+      response: { status: 200 },
     };
   }
 
-  if (Auth.getPlatform() === 'coda') {
-    
+  if (Auth.getPlatform() === "coda") {
   }
 
   return sxStreamer({
     params: {
       fileId,
-      alt: 'media'
-    }, method: 'get'
-  })
-
-}
-
+      alt: "media",
+    },
+    method: "get",
+  });
+};
 
 export const sxDriveGet = (Auth, { id, params, options }) => {
   return sxDrive(Auth, {
     prop: "files",
     method: "get",
     params: { ...params, fileId: id },
-    options
+    options,
   });
 };

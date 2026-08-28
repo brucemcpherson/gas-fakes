@@ -125,7 +125,23 @@ class FakeAdvDriveFiles {
     ScriptApp.__behavior.isAccessible(id, 'Drive', 'read');
     const result = Syncit.fxDriveGet ({ id, prop: apiProp, method: 'get', params, allow404, allowCache: true });
     const { data } = result
+    if (!data) return data
+
     // if (params.alt === 'media') slogger.log(`FakeAdvDriveFiles.get alt=media result type: ${typeof data}, isArray: ${Array.isArray(data)}`);
+
+    // this is a patch to ensure that whatever id we actually end up with gerts registered as a root if thats what we were lookgin for
+    data.__rootRequested = id === 'root' ? true: false
+    // do a double paranoid check on platform
+    const platform = ScriptApp.__platform
+    if (data.platform && data.platform !== platform) {
+      throw new Error (`expected drive get to be handled as ${platform} but got ${data.platform}`)
+    } else if (!data.platform) {
+      if (platform === 'google') {
+        data.platform = platform
+      } else {
+        throw new Error (`custom platform forgot to register itself for id  ${id} on ${platform}`)
+      }
+    }
     return data
   }
 

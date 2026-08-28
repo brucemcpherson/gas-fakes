@@ -72,10 +72,10 @@ export class OneDrive {
       if (fileId && !fileId.includes('!') && fileId.length > 30) {
         return null;
       }
-
-      const path = fileId === 'root' ? `${this.userPath}/drive/root` : `${this.userPath}/drive/items/${fileId}`;
+      const isRoot = fileId === 'root';
+      const path = isRoot ? `${this.userPath}/drive/root` : `${this.userPath}/drive/items/${fileId}`;
       const response = await this._request('GET', path);
-      return this.translateFile(response.body);
+      return this.translateFile(response.body, isRoot);
     } catch (err) {
       if (err.statusCode === 404 || err.statusCode === 400) return null;
       throw err;
@@ -232,7 +232,7 @@ export class OneDrive {
     return await this.getFile(fileId);
   }
 
-  translateFile(msFile) {
+  translateFile(msFile, rootRequested = false) {
     if (!msFile) return null;
 
     const isFolder = !!msFile.folder;
@@ -255,7 +255,9 @@ export class OneDrive {
         canMoveItem: true
       },
       webViewLink: msFile.webUrl,
-      iconLink: null
+      iconLink: null,
+      __rootRequested,
+      platform: 'msgraph'
     };
   }
 }

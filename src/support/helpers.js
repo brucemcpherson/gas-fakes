@@ -2,13 +2,13 @@ import { Utils } from "./utils.js";
 const { is, capital } = Utils;
 import { Proxies } from "./proxies.js";
 import { slogger } from "./slogger.js";
-import { googleMimeTypes, isGoogleType } from '../services/mimetype/googlemimetypes.js'
-export { isGoogleType }
+import { googleMimeTypes, isGoogleType } from "./googlemimetypes.js";
+export { isGoogleType };
 
-export const folderType = googleMimeTypes.FOLDER
-export const spreadsheetType = googleMimeTypes.GOOGLE_SHEETS
+export const folderType = googleMimeTypes.FOLDER;
+export const spreadsheetType = googleMimeTypes.GOOGLE_SHEETS;
 export const gzipType = "application/x-gzip";
-export const zipType = googleMimeTypes.ZIP
+export const zipType = googleMimeTypes.ZIP;
 
 export const isRoot = (params) => params?.fileId === "root";
 export const isFile = (file) => file?.mimeType !== folderType;
@@ -31,7 +31,6 @@ export const filterOut = (params, files) => {
       ? files.filter((f) => isFile(f))
       : files;
 };
-
 
 export const notYetImplemented = (item = "That") => {
   const mess = `${item} is not yet implemented - watch https://github.com/brucemcpherson/gas-fakes for progress`;

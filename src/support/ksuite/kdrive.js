@@ -112,7 +112,8 @@ export class KSuiteDrive {
 
   async getFile(fileId) {
     const driveId = await this.getDriveId();
-    const actualId = fileId === 'root' ? await this.getPrivateRootId() : fileId;
+    const isRoot = fileId === 'root'
+    const actualId = isRoot ? await this.getPrivateRootId() : fileId;
     
     try {
       const response = await this._request('GET', `/3/drive/${driveId}/files/${actualId}`);
@@ -122,7 +123,7 @@ export class KSuiteDrive {
         // Check trash
         try {
           const response = await this._request('GET', `/3/drive/${driveId}/trash/${actualId}`);
-          return this.translateFile(response.body.data);
+          return this.translateFile(response.body.data), isRoot;
         } catch (trashErr) {}
       }
       throw err;
@@ -292,7 +293,8 @@ export class KSuiteDrive {
       size: String(kFile.size || 0),
       parents: kFile.parent_id ? [String(kFile.parent_id)] : [],
       trashed: kFile.status === 'trashed' || kFile.status === 'trash_inherited',
-      capabilities: { canEdit: true, canRename: true }
+      capabilities: { canEdit: true, canRename: true },
+      platform: 'ksuite'
     };
   }
 }

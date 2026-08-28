@@ -1,6 +1,7 @@
 import { Proxies } from '../../support/proxies.js'
 import { Utils } from '../../support/utils.js'
 import { slogger } from "../../support/slogger.js";
+import { ids } from 'googleapis/build/src/apis/ids/index.js';
 
 const { is } = Utils
 const checkArgs = (actual, expect = "boolean") => {
@@ -267,6 +268,9 @@ class FakeBehavior {
     this.__strictSandbox = true;
     this.__idWhitelist = null
 
+    // we'll record all roots here (platform, id)
+    this.__roots = new Map () 
+
     // individually settable services
     // BRIDGE: Use a Proxy to dynamically handle services, even those registered later
     this.__sandboxService = new Proxy({}, {
@@ -307,7 +311,38 @@ class FakeBehavior {
   get idWhitelist() {
     return this.__idWhitelist
   }
-
+  get roots() {
+    return this.__roots
+  }
+  isRegisteredRoot (id) {
+    if (id === 'root') return true
+    // otherwise see if its a registered root
+    const key = this.__platformKey (ScriptApp.__platform, id)
+    return this.roots.has(key)
+  }
+  __platformKey (platform, id) { 
+    if (!platform) throw new Error (`platform must be provided`)
+    if (!id) throw new Error (`id must be provided`)
+    return `${platform}:${id}`
+  }
+  __inRoot (file) {
+    const key = this.__platformKey (file.platform, file.getId())
+    return this.roots.get(key)
+  }
+  __addToRoots (file) {
+    const platform = file.platform;
+    const key = this.__platformKey (platform, file.getId())
+    this.roots.set(key, {
+      file,
+      platform
+    })
+    slogger.log (`...adding root ${file.getId()} to root register ${file.platform} ...`)
+    return this.roots.get(key)
+  }
+  addRoot (file) {
+    if (!is.function(file?.getId)) throw new Error(`expected a file object that supports getId() method`)
+    return this.__inRoot(file) || this.__addToRoots(file)
+  }
   setIdWhitelist(value) {
     if (!is.null(value)) {
       checkArgs(value, "array")
@@ -398,12 +433,13 @@ class FakeBehavior {
     if (!is.nonEmptyString(id)) {
       throw new Error(`Invalid sandbox id parameter (${id}) - must be a non-empty string`);
     }
+    if (this.roots.has (id)) return id;
 
-    // Prevent root folder from being added to the cleanup list
-    // OneDrive root uses a GUID, but DriveApp.getRootFolder().getId() finds it.
-    // We also skip 'root' for safety.
-    const isRootId = id === 'root' || (globalThis.DriveApp?.getRootFolder()?.getId() === id);
-    if (isRootId) return id;
+
+    const isRootId =  id === 'root';
+    if (isRootId) {
+      throw `unregistered root detected for id ${id}`
+    }
 
     if (this.sandboxMode || force) {
       const platform = ScriptApp.__platform;
@@ -506,9 +542,11 @@ class FakeBehavior {
     }
 
     // In sandbox mode, read access to the root folder is always allowed for DriveApp initialization.
-    if (id === 'root' && accessType === 'read') {
+    const isRoot = this.isRegisteredRoot(id);
+    if (isRoot && accessType === 'read') {
       return true;
     }
+
 
     // The whitelist is the highest authority. If an ID is on it, its rules are final.
     if (this.idWhitelist) {

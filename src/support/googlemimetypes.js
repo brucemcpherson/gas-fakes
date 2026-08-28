@@ -33,8 +33,14 @@ export const googleMimeTypes = {
   RTF: "application/rtf",
   SHORTCUT: "application/vnd.google-apps.shortcut",
   SVG: "image/svg+xml",
-  ZIP: "application/zip"
+  ZIP: "application/zip",
+  JSON: "application/json"
 };
 export const gooType = "application/vnd.google-apps";
 export const isGoogleType = (mimeType) =>
   mimeType && mimeType.substring(0, gooType.length) === gooType;
+
+export const isTextMimeType = (mimeType) => {
+  return ['PLAIN_TEXT','OPENDOCUMENT_TEXT','JAVASCRIPT','HTML','CSV','CSS','GOOGLE_APPS_SCRIPT',"application/json","application/jsonl"]
+    .map (f=>googleMimeTypes[f] || f).includes(mimeType  )
+}

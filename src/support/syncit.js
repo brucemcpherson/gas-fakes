@@ -26,14 +26,14 @@ const cacheDefaultPath = "/tmp/gas-fakes/cache";
 
 // Helper to ensure init has happened before any worker call
 const safeCallSync = (method, ...args) => {
-  console.log('Main thread: Calling worker task...');
+  // console.log('Main thread: Calling worker task...', method);
   if (method !== 'sxInit' && !Auth.hasAuth()) {
     // Attempt lazy initialization
-    console.log('Main thread: calling fxInit');
+    // console.log('Main thread: calling fxInit');
     fxInit();
   }
   const result = callSync(method, ...args);
-  console.log(`[callSync ${method}]`)
+  // console.log(`[callSync ${method}]`)
   return result
 };
 
@@ -101,6 +101,7 @@ const fxStreamUpMedia = ({
 }) => {
   // merge the required fields with the minimum
   fields = mergeParamStrings(minFields, fields);
+  // note that we cant pass the blob here (it would be easier) as it cant be serializsd for the worker, so we pass the bytes + the mimeType of the blob
   const result = safeCallSync("sxStreamUpMedia", {
     resource: file,
     bytes: blob ? blob.getBytes() : null,
@@ -108,7 +109,7 @@ const fxStreamUpMedia = ({
     method,
     mimeType: blob?.getContentType() || file.mimeType,
     fileId,
-    params,
+    params
   });
   // check result and register in cache
   return registerSx(result, false, fields);
@@ -123,12 +124,28 @@ const fxStreamUpMedia = ({
  * @return {DriveResponse} from the drive api
  */
 const fxDrive = ({ prop, method, params, options }) => {
-  return safeCallSync("sxDrive", {
+  const result =  safeCallSync("sxDrive", {
     prop,
     method,
     params: normalizeSerialization(params),
     options: normalizeSerialization(options),
   });
+  // result will contain data.files array
+  // if platform is coda, then weird stuff can happens. 
+
+  const behavior = ScriptApp.__behavior
+  if (ScriptApp.__platform === 'coda' && method === 'list' && behavior?.sandboxMode) {
+    const files = (result?.data?.files) || []
+    files.forEach (f => {
+      // we need to add the parent folder if there is one, to the whitelist as workspace level 
+      const [parent] = f.parents || []
+      if (parent) {
+        console.log (`...whitelisting parent folder: ${parent} on ${ScriptApp.__platform}`)
+        behavior.addIdWhitelist(behavior.newIdWhitelistItem(parent))
+      }
+    })
+  }
+  return result;
 };
 
 const fxGeneric = ({

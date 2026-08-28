@@ -37,6 +37,7 @@ export const testFixes = {
   "API_TYPE": "text\/javascript",
   "CLEAN": true,
   "PREFIX": ScriptApp.isFake ? "--f" : "--g",
+  "CODA_WORKSPACE": "mcpher.com"
 };
 
 // altough we are set up to use multiple backends, to save cost i;ve closed the paid for ones down
