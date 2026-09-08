@@ -460,13 +460,26 @@ const fxJdbcClose = (connectionId) => {
   return safeCallSync("sxJdbcClose", { connectionId });
 };
 
-const fxSheets = (args) =>
-  fxGeneric({
+const fxSheets = (args) => {
+  const result = fxGeneric({
     ...args,
     serviceName: "Sheets",
     cacher: sheetsCacher,
     idField: "spreadsheetId",
   });
+
+  // Handle sandbox file registration specifically for Sheets creation
+  if (
+    (args.method === "create" || args.method === "copy") &&
+    result?.data?.spreadsheetId
+  ) {
+    if (ScriptApp.__behavior?.sandBoxMode) {
+      ScriptApp.__behavior.addFile(result.data.spreadsheetId);
+    }
+  }
+
+  return result;
+};
 const fxSlides = (args) =>
   fxGeneric({
     ...args,

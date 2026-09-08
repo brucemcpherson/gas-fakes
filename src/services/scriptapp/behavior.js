@@ -648,8 +648,8 @@ class FakeBehavior {
       // Drive cleanup
       if (this.__cleanup) {
         const rootId = DriveApp.getRootFolder().getId();
-        trashed = Array.from(this.__createdIds.entries()).reduce(
-          (acc, [id, platform]) => {
+        trashed = Array.from(this.__createdIds.values()).reduce(
+          (acc,  {id, platform}) => {
             if (id === rootId || this.isRegisteredRoot(id, platform)) {
               slogger.log(`...skipped attempt to trash root folder ` + id);
               return acc;
@@ -694,21 +694,22 @@ class FakeBehavior {
       const gmailCleanup = gmailSettings && gmailSettings.cleanup; // This will return true/false (inherits or specific)
 
       if (gmailCleanup) {
-        trashedGmail = Array.from(this.__createdGmailIds.entries()).reduce(
-          (acc, [id, platform]) => {
+        trashedGmail = Array.from(this.__createdGmailIds.values()).reduce(
+          (acc, {id, platform}) => {
+            ScriptApp.__platform = platform;
+            // Try as message
             try {
-              ScriptApp.__platform = platform;
               // Try as label
               Gmail.Users.Labels.remove("me", id);
               slogger.log(`...deleted gmail label ${id}`);
               acc.push(id);
               return acc;
             } catch (e) {
-              /* not a label or failed */
+              // wasnt a label - lets try a thread
             }
 
             try {
-              ScriptApp.__platform = platform;
+
               // Try as thread - move to trash
               Gmail.Users.Threads.trash("me", id);
               slogger.log(`...trashed gmail thread ${id}`);
@@ -719,7 +720,6 @@ class FakeBehavior {
             }
 
             try {
-              ScriptApp.__platform = platform;
               Gmail.Users.Messages.trash("me", id);
               slogger.log(`...trashed gmail message ${id}`);
               acc.push(id);
@@ -745,8 +745,8 @@ class FakeBehavior {
 
       if (calendarCleanup) {
         trashedCalendars = Array.from(
-          this.__createdCalendarIds.entries(),
-        ).reduce((acc, [id, platform]) => {
+          this.__createdCalendarIds.values(),
+        ).reduce((acc, {id, platform}) => {
           try {
             ScriptApp.__platform = platform;
             // Delete calendar

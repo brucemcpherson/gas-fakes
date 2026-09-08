@@ -25,10 +25,7 @@ export class ExcelHandler {
         __root: {
           get: (p) => this.msExcel.getWorkbook(p.spreadsheetId),
           create: async (p) => {
-            const data = await this.msExcel.createWorkbook(p.requestBody.properties.title);
-            // Whitelist for sandbox cleanup
-            ScriptApp.__behavior?.addFile(data.spreadsheetId);
-            return data;
+            return await this.msExcel.createWorkbook(p.requestBody.properties.title);
           },
           batchUpdate: async (p) => {
             const replies = [];

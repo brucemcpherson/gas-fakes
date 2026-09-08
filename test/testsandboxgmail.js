@@ -253,8 +253,7 @@ export const testSandboxGmail = () => {
 
     // Let's update whitelist for this specific test part
     gmailSettings.labelWhitelist.push({ name: 'inbox', read: true });
-
-    t.not(GmailApp.getInboxThreads(), undefined, 'Should read inbox if whitelisted');
+    t.is(GmailApp.getInboxThreads(1, 4)?.length, 4, 'Should read inbox if whitelisted');
 
   });
 
@@ -414,7 +413,7 @@ export const testSandboxGmail = () => {
     // 2. Test Label Security (addLabel)
     // Setup: Create thread and label
     gmailSettings.usageLimit = null; // clear limit
-    const labelName = 'DeniedLabelTest';
+    const labelName = 'DeniedLabelTest_'+ new Date().getTime();
     // We need to create label first. Whitelist 'write' for creation to succeed.
     gmailSettings.labelWhitelist = [{ name: labelName, write: true }];
 
@@ -436,7 +435,7 @@ export const testSandboxGmail = () => {
 
     // Attempt addLabel - should fail
     const errLabel = t.threw(() => thread.addLabel(l));
-    t.rxMatch(errLabel?.message, /Access to add label DeniedLabelTest is denied/, 'Should deny adding label without write permission');
+    t.rxMatch(errLabel?.message, /Access to add label/, 'Should deny adding label without write permission');
 
     // Cleanup
     behavior.sandboxMode = false;
