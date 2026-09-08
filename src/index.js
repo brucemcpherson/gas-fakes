@@ -1,3 +1,4 @@
+/*
 const serviceModules = [
   './support/env-loader.js',
   './services/scriptapp/app.js',
@@ -51,7 +52,8 @@ for (const mod of serviceModules) {
     process.exit()
   }
 }
-/*
+  */
+
 import './support/env-loader.js';
 import './services/scriptapp/app.js'
 import './services/driveapp/app.js'
@@ -87,4 +89,3 @@ import './services/libhandlerapp/app.js'
 import './services/jdbc/app.js'
 import './services/html/app.js'
 import './services/content/app.js'
-*/

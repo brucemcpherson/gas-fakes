@@ -495,32 +495,8 @@ export const testKSuiteDrive = (pack) => {
   }
 
   if (originalFixes.CLEAN) {
-    unit.section('KSuite Cleanup', t => {
-      // 1. Trash items from current run
-      trasher(toTrash);
-
-      // 2. Deep cleanup: find all junk from previous runs
-      const root = DriveApp.getRootFolder();
-      const prefix = originalFixes.PREFIX;
-
-      const allFiles = root.getFiles();
-      while (allFiles.hasNext()) {
-        const f = allFiles.next();
-        if (f.getName().startsWith(prefix)) {
-          console.log(`Deep cleaning junk file: ${f.getName()}`);
-          f.setTrashed(true);
-        }
-      }
-
-      const allFolders = root.getFolders();
-      while (allFolders.hasNext()) {
-        const f = allFolders.next();
-        if (f.getName().startsWith(prefix)) {
-          console.log(`Deep cleaning junk folder: ${f.getName()}`);
-          f.setTrashed(true);
-        }
-      }
-    })
+    // when sandbox is enabled, or if we are runnong on appscripts, this happens automatocally anyway
+    trasher(toTrash);
   }
 
   // Reset platform back to workspace

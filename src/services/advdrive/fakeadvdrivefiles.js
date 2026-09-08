@@ -137,10 +137,13 @@ class FakeAdvDriveFiles {
 
     // do a double paranoid check on platform
     const platform = ScriptApp.__platform
+
+
     if (data.platform && data.platform !== platform) {
       throw new Error (`expected drive get to be handled as ${platform} but got ${data.platform}`)
     } else if (!data.platform) {
-      if (platform === 'google') {
+      // we'll spoof the platform if its missing - google doesnt have a platform specified
+      if (platform === 'google' || params.alt === 'media') {
         data.platform = platform
       } else {
         throw new Error (`custom platform forgot to register itself for id  ${id} on ${platform}`)

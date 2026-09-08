@@ -4,91 +4,85 @@ import { isFolder } from "../helpers.js";
 const getKSuiteDrive = async (Auth) => {
   const token = await Auth.getAccessToken();
   if (!token) {
-    throw new Error("failed to get ksuite token");
+    throw new Error("Failed to get ksuite token");
   }
   const effectiveUser = await Auth.getEffectiveUser();
   if (!effectiveUser) {
-    throw new Error("failed to get effective ksuite user");
+    throw new Error("Failed to get effective ksuite user");
   }
-  const kDrive = newKSuiteDrive({ token, effectiveUser });
-  return kDrive;
+  return newKSuiteDrive({ token, effectiveUser });
 };
 
 export const handleKSuiteDrive = async (Auth, { prop, method, params }) => {
   const kDrive = await getKSuiteDrive(Auth);
 
-  // 1. Identify the target object instance
+  // Identify target object (e.g. kDrive.files or kDrive.permissions)
   const targetObj = prop ? kDrive[prop] : kDrive;
-
-  // 2. Extract the method from that target object
   const fn = targetObj ? targetObj[method] : undefined;
 
   if (typeof fn !== "function") {
     throw new Error(
-      `KSuite Drive API ${prop}.${method} not implemented in POC`,
+      `KSuite Drive API ${prop ? `${prop}.` : ""}${method} is not implemented`,
     );
   }
 
-  // 3. Invoke the function using .call() to preserve `this`
   return fn.call(targetObj, params);
 };
 
 export const handleKSuiteStream = async (
   Auth,
-  { resource, bytes, fields, method, mimeType, fileId, params }
+  { resource, bytes, method, mimeType, fileId, params }
 ) => {
   const kDrive = await getKSuiteDrive(Auth);
+  const files = kDrive.files;
 
-  // Normalize fallback MIME type and parent ID
   const resolvedMimeType = mimeType || resource?.mimeType;
   const parentId = resource?.parents?.[0];
   const fileName = resource?.name || "Untitled";
 
   switch (method) {
     case "update":
-      return kDrive.update(params);
+      return files.update({ ...params, fileId, resource, bytes });
 
     case "download": {
       const [data, meta] = await Promise.all([
-        kDrive.downloadFile(fileId),
-        kDrive.getFile(fileId),
+        files.downloadFile(fileId),
+        files.getFile(fileId),
       ]);
       return {
-        // Return Buffer directly (or Uint8Array) instead of converting to JS Array to prevent memory spikes
         data: Buffer.isBuffer(data) ? data : Buffer.from(data),
         metadata: meta,
         response: { status: 200 },
       };
     }
 
-    default: {
+    case "create": {
       // Handle Directory Creation
-      const isDir = isFolder({ mimeType: resolvedMimeType });
-      if (isDir) {
-        const data = await kDrive.createDirectory(parentId, fileName);
+      if (isFolder({ mimeType: resolvedMimeType })) {
+        const data = await files.createDirectory(parentId, fileName);
         return {
           data,
           response: { status: 200 },
         };
       }
 
-      // Handle Empty File Creation (No bytes provided or 0-length)
+      // Handle Empty File Creation
       const hasContent = bytes && (bytes.length > 0 || bytes.byteLength > 0);
       if (!hasContent && !fileId) {
-        const data = await kDrive.createEmptyFile(parentId, fileName);
+        const data = await files.createEmptyFile(parentId, fileName);
         return {
           data,
           response: { status: 200 },
         };
       }
 
-      // Handle Full File Upload (including updates with fileId)
-      const data = await kDrive.uploadFile(
+      // Handle Binary File Upload (Create / Update content)
+      const data = await files.uploadFile(
         parentId,
         fileName,
         bytes,
         resolvedMimeType,
-        fileId // Pass fileId so updates hit the correct file version
+        fileId
       );
 
       return {
@@ -96,5 +90,10 @@ export const handleKSuiteStream = async (
         response: { status: 200 },
       };
     }
+
+    default:
+      throw new Error(
+        `KSuite Stream API method '${method}' is not supported.`
+      );
   }
 };

@@ -2,7 +2,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 const { Worker, isMainThread, threadId } = await import('worker_threads');
-process.stdout.write(`[synchronizer.js] EVALUATING module. pid=${process.pid} tid=${threadId} isMainThread=${isMainThread} GF_WORKER=${process.env.GF_WORKER}\nstack=${new Error().stack}\n`);
+/// process.stdout.write(`[synchronizer.js] EVALUATING module. pid=${process.pid} tid=${threadId} isMainThread=${isMainThread} GF_WORKER=${process.env.GF_WORKER}\nstack=${new Error().stack}\n`);
 
 const { fileURLToPath } = await import('url');
 const { slogger } = await import('../slogger.js')
