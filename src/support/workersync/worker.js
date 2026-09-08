@@ -1,10 +1,28 @@
-import { parentPort } from 'worker_threads';
-import { Auth } from '../auth.js'; // The worker has its own instance of the Auth class
-import * as allSxFunctions from './sxfunctions.js'; // This has to be a separate file for mocking in tests
-import fs from 'node:fs/promises';
-import os from 'node:os';
-import path from 'node:path';
-import { syncLog, syncError } from './synclogger.js';
+import fsSync from 'node:fs';
+const dbg = (msg) => fsSync.appendFileSync('/tmp/worker-debug.log', `${new Date().toISOString()} ${msg}\n`);
+
+// Register these FIRST, before any other imports, so nothing during
+// module loading can fail silently.
+process.on('uncaughtException', (err) => {
+  dbg(`[worker.js] EARLY uncaughtException: ${err?.stack || err}`);
+});
+process.on('unhandledRejection', (reason) => {
+  dbg(`[worker.js] EARLY unhandledRejection: ${reason?.stack || reason}`);
+});
+
+dbg('[worker.js] START');
+const { parentPort } = await import('worker_threads');
+dbg('[worker.js] parentPort loaded');
+const { Auth } = await import('../auth.js');
+dbg('[worker.js] Auth loaded');
+const { default: allSxFunctions } = await import('./sxfunctions.js');
+dbg('[worker.js] sxfunctions loaded');
+const fs = await import('node:fs/promises');
+const os = await import('node:os');
+const path = await import('node:path');
+dbg('[worker.js] fs/os/path loaded');
+const { syncLog, syncError } = await import('./synclogger.js');
+dbg('[worker.js] synclogger loaded');
 
 let control;
 let dataView;
@@ -96,16 +114,25 @@ parentPort.once('message', (msg) => {
  * @param {Error} error The uncaught error.
  */
 const handleUncaughtError = (error) => {
-  // If control is not initialized, we can't report the error.
-  // Just log it and exit.
   if (control) {
-    // Log the full error stack to identify the call site
-    syncError('A fatal, unhandled error occurred in the worker. The worker will be unresponsive.', error);
+    syncError('A fatal, unhandled error occurred in the worker.', error);
 
+    // 1. Write the error into the buffer
     writeError(error);
+
+    // 2. Clear status to 0 ("free") so Atomics.wait in main thread unblocks
+    Atomics.store(control, CONTROL_INDICES.STATUS, 0);
+
+    // 3. Notify the main thread
     Atomics.notify(control, 0);
+  } else {
+    console.error('Fatal worker error before control buffer initialization:', error);
   }
+
+  // 4. Terminate worker process
+  process.exit(1);
 };
+
 process.on('uncaughtException', handleUncaughtError);
 process.on('unhandledRejection', handleUnhandledRejection);
 

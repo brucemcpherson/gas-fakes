@@ -8,8 +8,7 @@ import '@mcpher/gas-fakes'
 //import '@mcpher/gas-fakes/main.js'
 
 import { initTests } from './testinit.js'
-import { maketss, wrapupTest, trasher } from './testassist.js';
-import { getDrivePerformance, getSheetsPerformance } from './testassist.js';
+import { maketss, wrapupTest, trasher, cachePerformance } from './testassist.js';
 
 // this can run standalone, or as part of combined tests if result of inittests is passed over
 export const testSheetsData = (pack) => {
@@ -103,7 +102,7 @@ export const testSheetsData = (pack) => {
     const filters = updatedPivotTable ? updatedPivotTable.getFilters() : [];
     t.is(filters.length, 0, 'should remove filter');
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section('CalculatedPivotValue methods', (t) => {
@@ -118,7 +117,7 @@ export const testSheetsData = (pack) => {
 
     t.is(cpv.getPivotTable().getAnchorCell().getA1Notation(), 'F1', 'should get parent pivot table from calculated value');
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section('PivotTable methods', t => {
@@ -155,7 +154,7 @@ export const testSheetsData = (pack) => {
     const finalPivotTables = sheet.getPivotTables();
     t.is(finalPivotTables.length, 0, "should remove the pivot table itself");
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   })
 
   unit.section('PivotGroup methods', (t) => {
@@ -200,7 +199,7 @@ export const testSheetsData = (pack) => {
     const rowGroups = updatedPivotTable ? updatedPivotTable.getRowGroups() : [];
     t.is(rowGroups.length, 0, 'should remove pivot group');
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section('PivotValue methods', (t) => {
@@ -232,15 +231,14 @@ export const testSheetsData = (pack) => {
     const updatedPivotTable = sheet.getPivotTables()[0];
     t.is(updatedPivotTable.getPivotValues().length, 0, 'should remove pivot value');
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
 
 
   // running standalone
   if (!pack) {
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
     unit.report()
   }
   if (fixes.CLEAN) trasher(toTrash);

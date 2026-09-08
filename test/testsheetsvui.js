@@ -9,7 +9,7 @@ import '@mcpher/gas-fakes'
 //import '@mcpher/gas-fakes/main.js'
 
 import { initTests } from './testinit.js'
-import { getSheetsPerformance, wrapupTest , getRandomHex, trasher} from './testassist.js';
+import { cachePerformance, wrapupTest , getRandomHex, trasher} from './testassist.js';
 
 
 
@@ -28,12 +28,7 @@ export const testSheetsVui = (pack) => {
     t.deepEqual(anchorCells, ["A3", "C6"]);
     const size = images.map((e) => e.getWidth() === e.getHeight());
     t.deepEqual(size, [true, true]);
-
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("TODO - currently skipped - range.getBorder() does work on GAS although it's not documented", t => {
@@ -60,8 +55,7 @@ export const testSheetsVui = (pack) => {
     t.is(leftCol.getLeft().getBorderStyle(), null)
     t.is(rightCol.getRight().getBorderStyle(), null)
 
-
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
 
   }, { skip: true })
 
@@ -189,8 +183,7 @@ export const testSheetsVui = (pack) => {
     t.is(builtTheme.getColorType().toString(), "THEME")
     t.is(builtTheme.asThemeColor().getColorType().toString(), "THEME")
     t.is(t.threw(() => builtTheme.asRgbColor()).message, "Object is not of type RgbColor.")
-
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   })
 
   unit.section("uses testsheet - checks UI compatible with API sets - spreadsheet ranges method tests", t => {
@@ -258,7 +251,7 @@ export const testSheetsVui = (pack) => {
     t.is(range.getFormulas().length, atv.length)
     t.is(range.getFormulas()[0].length, atv[0].length)
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
 
   })
 
@@ -281,7 +274,7 @@ export const testSheetsVui = (pack) => {
 
     t.is(rowData.length, 3)
     t.is(rowData[0].values.length, 2)
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
 
   })
 
@@ -294,7 +287,7 @@ export const testSheetsVui = (pack) => {
     const rl = sheet.getRangeList(rltests)
     t.is(rl.getRanges().length, rltests.length)
     rl.getRanges().forEach((f, i) => t.is(f.getA1Notation(), rltests[i].toUpperCase()))
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
 
 
   })
@@ -322,8 +315,7 @@ export const testSheetsVui = (pack) => {
     t.true(Array.isArray(editors))
     editors.forEach(f => t.true(is.nonEmptyString(f.getEmail())))
 
-
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
 
   })
 
@@ -347,7 +339,7 @@ export const testSheetsVui = (pack) => {
     t.true(is.array(ss.sheets))
     t.truthy(ss.sheets.length)
     t.true(is.nonEmptyString(ss.spreadsheetUrl))
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
 
   })
 
@@ -390,7 +382,7 @@ export const testSheetsVui = (pack) => {
 
     t.is(SpreadsheetApp.openByUrl(ss.getUrl()).getId(), ss.getId())
     t.is(SpreadsheetApp.openByKey(ss.getId()).getId(), ss.getId())
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
 
 
 

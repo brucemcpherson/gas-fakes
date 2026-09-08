@@ -5,7 +5,7 @@
 
 
 import '@mcpher/gas-fakes'
-import { getDrivePerformance, wrapupTest, trasher } from './testassist.js';
+import { cachePerformance, wrapupTest, trasher } from './testassist.js';
 import is from '@sindresorhus/is';
 // all the fake services are here
 //import '@mcpher/gas-fakes/main.js'
@@ -146,8 +146,7 @@ export const testDrive = (pack) => {
     t.rxMatch(t.threw(() => Drive.Files.copy(null, null)).toString(), /API call to drive\.files\.copy failed with error: Required/)
     t.rxMatch(t.threw(() => dcfile.makeCopy(folder, "xx")).toString(), /The parameters \(DriveApp.Folder,String\) don't match/)
     t.rxMatch(t.threw(() => dcfile.makeCopy("yy", "xx")).toString(), /The parameters \(String,String\) don't match/)
-
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+      if (DriveApp.isFake) cachePerformance()
   })
   unit.section('driveapp permission management', t => {
 
@@ -188,7 +187,7 @@ export const testDrive = (pack) => {
     t.false(file.getEditors().map(u => u.getEmail()).includes(editorEmail), "removeEditor should remove a single editor");
     t.false(file.getViewers().map(u => u.getEmail()).includes(viewerEmail), "removeViewer should remove a single viewer");
 
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+      if (DriveApp.isFake) cachePerformance()
   });
 
 
@@ -206,7 +205,7 @@ export const testDrive = (pack) => {
     t.is(file.name, fixes.TEXT_FILE_NAME)
     t.is(file.mimeType, fixes.TEXT_FILE_TYPE)
     t.is(file.kind, fixes.KIND_DRIVE)
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+      if (DriveApp.isFake) cachePerformance()
 
   })
 
@@ -222,7 +221,7 @@ export const testDrive = (pack) => {
     // cant set meta data
     t.rxMatch(t.threw(() => rootFolder.setStarred(true)).toString(), /Access denied/)
     //TODO find out whether we can set permissions etc.
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+      if (DriveApp.isFake) cachePerformance()
   })
 
 
@@ -282,7 +281,7 @@ export const testDrive = (pack) => {
       // i know i have this number of files in the folder
       t.is(pile.length, fixes.TEST_FOLDER_FILES)
 
-      if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+      if (DriveApp.isFake) cachePerformance()
     } finally {
       if (behavior) {
         behavior.strictSandbox = wasStrict;
@@ -359,9 +358,7 @@ export const testDrive = (pack) => {
     // check bad args
     t.rxMatch(t.threw(() => mfile.moveTo()).toString(), /The parameters \(\) don't match/)
     t.rxMatch(t.threw(() => mfile.moveTo("rubbish")).toString(), /The parameters \(String\)/)
-
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
-
+      if (DriveApp.isFake) cachePerformance()
 
   })
 
@@ -398,7 +395,7 @@ export const testDrive = (pack) => {
     const editors = file.getEditors()
     t.is(editors.length, 1)
     editors.forEach(f => t.true(is.nonEmptyString(f.getName())))
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+      if (DriveApp.isFake) cachePerformance()
 
   })
 
@@ -477,7 +474,7 @@ export const testDrive = (pack) => {
     t.rxMatch(t.threw(() => DriveApp.createFile(mname)).toString(), /The parameters \(String\)/)
     t.rxMatch(t.threw(() => DriveApp.createFile(Utilities.newBlob(""))).toString(), /Blob object must have non-null name for this operation./)
 
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+      if (DriveApp.isFake) cachePerformance()
   })
 
 
@@ -499,7 +496,7 @@ export const testDrive = (pack) => {
     const root = JSON.parse(rootResponse.getContentText())
     t.is(root.name, "My Drive")
     t.is(root.mimeType, "application/vnd.google-apps.folder")
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+      if (DriveApp.isFake) cachePerformance()
   }, { skip: false })
 
 
@@ -526,7 +523,7 @@ export const testDrive = (pack) => {
     t.true(is.array(ublob.getBytes()))
     // this test doesnt work because thumbnail returns a compressed version, whereas the link itself is not compressed
     // t.deepEqual (tblob.getBytes(), ublob.getBytes())
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+      if (DriveApp.isFake) cachePerformance()
 
 
   })
@@ -550,8 +547,7 @@ export const testDrive = (pack) => {
     t.is(blob.getDataAsString(), fixes.TEXT_FILE_CONTENT)
 
     t.is(file.getDownloadUrl(), Drive.Files.get(file.getId(), { fields: "webContentLink" }).webContentLink)
-
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+      if (DriveApp.isFake) cachePerformance()
 
   })
 
@@ -586,7 +582,7 @@ export const testDrive = (pack) => {
     t.is(blob.getDataAsString(), text)
     t.is(file.getId(), aFile.id)
     t.deepEqual(response.getBlob().getBytes(), blob.getBytes())
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+       if (DriveApp.isFake) cachePerformance()
 
   })
 
@@ -625,7 +621,7 @@ export const testDrive = (pack) => {
       }
 
       t.true(rootPdfPile.length >= fixes.MIN_ROOT_PDFS)
-      if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+      if (DriveApp.isFake) cachePerformance()
     } finally {
       if (behavior) {
         behavior.strictSandbox = wasStrict;
@@ -679,7 +675,7 @@ export const testDrive = (pack) => {
         t.is(dapMatches.next().getName(), file.getName())
       })
 
-      if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+      if (DriveApp.isFake) cachePerformance()
     } finally {
       if (behavior) {
         behavior.strictSandbox = wasStrict;
@@ -698,7 +694,7 @@ export const testDrive = (pack) => {
     t.is(file.getParents().next().getId(), folder.getId())
     const blob = file.getBlob()
     t.is(blob.getDataAsString(), fixes.TEXT_FILE_CONTENT)
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+      if (DriveApp.isFake) cachePerformance()
 
   })
 
@@ -737,7 +733,7 @@ export const testDrive = (pack) => {
     // dont really know what size to expect for a sheet
     t.true(sheetFile.getSize() > 0)
     t.is(sheetFile.getMimeType(), 'application/vnd.google-apps.spreadsheet')
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+      if (DriveApp.isFake) cachePerformance()
 
   }, {
     skip: false

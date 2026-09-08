@@ -70,7 +70,6 @@
     "testsheetstext": "node testsheetstext.js execute",
     "testsheetsrange": "node testsheetsrange.js execute",
     "testdocslistitems": "node testdocslistitems.js execute",
-    "testdocsall": "node testdocsall.js",
     "testdocsfooters": "node testdocsfooters.js execute",
     "testdocsfootnotes": "node testdocsfootnotes.js execute",
     "testdocsimages": "node testdocsimages.js execute",
@@ -104,7 +103,8 @@
     "testdrivenew": "node testdrivenew.js execute",
     "testhtmlservice": "node testhtmlservice.js execute",
     "testadvbigquery": "node testadvbigquery.js execute",
-    "testbigqueryview": "node testbigqueryview.js execute"
+    "testbigqueryview": "node testbigqueryview.js execute",
+    "testorgconsistency": "node testorgconsistency.js execute"
   },
   "name": "test-gas-fakes",
   "version": "2.5.8",

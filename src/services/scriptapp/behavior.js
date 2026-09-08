@@ -1,15 +1,15 @@
-import { Proxies } from '../../support/proxies.js'
-import { Utils } from '../../support/utils.js'
+import { Proxies } from "../../support/proxies.js";
+import { Utils } from "../../support/utils.js";
 import { slogger } from "../../support/slogger.js";
-import { ids } from 'googleapis/build/src/apis/ids/index.js';
+import { ids } from "googleapis/build/src/apis/ids/index.js";
 
-const { is } = Utils
+const { is } = Utils;
 const checkArgs = (actual, expect = "boolean") => {
   if (!is[expect](actual)) {
-    throw new Error(`${this.name} expected ${expect} but got ${actual}`)
+    throw new Error(`${this.name} expected ${expect} but got ${actual}`);
   }
-  return actual
-}
+  return actual;
+};
 
 const serviceModel = {
   cleanup: null,
@@ -20,166 +20,177 @@ const serviceModel = {
   labelWhitelist: null,
   calendarWhitelist: null,
   usageLimit: null,
-  usageCount: 0
-}
+  usageCount: 0,
+};
 const idWhitelistModel = {
   id: null,
   read: true,
   write: false,
-  trash: false
-}
+  trash: false,
+};
 
 class FakeIdWhitelistItem {
   constructor(id) {
-    this.__model = { ...idWhitelistModel, id }
+    this.__model = { ...idWhitelistModel, id };
   }
   toString() {
-    return 'IdWhitelistItem'
+    return "IdWhitelistItem";
   }
   get id() {
-    return this.__model.id
+    return this.__model.id;
   }
   setId(value) {
-    this.__model.id = checkArgs(value, "nonEmptyString")
-    return this
+    this.__model.id = checkArgs(value, "nonEmptyString");
+    return this;
   }
   get read() {
-    return this.__model.read
+    return this.__model.read;
   }
   setRead(value) {
-    this.__model.read = checkArgs(value)
-    return this
+    this.__model.read = checkArgs(value);
+    return this;
   }
   get write() {
-    return this.__model.write
+    return this.__model.write;
   }
   setWrite(value) {
-    this.__model.write = checkArgs(value)
-    return this
+    this.__model.write = checkArgs(value);
+    return this;
   }
   get trash() {
-    return this.__model.trash
+    return this.__model.trash;
   }
   setTrash(value) {
-    this.__model.trash = checkArgs(value)
-    return this
+    this.__model.trash = checkArgs(value);
+    return this;
   }
 }
 /**
  * create a new behavior instance
- * @param  {...any} args 
+ * @param  {...any} args
  * @returns {Behavior}
  */
 export const newFakeBehavior = (...args) => {
-  return Proxies.guard(new FakeBehavior(...args))
-}
+  return Proxies.guard(new FakeBehavior(...args));
+};
 const newFakeSandboxService = (...args) => {
-  return Proxies.guard(new FakeSandboxService(...args))
-}
+  return Proxies.guard(new FakeSandboxService(...args));
+};
 const newFakeIdWhitelistItem = (...args) => {
-  return Proxies.guard(new FakeIdWhitelistItem(...args))
-}
+  return Proxies.guard(new FakeIdWhitelistItem(...args));
+};
 /**
  * this can modify sandbox behaior for each individual service
  */
 class FakeSandboxService {
   constructor(behavior, name) {
-    this.__name = name
-    this.__state = { ...serviceModel }
-    this.__behavior = behavior
+    this.__name = name;
+    this.__state = { ...serviceModel };
+    this.__behavior = behavior;
   }
 
   clear() {
     // restore to default
-    this.__state = { ...serviceModel }
+    this.__state = { ...serviceModel };
   }
   get name() {
-    return this.__name
+    return this.__name;
   }
   set sandboxStrict(value) {
-    this.__state.sandboxStrict = checkArgs(value)
+    this.__state.sandboxStrict = checkArgs(value);
   }
   set sandboxMode(value) {
-    this.__state.sandboxMode = checkArgs(value)
+    this.__state.sandboxMode = checkArgs(value);
   }
   set cleanup(value) {
-    this.__state.cleanup = checkArgs(value)
+    this.__state.cleanup = checkArgs(value);
   }
   get cleanup() {
-    return is.nullOrUndefined(this.__state.cleanup) ? this.__behavior.cleanup : this.__state.cleanup
+    return is.nullOrUndefined(this.__state.cleanup)
+      ? this.__behavior.cleanup
+      : this.__state.cleanup;
   }
 
   setMethodWhitelist(value) {
     if (!is.null(value)) {
-      checkArgs(value, "array")
-      value.forEach(f => {
-        if (!is.nonEmptyString(f)) throw new Error(`expected an array of nonEmptyStrings for methodWhitelist`)
-      })
+      checkArgs(value, "array");
+      value.forEach((f) => {
+        if (!is.nonEmptyString(f))
+          throw new Error(
+            `expected an array of nonEmptyStrings for methodWhitelist`,
+          );
+      });
     }
-    this.__state.methodWhitelist = value
-    return this
+    this.__state.methodWhitelist = value;
+    return this;
   }
 
   addMethodWhitelist(methodName) {
-    if (!is.nonEmptyString(methodName)) throw new Error(`expected a nonEmptyString for methodName`)
+    if (!is.nonEmptyString(methodName))
+      throw new Error(`expected a nonEmptyString for methodName`);
     if (!this.__state.methodWhitelist) {
-      this.__state.methodWhitelist = []
+      this.__state.methodWhitelist = [];
     }
     if (!this.__state.methodWhitelist.includes(methodName)) {
-      this.__state.methodWhitelist.push(methodName)
+      this.__state.methodWhitelist.push(methodName);
     }
-    return this
+    return this;
   }
 
   removeMethodWhitelist(methodName) {
     if (this.__state.methodWhitelist) {
-      this.__state.methodWhitelist = this.__state.methodWhitelist.filter(m => m !== methodName)
+      this.__state.methodWhitelist = this.__state.methodWhitelist.filter(
+        (m) => m !== methodName,
+      );
       if (this.__state.methodWhitelist.length === 0) {
-        this.__state.methodWhitelist = null
+        this.__state.methodWhitelist = null;
       }
     }
-    return this
+    return this;
   }
 
   clearMethodWhitelist() {
-    this.__state.methodWhitelist = null
-    return this
+    this.__state.methodWhitelist = null;
+    return this;
   }
 
   set emailWhitelist(value) {
     if (!is.null(value)) {
-      checkArgs(value, "array")
-      value.forEach(f => {
-        if (!is.nonEmptyString(f)) throw new Error(`expected an array of nonEmptyStrings for emailWhitelist`)
-      })
+      checkArgs(value, "array");
+      value.forEach((f) => {
+        if (!is.nonEmptyString(f))
+          throw new Error(
+            `expected an array of nonEmptyStrings for emailWhitelist`,
+          );
+      });
     }
-    this.__state.emailWhitelist = value
+    this.__state.emailWhitelist = value;
   }
   get emailWhitelist() {
-    return this.__state.emailWhitelist
+    return this.__state.emailWhitelist;
   }
 
   set labelWhitelist(value) {
     if (!is.null(value)) {
-      checkArgs(value, "array")
+      checkArgs(value, "array");
       // We expect objects like { label: 'name', read: true, write: false, delete: false }
       // but for simplicity in config validation we'll just check it's an array for now
     }
-    this.__state.labelWhitelist = value
+    this.__state.labelWhitelist = value;
   }
   get labelWhitelist() {
-    return this.__state.labelWhitelist
+    return this.__state.labelWhitelist;
   }
 
   set calendarWhitelist(value) {
     if (!is.null(value)) {
-      checkArgs(value, "array")
+      checkArgs(value, "array");
       // We expect objects like { name: 'calendar-name', read?: boolean, write?: boolean, delete?: boolean }
     }
-    this.__state.calendarWhitelist = value
+    this.__state.calendarWhitelist = value;
   }
   get calendarWhitelist() {
-    return this.__state.calendarWhitelist
+    return this.__state.calendarWhitelist;
   }
 
   set usageLimit(value) {
@@ -189,35 +200,45 @@ class FakeSandboxService {
       // User requested granular limits. Let's support object.
       // If we want backward compat, could map number -> {write: number}.
       // But strictly speaking:
-      if (typeof value === 'object') {
-        ['read', 'write', 'trash', 'send'].forEach(k => {
-          if (Reflect.has(value, k) && !is.number(value[k])) throw new Error(`usageLimit.${k} must be a number`);
+      if (typeof value === "object") {
+        ["read", "write", "trash", "send"].forEach((k) => {
+          if (Reflect.has(value, k) && !is.number(value[k]))
+            throw new Error(`usageLimit.${k} must be a number`);
         });
       } else {
         // If it's a number, it implies a TOTAL limit for all operations (read + write + trash + send).
         if (!is.number(value)) {
-          throw new Error(`usageLimit must be an object {read, write, trash, send} or a number (implies total limit)`);
+          throw new Error(
+            `usageLimit must be an object {read, write, trash, send} or a number (implies total limit)`,
+          );
         }
         // value remains a number
       }
     }
-    this.__state.usageLimit = value
+    this.__state.usageLimit = value;
   }
   get usageLimit() {
-    return this.__state.usageLimit
+    return this.__state.usageLimit;
   }
 
   get usageCount() {
     // ensure it's initialized as object if strict
-    if (!this.__state.usageCount || typeof this.__state.usageCount !== 'object') {
+    if (
+      !this.__state.usageCount ||
+      typeof this.__state.usageCount !== "object"
+    ) {
       this.__state.usageCount = { read: 0, write: 0, trash: 0, send: 0 };
     }
-    return this.__state.usageCount
+    return this.__state.usageCount;
   }
 
-  incrementUsage(type = 'write') {
-    if (!['read', 'write', 'trash', 'send'].includes(type)) throw new Error(`Invalid usage type ${type}`);
-    if (!this.__state.usageCount || typeof this.__state.usageCount !== 'object') {
+  incrementUsage(type = "write") {
+    if (!["read", "write", "trash", "send"].includes(type))
+      throw new Error(`Invalid usage type ${type}`);
+    if (
+      !this.__state.usageCount ||
+      typeof this.__state.usageCount !== "object"
+    ) {
       this.__state.usageCount = { read: 0, write: 0, trash: 0, send: 0 };
     }
     this.__state.usageCount[type] = (this.__state.usageCount[type] || 0) + 1;
@@ -230,21 +251,28 @@ class FakeSandboxService {
   }
 
   set enabled(value) {
-    this.__state.enabled = checkArgs(value)
+    this.__state.enabled = checkArgs(value);
   }
   get methodWhitelist() {
-    return is.nullOrUndefined(this.__state.methodWhitelist) ? null : this.__state.methodWhitelist
+    return is.nullOrUndefined(this.__state.methodWhitelist)
+      ? null
+      : this.__state.methodWhitelist;
   }
   get enabled() {
-    return is.nullOrUndefined(this.__state.enabled) ? true : this.__state.enabled
+    return is.nullOrUndefined(this.__state.enabled)
+      ? true
+      : this.__state.enabled;
   }
   get sandboxStrict() {
-    return is.nullOrUndefined(this.__state.sandboxStrict) ? this.__behavior.strictSandbox : this.__state.sandboxStrict
+    return is.nullOrUndefined(this.__state.sandboxStrict)
+      ? this.__behavior.strictSandbox
+      : this.__state.sandboxStrict;
   }
   get sandboxMode() {
-    return is.nullOrUndefined(this.__state.sandboxMode) ? this.__behavior.sandboxMode : this.__state.sandboxMode
+    return is.nullOrUndefined(this.__state.sandboxMode)
+      ? this.__behavior.sandboxMode
+      : this.__state.sandboxMode;
   }
-
 }
 
 class FakeBehavior {
@@ -262,126 +290,148 @@ class FakeBehavior {
     // in sandbox mode we only allow access to files created in this instance
     // this is to emulate the behavior of a drive.file scope
     this.__sandboxMode = false;
-    // if you want the created files to be cleaned up on wrapup 
+    // if you want the created files to be cleaned up on wrapup
     this.__cleanup = true;
     // to strictly enforce sandbox mode
     this.__strictSandbox = true;
-    this.__idWhitelist = null
+    this.__idWhitelist = null;
 
     // we'll record all roots here (platform, id)
-    this.__roots = new Map () 
+    this.__roots = new Map();
 
     // individually settable services
     // BRIDGE: Use a Proxy to dynamically handle services, even those registered later
-    this.__sandboxService = new Proxy({}, {
-      get: (target, name) => {
-        if (typeof name !== 'string' || name.startsWith('__')) return target[name]
+    this.__sandboxService = new Proxy(
+      {},
+      {
+        get: (target, name) => {
+          if (typeof name !== "string" || name.startsWith("__"))
+            return target[name];
 
-        // EXCLUSION: CacheService and PropertiesService are NOT intended to be sandboxed
-        if (name === 'CacheService' || name === 'PropertiesService') return undefined;
+          // EXCLUSION: CacheService and PropertiesService are NOT intended to be sandboxed
+          if (name === "CacheService" || name === "PropertiesService")
+            return undefined;
 
-        if (!target[name]) {
-          target[name] = newFakeSandboxService(this, name)
-        }
-        return target[name]
+          if (!target[name]) {
+            target[name] = newFakeSandboxService(this, name);
+          }
+          return target[name];
+        },
+        ownKeys: (target) => {
+          // When asked for keys, ensure all registered services are present in the target
+          if (globalThis.ScriptApp?.__registeredServices) {
+            globalThis.ScriptApp.__registeredServices.forEach((s) => {
+              // EXCLUSION: CacheService and PropertiesService are NOT intended to be sandboxed
+              if (
+                s !== "CacheService" &&
+                s !== "PropertiesService" &&
+                !target[s]
+              ) {
+                target[s] = newFakeSandboxService(this, s);
+              }
+            });
+          }
+          return Reflect.ownKeys(target);
+        },
+        getOwnPropertyDescriptor: (target, name) => {
+          if (
+            typeof name === "string" &&
+            !name.startsWith("__") &&
+            name !== "CacheService" &&
+            name !== "PropertiesService" &&
+            !target[name]
+          ) {
+            target[name] = newFakeSandboxService(this, name);
+          }
+          return Reflect.getOwnPropertyDescriptor(target, name);
+        },
       },
-      ownKeys: (target) => {
-        // When asked for keys, ensure all registered services are present in the target
-        if (globalThis.ScriptApp?.__registeredServices) {
-          globalThis.ScriptApp.__registeredServices.forEach(s => {
-            // EXCLUSION: CacheService and PropertiesService are NOT intended to be sandboxed
-            if (s !== 'CacheService' && s !== 'PropertiesService' && !target[s]) {
-              target[s] = newFakeSandboxService(this, s)
-            }
-          })
-        }
-        return Reflect.ownKeys(target)
-      },
-      getOwnPropertyDescriptor: (target, name) => {
-        if (typeof name === 'string' && !name.startsWith('__') && name !== 'CacheService' && name !== 'PropertiesService' && !target[name]) {
-          target[name] = newFakeSandboxService(this, name)
-        }
-        return Reflect.getOwnPropertyDescriptor(target, name)
-      }
-    })
+    );
   }
   newIdWhitelistItem(id) {
-    return newFakeIdWhitelistItem(id)
+    return newFakeIdWhitelistItem(id);
   }
   get idWhitelist() {
-    return this.__idWhitelist
+    return this.__idWhitelist;
   }
   get roots() {
-    return this.__roots
+    return this.__roots;
   }
-  isRegisteredRoot (id) {
-    if (id === 'root') return true
+  isRegisteredRoot(id, platform) {
+    if (id === "root") return true;
     // otherwise see if its a registered root
-    const key = this.__platformKey (ScriptApp.__platform, id)
-    return this.roots.has(key)
+    const key = this.__platformKey(platform || ScriptApp.__platform, id);
+    return this.roots.has(key);
   }
-  __platformKey (platform, id) { 
-    if (!platform) throw new Error (`platform must be provided`)
-    if (!id) throw new Error (`id must be provided`)
-    return `${platform}:${id}`
+  __platformKey(platform, id) {
+    if (!platform) throw new Error(`platform must be provided`);
+    if (!id) throw new Error(`id must be provided`);
+    return `${platform}:${id}`;
   }
-  __inRoot (file) {
-    const key = this.__platformKey (file.platform, file.getId())
-    return this.roots.get(key)
+  __inRoot(file) {
+    const key = this.__platformKey(file.platform, file.getId());
+    return this.roots.get(key);
   }
-  __addToRoots (file) {
+  __addToRoots(file) {
     const platform = file.platform;
-    const key = this.__platformKey (platform, file.getId())
-    this.roots.set(key, {
-      file,
-      platform
-    })
-    slogger.log (`...adding root ${file.getId()} to root register ${file.platform} ...`)
-    return this.roots.get(key)
+    const key = this.__platformKey(platform, file.getId());
+    if (!this.roots.has(key)) {
+      this.roots.set(key, {
+        file,
+        platform,
+      });
+      slogger.log(
+        `...adding root ${file.getId()} to root register ${file.platform} ...`,
+      );
+    }
+    return this.roots.get(key);
   }
-  addRoot (file) {
-    if (!is.function(file?.getId)) throw new Error(`expected a file object that supports getId() method`)
-    return this.__inRoot(file) || this.__addToRoots(file)
+  addRoot(file) {
+    if (!is.function(file?.getId))
+      throw new Error(`expected a file object that supports getId() method`);
+    return this.__inRoot(file) || this.__addToRoots(file);
   }
   setIdWhitelist(value) {
     if (!is.null(value)) {
-      checkArgs(value, "array")
-      value.forEach(f => {
-        if (!f || f.toString() !== "IdWhitelistItem") throw new Error(`expected an IdWhitelistItem`)
-      })
+      checkArgs(value, "array");
+      value.forEach((f) => {
+        if (!f || f.toString() !== "IdWhitelistItem")
+          throw new Error(`expected an IdWhitelistItem`);
+      });
     }
-    this.__idWhitelist = value
-    return this
+    this.__idWhitelist = value;
+    return this;
   }
 
   addIdWhitelist(item) {
-    if (!item || item.toString() !== "IdWhitelistItem") throw new Error(`expected an IdWhitelistItem`)
+    if (!item || item.toString() !== "IdWhitelistItem")
+      throw new Error(`expected an IdWhitelistItem`);
     if (!this.__idWhitelist) {
-      this.__idWhitelist = []
+      this.__idWhitelist = [];
     }
     // avoid duplicates by id
-    if (!this.__idWhitelist.find(i => i.id === item.id)) {
-      this.__idWhitelist.push(item)
+    if (!this.__idWhitelist.find((i) => i.id === item.id)) {
+      this.__idWhitelist.push(item);
     }
-    return this
+    return this;
   }
 
   removeIdWhitelist(id) {
     if (this.__idWhitelist) {
-      this.__idWhitelist = this.__idWhitelist.filter(item => item.id !== id)
+      this.__idWhitelist = this.__idWhitelist.filter((item) => item.id !== id);
       if (this.__idWhitelist.length === 0) {
-        this.__idWhitelist = null
+        this.__idWhitelist = null;
       }
     }
-    return this
+    return this;
   }
 
   clearIdWhitelist() {
-    this.__idWhitelist = null
-    return this
+    this.__idWhitelist = null;
+    return this;
   }
   get sandboxService() {
-    return this.__sandboxService
+    return this.__sandboxService;
   }
   set strictSandbox(value) {
     this.__strictSandbox = value;
@@ -429,92 +479,61 @@ class FakeBehavior {
     this.resetCalendar();
     return this;
   }
+
+  // addfile is different to whiltelist file, in that it also registers this as a created file
   addFile(id, force = false) {
-    if (!is.nonEmptyString(id)) {
-      throw new Error(`Invalid sandbox id parameter (${id}) - must be a non-empty string`);
-    }
-    if (this.roots.has (id)) return id;
+    // we cant add roots here so just return
+    if (this.isRegisteredRoot(id)) return id;
 
-
-    const isRootId =  id === 'root';
-    if (isRootId) {
-      throw `unregistered root detected for id ${id}`
-    }
-
+    // we normally dont register files if we're not in sanbox mode, but we can force it
     if (this.sandboxMode || force) {
-      const platform = ScriptApp.__platform;
-      this.__createdIds.set(id, platform);
-      this.whitelistFile(id);
-    }
-    return id
-  }
-  
-  whitelistFile(id) {
-    if (!is.nonEmptyString(id)) {
-      throw new Error(`Invalid sandbox id parameter (${id}) - must be a non-empty string`);
-    }
-    const isRootId = id === 'root' || (globalThis.DriveApp?.getRootFolder()?.getId() === id);
-    if (isRootId) return id;
-
-    const platform = ScriptApp.__platform;
-    if (!this.__allowedIds.has(id)) {
-      slogger.log(`...whitelisting file ${id} on ${platform}`);
-      this.__allowedIds.set(id, platform);
-    }
-    return id;
-  }
-
-  addGmailId(id, force = false) {
-    if (!is.nonEmptyString(id)) {
-      throw new Error(`Invalid sandbox id parameter (${id}) - must be a non-empty string`);
-    }
-    if (this.sandboxMode || force) {
-      const platform = ScriptApp.__platform;
-      this.__createdGmailIds.set(id, platform);
-      this.whitelistGmailId(id);
-    }
-    return id
-  }
-  
-  whitelistGmailId(id) {
-    if (!is.nonEmptyString(id)) {
-      throw new Error(`Invalid sandbox id parameter (${id}) - must be a non-empty string`);
-    }
-    const platform = ScriptApp.__platform;
-    if (!this.__allowedGmailIds.has(id)) {
-      slogger.log(`...whitelisting gmail id ${id} on ${platform}`);
-      this.__allowedGmailIds.set(id, platform);
+      this.addFileToCreated(id);
     }
     return id;
   }
 
   addCalendarId(id, force = false) {
-    if (!is.nonEmptyString(id)) {
-      throw new Error(`Invalid sandbox id parameter (${id}) - must be a non-empty string`);
-    }
     if (this.sandboxMode || force) {
-      const platform = ScriptApp.__platform;
-      this.__createdCalendarIds.set(id, platform);
-      this.whitelistCalendarId(id);
-    }
-    return id
-  }
-  
-  whitelistCalendarId(id) {
-    if (!is.nonEmptyString(id)) {
-      throw new Error(`Invalid sandbox id parameter (${id}) - must be a non-empty string`);
-    }
-    const platform = ScriptApp.__platform;
-    if (!this.__allowedCalendarIds.has(id)) {
-      slogger.log(`...whitelisting calendar id ${id} on ${platform}`);
-      this.__allowedCalendarIds.set(id, platform);
+      this.addCalendarToCreated(id);
     }
     return id;
   }
-  isAccessible(id, serviceName, accessType = 'read') {
-    if (!is.nonEmptyString(id)) {
-      throw new Error(`API call to ${serviceName} failed with error: Invalid argument: id`);
+
+  addGmailId(id, force = false) {
+    if (this.sandboxMode || force) {
+      this.addGmailToCreated(id);
     }
+    return id;
+  }
+
+  // this is about whitelist files, not created files
+  whitelistFile(idx) {
+    // no need to whitelist roots
+    if (this.isRegisteredRoot(idx)) return idx;
+    const { platform, id } = this.makeKnown(idx);
+    slogger.log(`...whitelisting file ${id} on ${platform}`);
+    return id;
+  }
+
+  whitelistGmailId(idx) {
+    const { platform, id } = this.makeKnownGmail(idx);
+    slogger.log(`...whitelisting gmail ${id} on ${platform}`);
+    return id;
+  }
+
+  whitelistCalendarId(idx) {
+    const { platform, id } = this.makeKnownCalendar(idx);
+    slogger.log(`...whitelisting calendar ${id} on ${platform}`);
+    return id;
+  }
+
+  isAccessible(id, serviceName, accessType = "read") {
+    if (!is.nonEmptyString(id)) {
+      throw new Error(
+        `API call to ${serviceName} failed with error: Invalid argument: id`,
+      );
+    }
+    const platform = ScriptApp.__platform;
 
     // Advanced services should inherit sandbox rules from their App counterparts.
     const serviceMapping = {
@@ -529,12 +548,18 @@ class FakeBehavior {
 
     // 1. Check if service is enabled
     if (serviceBehavior && !serviceBehavior.enabled) {
-      throw new Error(`${effectiveServiceName} service is disabled by sandbox settings`);
+      throw new Error(
+        `${effectiveServiceName} service is disabled by sandbox settings`,
+      );
     }
 
     // Determine effective sandbox mode and strictness
-    const sandboxMode = serviceBehavior ? serviceBehavior.sandboxMode : this.sandboxMode;
-    const strictSandbox = serviceBehavior ? serviceBehavior.sandboxStrict : this.strictSandbox;
+    const sandboxMode = serviceBehavior
+      ? serviceBehavior.sandboxMode
+      : this.sandboxMode;
+    const strictSandbox = serviceBehavior
+      ? serviceBehavior.sandboxStrict
+      : this.strictSandbox;
 
     // If not in sandbox mode, access is allowed.
     if (!sandboxMode) {
@@ -543,19 +568,24 @@ class FakeBehavior {
 
     // In sandbox mode, read access to the root folder is always allowed for DriveApp initialization.
     const isRoot = this.isRegisteredRoot(id);
-    if (isRoot && accessType === 'read') {
+    if (isRoot && accessType === "read") {
       return true;
+    } else if (isRoot) {
+      throw new Error(
+        `...only accessType read is allowed on root folder ${id} for ${serviceName} on platform ${platform}`,
+      );
     }
-
 
     // The whitelist is the highest authority. If an ID is on it, its rules are final.
     if (this.idWhitelist) {
-      const whitelistItem = this.idWhitelist.find(item => item.id === id);
+      const whitelistItem = this.idWhitelist.find((item) => item.id === id);
       if (whitelistItem) {
         if (whitelistItem[accessType]) {
           return true;
         } else {
-          throw new Error(`${accessType.charAt(0).toUpperCase() + accessType.slice(1)} access to file ${id} is denied by sandbox whitelist rules`);
+          throw new Error(
+            `${accessType.charAt(0).toUpperCase() + accessType.slice(1)} access to file ${id} is denied by sandbox whitelist rules`,
+          );
         }
       }
     }
@@ -581,20 +611,31 @@ class FakeBehavior {
     }
 
     // internal methods are always allowed
-    if (methodName.startsWith('__')) {
+    if (methodName.startsWith("__")) {
       return true;
     }
 
     // some methods are essential for other services to work, so they are always allowed
-    if (serviceName === 'DriveApp') {
-      const essentialMethods = new Set(['getRootFolder', 'getFileById', 'getFolderById', 'setTrashed']);
+    if (serviceName === "DriveApp") {
+      const essentialMethods = new Set([
+        "getRootFolder",
+        "getFileById",
+        "getFolderById",
+        "setTrashed",
+      ]);
       if (essentialMethods.has(methodName)) {
         return true;
       }
     }
 
-    if (serviceBehavior && serviceBehavior.methodWhitelist && !serviceBehavior.methodWhitelist.includes(methodName)) {
-      throw new Error(`Method ${serviceName}.${methodName} is not allowed by sandbox settings`);
+    if (
+      serviceBehavior &&
+      serviceBehavior.methodWhitelist &&
+      !serviceBehavior.methodWhitelist.includes(methodName)
+    ) {
+      throw new Error(
+        `Method ${serviceName}.${methodName} is not allowed by sandbox settings`,
+      );
     }
     return true;
   }
@@ -607,41 +648,44 @@ class FakeBehavior {
       // Drive cleanup
       if (this.__cleanup) {
         const rootId = DriveApp.getRootFolder().getId();
-        trashed = Array.from(this.__createdIds.entries()).reduce((acc, [id, platform]) => {
-          if (id === rootId) {
-            slogger.log(`...skipping trashing of root folder`);
-            return acc;
-          }
-          let d = null
-          try {
-            ScriptApp.__platform = platform;
-            d = DriveApp.getFileById(id)
-          } catch (e) {
-            try {
-              ScriptApp.__platform = platform;
-              d = DriveApp.getFolderById(id)
-            } catch (ee) {
-              // Ignore if not found
+        trashed = Array.from(this.__createdIds.entries()).reduce(
+          (acc, [id, platform]) => {
+            if (id === rootId || this.isRegisteredRoot(id, platform)) {
+              slogger.log(`...skipped attempt to trash root folder ` + id);
+              return acc;
             }
-          }
-          if (d && d.getId() !== rootId) {
+            let d = null;
             try {
               ScriptApp.__platform = platform;
-              d.setTrashed(true);
-              const name = d.getName();
-              const logLabel = name ? `${name} (${id})` : id;
-              slogger.log(`...trashed file ${logLabel} on ${platform}`);
-              acc.push(id);
+              d = DriveApp.getFileById(id);
             } catch (e) {
-              slogger.error(`...failed to trash file ${id}: ${e.message}`);
+              try {
+                ScriptApp.__platform = platform;
+                d = DriveApp.getFolderById(id);
+              } catch (ee) {
+                // Ignore if not found
+              }
             }
-          }
-          return acc;
-        }, []);
+            if (d && d.getId() !== rootId) {
+              try {
+                ScriptApp.__platform = platform;
+                d.setTrashed(true);
+                const name = d.getName();
+                const logLabel = name ? `${name} (${id})` : id;
+                slogger.log(`...trashed file ${logLabel} on ${platform}`);
+                acc.push(id);
+              } catch (e) {
+                slogger.error(`...failed to trash file ${id}: ${e.message}`);
+              }
+            }
+            return acc;
+          },
+          [],
+        );
         this.__createdIds.clear();
         this.__allowedIds.clear();
       } else {
-        slogger.log('...skipping cleaning up sandbox files (Drive)');
+        slogger.log("...skipping cleaning up sandbox files (Drive)");
       }
 
       // Clean up Gmail artifacts
@@ -650,39 +694,48 @@ class FakeBehavior {
       const gmailCleanup = gmailSettings && gmailSettings.cleanup; // This will return true/false (inherits or specific)
 
       if (gmailCleanup) {
-        trashedGmail = Array.from(this.__createdGmailIds.entries()).reduce((acc, [id, platform]) => {
-          try {
-            ScriptApp.__platform = platform;
-            // Try as label
-            Gmail.Users.Labels.remove('me', id);
-            slogger.log(`...deleted gmail label ${id}`);
-            acc.push(id);
-            return acc;
-          } catch (e) { /* not a label or failed */ }
+        trashedGmail = Array.from(this.__createdGmailIds.entries()).reduce(
+          (acc, [id, platform]) => {
+            try {
+              ScriptApp.__platform = platform;
+              // Try as label
+              Gmail.Users.Labels.remove("me", id);
+              slogger.log(`...deleted gmail label ${id}`);
+              acc.push(id);
+              return acc;
+            } catch (e) {
+              /* not a label or failed */
+            }
 
-          try {
-            ScriptApp.__platform = platform;
-            // Try as thread - move to trash
-            Gmail.Users.Threads.trash('me', id);
-            slogger.log(`...trashed gmail thread ${id}`);
-            acc.push(id);
-            return acc;
-          } catch (e) { /* not a thread */ }
+            try {
+              ScriptApp.__platform = platform;
+              // Try as thread - move to trash
+              Gmail.Users.Threads.trash("me", id);
+              slogger.log(`...trashed gmail thread ${id}`);
+              acc.push(id);
+              return acc;
+            } catch (e) {
+              /* not a thread */
+            }
 
-          try {
-            ScriptApp.__platform = platform;
-            Gmail.Users.Messages.trash('me', id);
-            slogger.log(`...trashed gmail message ${id}`);
-            acc.push(id);
-            return acc;
-          } catch (e) { /* not a message */ }
+            try {
+              ScriptApp.__platform = platform;
+              Gmail.Users.Messages.trash("me", id);
+              slogger.log(`...trashed gmail message ${id}`);
+              acc.push(id);
+              return acc;
+            } catch (e) {
+              /* not a message */
+            }
 
-          return acc;
-        }, []);
+            return acc;
+          },
+          [],
+        );
         this.__createdGmailIds.clear();
         this.__allowedGmailIds.clear();
       } else {
-        slogger.log('...skipping cleaning up sandbox files (Gmail)');
+        slogger.log("...skipping cleaning up sandbox files (Gmail)");
       }
 
       // Clean up Calendar artifacts
@@ -691,7 +744,9 @@ class FakeBehavior {
       const calendarCleanup = calendarSettings && calendarSettings.cleanup;
 
       if (calendarCleanup) {
-        trashedCalendars = Array.from(this.__createdCalendarIds.entries()).reduce((acc, [id, platform]) => {
+        trashedCalendars = Array.from(
+          this.__createdCalendarIds.entries(),
+        ).reduce((acc, [id, platform]) => {
           try {
             ScriptApp.__platform = platform;
             // Delete calendar
@@ -706,23 +761,78 @@ class FakeBehavior {
         this.__createdCalendarIds.clear();
         this.__allowedCalendarIds.clear();
       } else {
-        slogger.log('...skipping cleaning up sandbox calendars');
+        slogger.log("...skipping cleaning up sandbox calendars");
       }
 
-      slogger.log(`...trashed ${trashed.length} sandboxed files, ${trashedGmail.length} gmail items, and ${trashedCalendars.length} calendars`);
+      slogger.log(
+        `...trashed ${trashed.length} sandboxed files, ${trashedGmail.length} gmail items, and ${trashedCalendars.length} calendars`,
+      );
     } finally {
       this.sandboxMode = wasSandbox;
       ScriptApp.__platform = currentPlatform;
     }
     return trashed;
   }
+  getAllowedKey(id) {
+    if (!is.nonEmptyString(id)) {
+      throw new Error(
+        `Invalid sandbox id parameter (${id}) - must be a non-empty string`,
+      );
+    }
+    const platform = ScriptApp.__platform;
+    if (!is.nonEmptyString(platform)) {
+      throw new Error(
+        `Invalid sandbox platform parameter (${platform}) - must be a non-empty string`,
+      );
+    }
+    return this.__platformKey(platform, id);
+  }
+
+  // is known applies to files created in this session with the sandbox on
+  __isKnown(id, mapName) {
+    return mapName.has(this.getAllowedKey(id));
+  }
   isKnown(id) {
-    return this.__allowedIds.has(id);
+    return this.__isKnown(id, this.__createdIds);
   }
   isKnownGmail(id) {
-    return this.__allowedGmailIds.has(id);
+    return this.__isKnown(id, this.__createdGmailIds);
   }
   isKnownCalendar(id) {
-    return this.__allowedCalendarIds.has(id);
+    return this.__isKnown(id, this.__createdCalendarIds);
+  }
+  __makeKnown(id, mapName) {
+    const platform = ScriptApp.__platform;
+    const key = this.getAllowedKey(id);
+    if (!mapName.has(key)) {
+      mapName.set(key, { id, platform });
+    }
+    return mapName.get(key);
+  }
+  __addToCreated(id, mapName) {
+    const platform = ScriptApp.__platform;
+    const key = this.getAllowedKey(id);
+    if (!mapName.has(key)) {
+      mapName.set(key, { id, platform });
+    }
+    return mapName.get(key);
+  }
+  addFileToCreated(id) {
+    return this.__addToCreated(id, this.__createdIds);
+  }
+  addGmailToCreated(id) {
+    return this.__addToCreated(id, this.__createdGmailIds);
+  }
+  addCalendarToCreated(id) {
+    return this.__addToCreated(id, this.__createdCalendarIds);
+  }
+  makeKnown(id) {
+    return this.__makeKnown(id, this.__allowedIds);
+  }
+  makeKnownGmail(id) {
+    return this.__makeKnown(id, this.__allowedGmailIds);
+  }
+  makeKnownCalendar(id) {
+    return this.__makeKnown(id, this.__allowedCalendarIds);
   }
 }

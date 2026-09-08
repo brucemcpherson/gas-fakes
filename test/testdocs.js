@@ -3,7 +3,7 @@ import '@mcpher/gas-fakes';
 import { initTests } from './testinit.js';
 import {
   wrapupTest,
-  getDocsPerformance, maketdoc, trasher, createTrashCollector
+  cachePerformance, maketdoc, trasher, createTrashCollector
 
 } from './testassist.js';
 
@@ -87,7 +87,7 @@ export const testDocs = (pack) => {
     t.is(insertedTable.getCell(0, 0).getText(), "t0c1", "doc.insertTable should have correct content");
 
     // Test appendPageBreak & insertPageBreak are delegated, which is covered by Body tests.
-    if (DocumentApp.isFake) console.log('...cumulative docs cache performance', getDocsPerformance());
+    if (DocumentApp.isFake) cachePerformance();
   });
 
   unit.section("DocumentApp create", t => {
@@ -103,7 +103,7 @@ export const testDocs = (pack) => {
     const openedByUrl = DocumentApp.openByUrl(doc.getUrl());
     t.is(openedByUrl.getId(), doc.getId(), "Opened by URL should have correct ID");
 
-    if (DocumentApp.isFake) console.log('...cumulative docs cache performance', getDocsPerformance())
+    if (DocumentApp.isFake) cachePerformance();
   });
 
   unit.section("document children", t => {
@@ -118,7 +118,7 @@ export const testDocs = (pack) => {
     t.is(bchildIndex, 0)
     t.is(bchild.getType(), DocumentApp.ElementType.PARAGRAPH)
 
-    if (DocumentApp.isFake) console.log('...cumulative docs cache performance', getDocsPerformance())
+     if (DocumentApp.isFake) cachePerformance();
 
   })
 
@@ -175,7 +175,7 @@ export const testDocs = (pack) => {
     t.is(doc.getViewers().length, 1, "all viewers should be removed except owner, who is also a viewer");
 
     t.is(doc.toString(), 'Document', "toString should return 'Document'");
-    if (DocumentApp.isFake) console.log('...cumulative docs cache performance', getDocsPerformance())
+    if (DocumentApp.isFake) cachePerformance();
   });
 
 

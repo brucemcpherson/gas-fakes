@@ -82,9 +82,12 @@ class FakeAdvDriveFiles {
 
     // the download uri us just constructed from the id - doesnt appear to be in any of the properties of file
     const platform = ScriptApp.__platform;
-    const downloadUri = platform === 'ksuite' 
-      ? `https://api.infomaniak.com/2/drive/${Syncit.fxDrive({method: 'getDriveId'}).data}/files/${file.id}/download`
-      : `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&source=downloadUrl`;
+
+    // todo -- we should really set up the download uro in the platform -- done for kdrive - still to do for the others
+    const downloadUri = file.downloadUri || 
+    (platform === 'google' && `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&source=downloadUrl`);
+
+    if (!downloadUri) throw new Error(`No download uri for ${fileId} on platform ${platform}`);
 
     return {
       metadata: {
@@ -130,7 +133,8 @@ class FakeAdvDriveFiles {
     // if (params.alt === 'media') slogger.log(`FakeAdvDriveFiles.get alt=media result type: ${typeof data}, isArray: ${Array.isArray(data)}`);
 
     // this is a patch to ensure that whatever id we actually end up with gerts registered as a root if thats what we were lookgin for
-    data.__rootRequested = id === 'root' ? true: false
+    data.__rootRequested = Boolean(data.__rootRequested || id === 'root')
+
     // do a double paranoid check on platform
     const platform = ScriptApp.__platform
     if (data.platform && data.platform !== platform) {
@@ -213,6 +217,9 @@ class FakeAdvDriveFiles {
 
     const { response, data } = Syncit.fxDrive({ prop: apiProp, method: 'copy', params, options })
     checkResponse(data?.id, response, false)
+    // result of a copy can't be the root - assure the meta processor that we knew that
+    if (data) data.__rootRequested = false
+
     improveFileCache(this.drive.__addAllowed(data.id), data,fields)
     return data
 

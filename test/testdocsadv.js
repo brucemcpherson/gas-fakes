@@ -8,7 +8,7 @@ import '@mcpher/gas-fakes'
 //import '@mcpher/gas-fakes/main.js'
 
 import { initTests } from './testinit.js';
-import { getDocsPerformance, wrapupTest, trasher } from './testassist.js';
+import {  cachePerformance, wrapupTest, trasher } from './testassist.js';
 
 
 // this can run standalone, or as part of combined tests if result of inittests is passed over
@@ -64,8 +64,9 @@ export const testDocsAdv = (pack) => {
 
     t.is(is(Docs.Documents), "Object")
     t.is(Docs.toString(), Docs.Documents.toString())
-    if (Docs.isFake) console.log('...cumulative docs cache performance', getDocsPerformance())
+    if (DocumentApp.isFake) cachePerformance();
   })
+
 
   unit.section("basic adv docs", t => {
     const docName = fixes.PREFIX + "temp-doc"
@@ -119,14 +120,13 @@ export const testDocsAdv = (pack) => {
     t.is(r1.documentId, r2.documentId)
     t.is(r3.documentId, doc.documentId)
     if (fixes.CLEAN) toTrash.push(DriveApp.getFileById(doc.documentId));
-    if (Docs.isFake) console.log('...cumulative docs cache performance', getDocsPerformance())
+    if (DocumentApp.isFake) cachePerformance();
   })
 
 
 
   // running standalone
   if (!pack) {
-    /// if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
     unit.report()
 
   }

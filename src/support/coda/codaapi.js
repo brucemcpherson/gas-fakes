@@ -12,33 +12,6 @@ export class CodaAPIError extends Error {
   }
 }
 
-const getTargetWorkspace = async ({ folderId, workspaceId, thisResource }) => {
-  let targetWorkspaceId = workspaceId;
-
-  if (targetWorkspaceId) {
-    return targetWorkspaceId;
-  }
-
-  // If folderId is provided and not root, resolve workspace from the parent folder
-  if (folderId && folderId !== "root") {
-    const parentFolder = await thisResource.get(folderId);
-    targetWorkspaceId = parentFolder?.workspace?.id;
-  }
-
-  // Fallback: Fetch the workspace from the whoami account profile
-  if (!targetWorkspaceId) {
-    const defaultWs = await thisResource.client.account.getDefaultWorkspace();
-    targetWorkspaceId = defaultWs.id;
-  }
-
-  if (!targetWorkspaceId) {
-    throw new Error(
-      "workspaceId is required by Coda to create a folder, and no default workspace could be found.",
-    );
-  }
-
-  return targetWorkspaceId;
-};
 
 /**
  * Creates a doc and initializes it with text content - shared between folder an file resource
@@ -54,34 +27,8 @@ const createItem = async ({
   thisResource,
   workspaceId,
 }) => {
-  const docPayload = { title, name: title };
+  const docPayload = { title, name: title , workspaceId, folderId };
   const params = {};
-
-  if (media && thisResource.resourceType !== "docs") {
-    throw new Error("Media content can only be added to docs.");
-  }
-
-  const isRoot = !folderId || folderId === "root";
-
-  // For Docs: folderId in params links it to a workspace folder
-  if (!isRoot && thisResource.resourceType === "docs") {
-    params.folderId = folderId;
-  }
-
-  // For Folders: parentFolderId sets subfolder nesting
-  if (!isRoot && thisResource.resourceType === "folders") {
-    docPayload.parentFolderId = folderId;
-  }
-
-  // If creating a top-level folder OR a root doc, we must resolve the workspaceId
-  if (thisResource.resourceType === "folders" || isRoot) {
-    workspaceId = await getTargetWorkspace({
-      folderId: isRoot ? null : folderId,
-      workspaceId,
-      thisResource,
-    });
-    docPayload.workspaceId = workspaceId;
-  }
 
   // Create the Doc or Folder
   const doc = await thisResource.create(docPayload, params);
@@ -211,13 +158,9 @@ export class CodaAPI {
         `${data?.message}` + `HTTP error ${res.status}: ${res.statusText}`;
       throw new CodaAPIError(message, res.status, data);
     }
-    
-    // another hitch is that inFolder=false doesnt actually filter out user folders. so we have to do a further filter to emulate DriveApp behavior
-    // note exact false (as it could just be missing)
-    if (params?.inFolder === false && data?.items?.length) {
-      // not sure of the circumstances where a folderId versus a folder object is provided, so we'll just check for
-      data.items = data.items.filter((i) => !i.folderId && !i.folder);
-    }
+
+    // console.log(url.toString(), JSON.stringify(data.items));
+
     return data;
   }
 
@@ -261,12 +204,17 @@ class DocsResource {
   }
 
   /**
-   * List docs with special handling for the "root" virtual folder
+   * List docs - unlike folders, docs does support folderId and workspaceId parameters
    * @param {object} [params] - Query parameters (e.g. { folderId, workspaceId, query, limit })
    */
   async list(params = {}) {
-    const queryParams = { ...params };
-    return this.client.get("docs", queryParams);
+    const data = await this.client.get("docs", params);
+    // if we just had a workspace filder, it'll return files both inthe workspace and also in folders
+    // however, to emulate Drive we need to return only those that are not in folders
+    if (data?.items && params.workspaceId && !params.folderId) {
+      data.items = data.items.filter((f) => !f.folder);
+    }
+    return data
   }
 
   /**
@@ -487,6 +435,24 @@ export const newCodaAPI = (...args) => {
   return Proxies.guard(new CodaAPI(...args));
 };
 
+// this is because for folders, coda doesnt support folder or workspace params
+const checkListParams = (queryParams) => {
+  /// we know that workspace and parentfolder filtering don't work server side for folders, so drop them
+  let { folderId, workspaceId, ...params } = queryParams;
+  if (!workspaceId && !folderId) {
+    throw new Error(
+      "expected either a workspace id or parentfolderId for a list query",
+    );
+  }
+  // if we have a folderId, we never need a workspaceId
+  if (folderId) workspaceId = undefined;
+  return {
+    folderId,
+    workspaceId,
+    params,
+  };
+};
+
 class FoldersResource {
   constructor(client) {
     this.client = client;
@@ -497,33 +463,28 @@ class FoldersResource {
     return this.client.post("folders", body);
   }
 
-  async list(params = {}) {
-    const queryParams = { ...params };
+  async list(queryParams = {}) {
+    // now we need to do a filter on the returned list
+    const { folderId, workspaceId, params } = checkListParams(queryParams);
+    let data = await this.client.get("folders", params);
 
-    // If querying root folders, fetch workspace folders with no parent
-    if (
-      queryParams.folderId === "root" ||
-      queryParams.parentFolderId === "root"
-    ) {
-      delete queryParams.folderId;
-      delete queryParams.parentFolderId;
-
-      if (!queryParams.workspaceId) {
-        const defaultWs = await this.client.account.getDefaultWorkspace();
-        queryParams.workspaceId = defaultWs.id;
-      }
-
-      const result = await this.client.get("folders", queryParams);
-      if (result?.items) {
-        // Filter for folders that have no parent folder ID
-        result.items = result.items.filter(
-          (folder) => !folder.parentFolder?.id && !folder.parentFolderId,
-        );
-      }
-      return result;
+    if (data?.items) {
+      // its possible we dont have a folder so it being missing is ok.
+      if (folderId)
+        data.items = data.items.filter((f) => f.folder?.id === folderId);
+      // we only need to check the workspace if there was no folder filter as the folder will already have done that
+      // it should always have a workspace, but if it has a folder ID, we have to reject it too because the workspace is not its parent
+      else if (workspaceId)
+        data.items = data.items.filter((f) => {
+          const id = f?.workspace?.id;
+          if (!id)
+            throw new Error(
+              `could not establish workspace id in ${JSON.stringify(f)}`,
+            );
+          return id === workspaceId && !f.folder;
+        });
     }
-
-    return this.client.get("folders", queryParams);
+    return data;
   }
 
   async get(folderId) {

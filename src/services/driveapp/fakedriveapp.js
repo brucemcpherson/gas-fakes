@@ -55,6 +55,15 @@ export class FakeDriveApp {
         }
       }
       this.__rootFolder = newFakeDriveFolder(rf);
+
+      // special hack for ksuite is to add the 'superroot' folder which always has an id of '1'
+      if (rf?.platform ==='ksuite') {
+        if (!rf?.parents || !rf.parents?.length) {
+          throw new Error ('...failed to get id of super folder on ksuite')
+        }
+        // this will whitelist it
+        this.__superFolder = newFakeDriveFolder ({...rf,id:rf.parents[0], capabilities: {canEdit: false, canRename: false, parents:null}})
+      }
     }
     return this.__rootFolder;
   }

@@ -9,8 +9,7 @@ import '@mcpher/gas-fakes'
 //import '@mcpher/gas-fakes/main.js'
 
 import { initTests } from './testinit.js'
-import { getDrivePerformance, getSheetsPerformance } from './testassist.js';
-import { wrapupTest } from './testassist.js';
+import { wrapupTest, cachePerformance } from './testassist.js';
 
 
 
@@ -59,8 +58,7 @@ export const testSheetsPermissions = (pack) => {
 
   // running standalone
   if (!pack) {
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
     unit.report()
 
   }

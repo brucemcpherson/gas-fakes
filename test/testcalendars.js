@@ -2,7 +2,7 @@ import '@mcpher/gas-fakes';
 import is from '@sindresorhus/is';
 
 import { initTests } from './testinit.js';
-import { getCalendarPerformance, wrapupTest, trasher, maketcal, createTrashCollector } from './testassist.js';
+import { cachePerformance, wrapupTest, trasher, maketcal, createTrashCollector } from './testassist.js';
 
 export const testCalendars = (pack) => {
   const toTrash = createTrashCollector();
@@ -28,7 +28,8 @@ export const testCalendars = (pack) => {
       t.is(Calendar.toString(), Calendar[resource].toString(), `Calendar.${resource} should have the correct toString()`);
     });
 
-    if (Calendar.isFake) console.log('...cumulative calendar cache performance', getCalendarPerformance())
+    if (Calendar.isFake) {cachePerformance () }
+
   })
 
 

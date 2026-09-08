@@ -4,7 +4,7 @@
 
 import '@mcpher/gas-fakes';
 import { initTests } from './testinit.js';
-import { getSheetsPerformance, wrapupTest, trasher } from './testassist.js';
+import { cachePerformance, wrapupTest, trasher } from './testassist.js';
 import { Fiddler } from '@mcpher/fiddler';
 
 const hexify = (c) => {
@@ -125,7 +125,7 @@ export const testFiddler = (pack) => {
 
 
   if (!pack) {
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance();
     unit.report()
   }
   if (fixes.CLEAN) trasher(toTrash);

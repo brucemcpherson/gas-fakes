@@ -1,9 +1,8 @@
+
 import path from "path";
+import { Auth } from "./auth.js";
 import { randomUUID } from "node:crypto";
 import mime from "mime";
-import is from "@sindresorhus/is";
-import { Auth } from "./auth.js";
-import { callSync } from "./workersync/synchronizer.js";
 import { minFields } from "./helpers.js";
 import { mergeParamStrings } from "./utils.js";
 import {
@@ -19,6 +18,8 @@ import { slidesCacher } from "./slidescacher.js";
 import { sheetsCacher } from "./sheetscacher.js";
 import { calendarCacher } from "./calendarcacher.js";
 import { bigqueryCacher } from "./bigquerycacher.js";
+import is from "@sindresorhus/is";
+import { callSync } from "./workersync/synchronizer.js";
 const manifestDefaultPath = "./appsscript.json";
 const claspDefaultPath = "./.clasp.json";
 const propertiesDefaultPath = "/tmp/gas-fakes/properties";
@@ -27,14 +28,14 @@ const cacheDefaultPath = "/tmp/gas-fakes/cache";
 // Helper to ensure init has happened before any worker call
 const safeCallSync = (method, ...args) => {
   // console.log('Main thread: Calling worker task...', method);
-  if (method !== 'sxInit' && !Auth.hasAuth()) {
+  if (method !== "sxInit" && !Auth.hasAuth()) {
     // Attempt lazy initialization
     // console.log('Main thread: calling fxInit');
     fxInit();
   }
   const result = callSync(method, ...args);
   // console.log(`[callSync ${method}]`)
-  return result
+  return result;
 };
 
 // note that functions like Sheets.newGridRange() etc create objects that contain get and set functions
@@ -109,8 +110,15 @@ const fxStreamUpMedia = ({
     method,
     mimeType: blob?.getContentType() || file.mimeType,
     fileId,
-    params
+    params,
   });
+
+  if (method === "create" && result.data?.id) {
+    if (ScriptApp.__behavior.sandBoxMode) {
+      ScriptApp.__behavior.addFile(result.data?.id);
+    }
+  }
+
   // check result and register in cache
   return registerSx(result, false, fields);
 };
@@ -124,27 +132,13 @@ const fxStreamUpMedia = ({
  * @return {DriveResponse} from the drive api
  */
 const fxDrive = ({ prop, method, params, options }) => {
-  const result =  safeCallSync("sxDrive", {
+  const result = safeCallSync("sxDrive", {
     prop,
     method,
     params: normalizeSerialization(params),
     options: normalizeSerialization(options),
   });
-  // result will contain data.files array
-  // if platform is coda, then weird stuff can happens. 
 
-  const behavior = ScriptApp.__behavior
-  if (ScriptApp.__platform === 'coda' && method === 'list' && behavior?.sandboxMode) {
-    const files = (result?.data?.files) || []
-    files.forEach (f => {
-      // we need to add the parent folder if there is one, to the whitelist as workspace level 
-      const [parent] = f.parents || []
-      if (parent) {
-        console.log (`...whitelisting parent folder: ${parent} on ${ScriptApp.__platform}`)
-        behavior.addIdWhitelist(behavior.newIdWhitelistItem(parent))
-      }
-    })
-  }
   return result;
 };
 
@@ -183,9 +177,7 @@ const fxGeneric = ({
 
   if (method === "get") {
     return register(resourceId, cacher, result, false, otherParams);
-  }
-
-  else if (resourceId) {
+  } else if (resourceId) {
     cacher.clear(resourceId);
   }
   return result;
@@ -215,7 +207,8 @@ const fxDriveGet = ({
   // now we check if it's in cache and already has the necessary fields
   // the cache will check the fields it already has against those requested
   // but we must bypass cache if alt=media is requested
-  const isMedia = params.alt === 'media' || (params.params && params.params.alt === 'media');
+  const isMedia =
+    params.alt === "media" || (params.params && params.params.alt === "media");
   if (allowCache && !isMedia) {
     const { cachedFile, good } = getFromFileCache(id, params.fields);
     if (good)
@@ -299,7 +292,7 @@ export const fxInit = ({
   claspPath = claspDefaultPath,
   cachePath = cacheDefaultPath,
   propertiesPath = propertiesDefaultPath,
-  platformAuth
+  platformAuth,
 } = {}) => {
   // Use current working directory to resolve relative paths
   const cwd = process.cwd();
@@ -313,15 +306,10 @@ export const fxInit = ({
     cachePath,
     propertiesPath,
     fakeId: randomUUID(),
-    platformAuth: platformAuth || global.ScriptApp?.__platformAuth,
+    platformAuth: ScriptApp.__platformAuth,
   });
 
-  const {
-    identities,
-    settings,
-    manifest,
-    clasp,
-  } = synced;
+  const { identities, settings, manifest, clasp } = synced;
 
   // set these values from the subprocess into the main project version of auth
   Auth.setSettings(settings);
@@ -332,17 +320,20 @@ export const fxInit = ({
 
   // Populate all identities
   if (identities) {
-    Object.keys(identities).forEach(p => {
+    Object.keys(identities).forEach((p) => {
       Auth.setIdentity(p, identities[p]);
     });
   }
 
   // Set default platform only if none is set
   const currentPlatform = Auth.getPlatform();
-  if (currentPlatform === 'google' || !currentPlatform) {
-    const initialPlatforms = platformAuth || global.ScriptApp?.__platformAuth || ['google'];
+  if (currentPlatform === "google" || !currentPlatform) {
+    const initialPlatforms = platformAuth ||
+      ScriptApp.__platformAuth || ["google"];
     // Prefer google if available in authorized platforms, otherwise use the first available.
-    const defaultPlatform = initialPlatforms.includes('google') ? 'google' : initialPlatforms[0];
+    const defaultPlatform = initialPlatforms.includes("google")
+      ? "google"
+      : initialPlatforms[0];
     Auth.setPlatform(defaultPlatform);
   }
 
@@ -389,13 +380,13 @@ const fxDriveMedia = ({ id }) => {
  * @param {object} p.params the params to add to the request
  * @return {DriveResponse} from the drive api
  */
-const fxDriveExport = ({ id, mimeType, options = { alt: 'media' } }) => {
+const fxDriveExport = ({ id, mimeType, options = { alt: "media" } }) => {
   // see issue https://issuetracker.google.com/issues/468534237
   // live apps script failes without this alt option
   return safeCallSync("sxDriveExport", {
     id,
     mimeType,
-    options
+    options,
   });
 };
 
@@ -431,15 +422,16 @@ const fxTestRetry = (errorMessage) => {
 
 const fxJdbcConnect = (url, user, password) => {
   const args = { url };
-  if (typeof user === 'object' && user !== null) {
+  if (typeof user === "object" && user !== null) {
     // Handling info object
     args.user = user.user || user.userName;
     args.password = user.password;
-    // We could pass the whole object if the worker was ready for it, 
+    // We could pass the whole object if the worker was ready for it,
     // but for now let's just stick to user/pass.
   } else {
-    if (user !== null && typeof user !== 'undefined') args.user = user;
-    if (password !== null && typeof password !== 'undefined') args.password = password;
+    if (user !== null && typeof user !== "undefined") args.user = user;
+    if (password !== null && typeof password !== "undefined")
+      args.password = password;
   }
   return safeCallSync("sxJdbcConnect", args);
 };
@@ -550,5 +542,5 @@ export const Syncit = {
   fxJdbcCommit,
   fxJdbcRollback,
   fxJdbcSetAutoCommit,
-  fxJdbcClose
-}
+  fxJdbcClose,
+};

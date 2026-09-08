@@ -9,8 +9,8 @@ import '@mcpher/gas-fakes'
 //import '@mcpher/gas-fakes/main.js'
 
 import { initTests } from './testinit.js'
-import { getSheetsPerformance, wrapupTest } from './testassist.js';
-import { maketss, fillRangeFromDomain, sort2d, getRandomBetween, trasher } from './testassist.js';
+
+import { maketss, fillRangeFromDomain, sort2d, getRandomBetween, trasher ,cachePerformance, wrapupTest} from './testassist.js';
 
 
 // this can run standalone, or as part of combined tests if result of inittests is passed over
@@ -140,7 +140,7 @@ export const testSheetsValues = (pack) => {
     sheet.setRowHeightsForced(row, nrows, rh);
     t.is(sheet.getRowHeight(row), rh, "Forced row height should be reset");
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
 
 
     if (fixes.CLEAN) {
@@ -197,7 +197,7 @@ export const testSheetsValues = (pack) => {
     t.deepEqual(barSheet.getDataRange().getValues(), fooValues)
 
     t.deepEqual(fooSheet.getRange(fooRange).getValues(), barValues)
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   })
 
   unit.section("sorting and randomizing", t => {
@@ -342,7 +342,7 @@ export const testSheetsValues = (pack) => {
     t.true(clearRange.getValues().flat().every(f => f === ''))
 
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   })
 
 
@@ -457,7 +457,7 @@ export const testSheetsValues = (pack) => {
     t.is(sheet.getColumnWidth(col), cw)
     t.is(sheet.getRowHeight(row), rh)
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
 
 
     if (fixes.CLEAN) {
@@ -524,7 +524,7 @@ export const testSheetsValues = (pack) => {
     t.is(aa.getNumRows(), aa.getLastRow() - aa.getRow() + 1)
     t.is(aa.getNumColumns(), aa.getLastColumn() - aa.getColumn() + 1)
     t.is(sheet.getRange(aa.getRow(), aa.getColumn(), aa.getNumRows(), aa.getNumColumns()).getA1Notation(), aaex)
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   })
 
 
@@ -545,7 +545,7 @@ export const testSheetsValues = (pack) => {
     t.true(is.array(ss.sheets))
     t.truthy(ss.sheets.length)
     t.true(is.nonEmptyString(ss.spreadsheetUrl))
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   })
 
   unit.section("spreadsheetapp basics", t => {
@@ -584,14 +584,14 @@ export const testSheetsValues = (pack) => {
 
     t.is(SpreadsheetApp.openByUrl(ss.getUrl()).getId(), ss.getId())
     t.is(SpreadsheetApp.openByKey(ss.getId()).getId(), ss.getId())
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
 
 
   })
 
 
   if (!pack) {
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
     unit.report()
   }
   if (fixes.CLEAN) trasher(toTrash);

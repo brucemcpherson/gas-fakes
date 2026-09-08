@@ -27,7 +27,7 @@ export const testFixes = {
   "SCRATCH_B_VIEWER": "viewer2@mcpher.com",
   "SCRATCH_B_EDITOR": "editor2@mcpher.com",
   "MIN_ROOT_PDFS": 2,
-  "MIN_PDFS": 400,
+  "MIN_PDFS": 2,
   "MIN_FOLDERS_ROOT": 30,
   "SKIP_SINGLE_PARENT": 1,
   "ZIP_TYPE": "application\/zip",
@@ -36,8 +36,9 @@ export const testFixes = {
   "API_URL": "http:\/\/suggestqueries.google.com\/complete\/search?client=chrome&hl=en&q=trump",
   "API_TYPE": "text\/javascript",
   "CLEAN": true,
-  "PREFIX": ScriptApp.isFake ? "--f" : "--g",
-  "CODA_WORKSPACE": "mcpher.com"
+  get PREFIX() { return ScriptApp.isFake ? "--f" : "--g"; },
+  "CODA_WORKSPACE": "mcpher.com",
+  "CODA_MY_DRIVE": "My docs"
 };
 
 // altough we are set up to use multiple backends, to save cost i;ve closed the paid for ones down

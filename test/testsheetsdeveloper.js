@@ -7,8 +7,7 @@ import '@mcpher/gas-fakes'
 //import '@mcpher/gas-fakes/main.js'
 
 import { initTests } from './testinit.js'
-import { getDrivePerformance, getSheetsPerformance } from './testassist.js';
-import { maketss, wrapupTest, trasher } from './testassist.js';
+import { maketss, wrapupTest, trasher , cachePerformance} from './testassist.js';
 
 
 // this can run standalone, or as part of combined tests if result of inittests is passed over
@@ -58,7 +57,7 @@ export const testSheetsDeveloper = (pack) => {
     t.is(range.getA1Notation(), "2:5", "Inverted row-only range should be corrected");
     range = sheet.getRange("D:B");
     t.is(range.getA1Notation(), "B:D", "Inverted column-only range should be corrected");
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance());
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("Range Bounded Methods", t => {
@@ -90,7 +89,7 @@ export const testSheetsDeveloper = (pack) => {
     t.is(singleRowRange.isStartRowBounded(), true, "Single row range should have start row bound");
     t.is(singleRowRange.isEndRowBounded(), true, "Single row range should have end row bound");
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance());
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("Developer Metadata", t => {
@@ -206,13 +205,12 @@ export const testSheetsDeveloper = (pack) => {
     colMeta.remove();
     t.is(entireColumnRange.getDeveloperMetadata().length, 0, "Column metadata should be removed from range");
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance());
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   // running standalone
   if (!pack) {
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
     unit.report()
 
   }

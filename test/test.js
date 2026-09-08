@@ -1,5 +1,5 @@
 // use package.json to direct to file:../ for local code testing
-import '@mcpher/gas-fakes'
+import "@mcpher/gas-fakes";
 
 import { initTests } from "./testinit.js";
 import { testDrive } from "./testdrive.js";
@@ -12,14 +12,7 @@ import { testUtilities } from "./testutilities.js";
 import { testContentService } from "./testcontent.js";
 import { testStores } from "./teststores.js";
 import { testScriptApp } from "./testscriptapp.js";
-import {
-  getDrivePerformance,
-  getSheetsPerformance,
-  getDocsPerformance,
-  getSlidesPerformance,
-  getFormsPerformance,
-  getCalendarPerformance,
-} from "./testassist.js";
+import { cachePerformance } from "./testassist.js";
 import { testFiddler } from "./testfiddler.js";
 import { testSheetsDataValidations } from "./testsheetsdatavalidations.js";
 import { testEnums } from "./testenums.js";
@@ -69,26 +62,26 @@ import { testSheetsBasic } from "./testsheetsbasic.js";
 import { testDocsImages } from "./testdocsimages.js";
 import { testSandbox } from "./testsandbox.js";
 import { testDocsStyles } from "./testdocsstyles.js";
-import { testChat } from './testchat.js';
-import { testPeople } from './testpeople.js';
-import { testCalendars } from './testcalendars.js';
-import { testCalendarSandbox } from './testcalendarsandbox.js';
-import { testTasks } from './testtasks.js';
-import { testWorkspaceEvents } from './testworkspaceevents.js';
-import { testAdvBigQuery } from './testadvbigquery.js';
-import { testBigQueryView } from './testbigqueryview.js';
+import { testChat } from "./testchat.js";
+import { testPeople } from "./testpeople.js";
+import { testCalendars } from "./testcalendars.js";
+import { testCalendarSandbox } from "./testcalendarsandbox.js";
+import { testTasks } from "./testtasks.js";
+import { testWorkspaceEvents } from "./testworkspaceevents.js";
+import { testAdvBigQuery } from "./testadvbigquery.js";
+import { testBigQueryView } from "./testbigqueryview.js";
 import { testLogger } from "./testlogger.js";
 import { testBase } from "./testbase.js";
-import { testMimeType } from './testmimetype.js';
-import { testLock } from './testlock.js';
+import { testMimeType } from "./testmimetype.js";
+import { testLock } from "./testlock.js";
 import { testChartsApp } from "./testchartsapp.js";
 import { testFormWebHack } from "./testformwebhack.js";
 import { testDriveSharing } from "./testdrivesharing.js";
 import { testDwdRefresh } from "./testdwdrefresh.js";
-import { testKSuiteDrive } from './testksuitedrive.js';
-import { testKSuiteDriveSharing } from './testksuitedrivesharing.js';
-import { testMsGraphDrive } from './testmsgraphdrive.js';
-import { testMsGraphExcel } from './testmsgraphexcel.js';
+import { testKSuiteDrive } from "./testksuitedrive.js";
+import { testKSuiteDriveSharing } from "./testksuitedrivesharing.js";
+import { testMsGraphDrive } from "./testmsgraphdrive.js";
+import { testMsGraphExcel } from "./testmsgraphexcel.js";
 import { testJdbc } from "./testjdbc.js";
 import { testJdbcAdv } from "./testjdbcadv.js";
 import { testJdbcStatement } from "./testjdbcstatement.js";
@@ -102,7 +95,7 @@ import { testSandboxGmail } from "./testsandboxgmail.js";
 import { testDriveNew } from "./testdrivenew.js";
 import { testCoda } from "./testcoda.js";
 import { testHtmlService } from "./testhtmlservice.js";
-
+import { testOrgConsistency } from "./testorgconsistency.js";
 
 export const testFakes = () => {
   const pack = initTests();
@@ -119,6 +112,9 @@ export const testFakes = () => {
 
   //console.log("\n----Test multi-backend----");
   //testMultiBackend(pack);
+
+  console.log("\n----Test Org Consistency----");
+  testOrgConsistency(pack);
 
   console.log("\n----Test Coda----");
   testCoda(pack);
@@ -162,8 +158,6 @@ export const testFakes = () => {
   console.log("\n----Test Sheets Sets----");
   testSheetsSets(pack);
 
-
-
   console.log("\n----Test Enums----");
   testEnums(pack);
 
@@ -206,8 +200,6 @@ export const testFakes = () => {
   console.log("\n----Test workspaceevents----");
   testWorkspaceEvents(pack);
 
-
-
   console.log("\n----Test calendar----");
   testCalendars(pack);
   console.log("\n----Test calendarsandbox----");
@@ -227,7 +219,6 @@ export const testFakes = () => {
   testSandbox(pack);
   console.log("\n----Test docs styles----");
   testDocsStyles(pack);
-
 
   console.log("\n----Test SheetsValues----");
   testSheetsValues(pack);
@@ -290,7 +281,6 @@ export const testFakes = () => {
   console.log("\n----Test docs footnotes----");
   testDocsFootnotes(pack);
 
-
   console.log("\n----Test form----");
   testForm(pack);
   console.log("\n----Test formsadv----");
@@ -317,9 +307,7 @@ export const testFakes = () => {
   console.log("\n----Test Stores----");
   testStores(pack);
 
-
   console.log("\n----TEST FILES COMPLETE----");
-
 
   // important - run this last for now - see https://github.com/brucemcpherson/gas-fakes/issues/118
   console.log("\n----Test gmail----");
@@ -328,26 +316,16 @@ export const testFakes = () => {
   testSandboxGmail(pack);
 
   // reports on cache performance
-  if (ScriptApp.isFake) {
-    console.log("...cumulative drive cache performance", getDrivePerformance());
-    console.log(
-      "...cumulative sheets cache performance",
-      getSheetsPerformance()
-    );
-    console.log("...cumulative docs cache performance", getDocsPerformance());
-    console.log("...cumulative slides cache performance", getSlidesPerformance());
-    console.log("...cumulative forms cache performance", getFormsPerformance());
-    console.log("...cumulative calendar cache performance", getCalendarPerformance());
-  }
+  if (ScriptApp.isFake) { cachePerformance(); }
+
   // final cleanup of all files created during the test run
   if (ScriptApp.isFake) {
     ScriptApp.__behavior.trash();
   }
   // all tests cumulative unit report
   unit.report();
-
 };
 
 // this required on Node but not on Apps Script
 // but skip if we are in a worker to avoid infinite loops during HtmlService.evaluate()
-if (ScriptApp.isFake && process.env.GAS_FAKES_WORKER !== 'true') testFakes();
+if (ScriptApp.isFake && process.env.GAS_FAKES_WORKER !== "true") testFakes();

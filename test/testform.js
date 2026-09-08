@@ -1,7 +1,7 @@
 import is from '@sindresorhus/is';
 import '@mcpher/gas-fakes';
 import { initTests } from './testinit.js';
-import { getFormsPerformance, wrapupTest, getDrivePerformance, trasher } from './testassist.js';
+import { cachePerformance, wrapupTest, trasher } from './testassist.js';
 
 export const testForm = (pack) => {
   const toTrash = [];
@@ -44,7 +44,7 @@ export const testForm = (pack) => {
       t.is(pageBreak1.getPageNavigationType(), FormApp.PageNavigationType.CONTINUE, 'getPageNavigationType should always be CONTINUE');
     }
 
-    if (FormApp.isFake) console.log('...cumulative forms cache performance', getFormsPerformance());
+    if (FormApp.isFake) cachePerformance()
   });
 
   unit.section('FormApp basics', (t) => {
@@ -119,10 +119,7 @@ export const testForm = (pack) => {
       t.is(form.isPublished(), isPublished, 'isPublished() not affected after setAcceptingResponses(false)');
     }
 
-    if (FormApp.isFake) {
-      console.log('...cumulative forms cache performance', getFormsPerformance());
-      console.log('...cumulative drive cache performance', getDrivePerformance());
-    }
+    if (FormApp.isFake) cachePerformance()
   });
 
   unit.section('Form item methods', (t) => {
@@ -202,9 +199,7 @@ export const testForm = (pack) => {
     const nonExistentItem = updatedForm.getItemById('non-existent-id');
     t.is(nonExistentItem, null, 'getItemById() with a non-existent ID should return null');
 
-    if (FormApp.isFake) {
-      console.log('...cumulative forms cache performance', getFormsPerformance());
-    }
+    if (FormApp.isFake) cachePerformance()
   });
 
   unit.section('Form.addCheckboxItem', (t) => {
@@ -237,7 +232,7 @@ export const testForm = (pack) => {
     t.is(retrievedItem.getTitle(), 'What are your favorite colors?', 'Title should be set correctly');
     t.deepEqual(retrievedItem.getChoices().map(c => c.getValue()), newChoiceValues, 'Choices should be set correctly');
 
-    if (FormApp.isFake) console.log('...cumulative forms cache performance', getFormsPerformance());
+    if (FormApp.isFake) cachePerformance()
   });
 
   unit.section('Form.addMultipleChoiceItem', (t) => {
@@ -270,7 +265,7 @@ export const testForm = (pack) => {
     t.is(retrievedItem.getTitle(), 'What is your favorite color?', 'Title should be set correctly');
     t.deepEqual(retrievedItem.getChoices().map(c => c.getValue()), newChoiceValues, 'Choices should be set correctly');
 
-    if (FormApp.isFake) console.log('...cumulative forms cache performance', getFormsPerformance());
+    if (FormApp.isFake) cachePerformance()
   });
 
   unit.section('Form.addGridItem', (t) => {
@@ -297,7 +292,7 @@ export const testForm = (pack) => {
     t.deepEqual(gridItem.getRows(), rows, 'getRows() should return the correct rows');
     t.deepEqual(gridItem.getColumns(), cols, 'getColumns() should return the correct columns');
 
-    if (FormApp.isFake) console.log('...cumulative forms cache performance', getFormsPerformance());
+    if (FormApp.isFake) cachePerformance()
   });
 
   unit.section('Form.addCheckboxGridItem', (t) => {
@@ -330,7 +325,7 @@ export const testForm = (pack) => {
     t.is(retrievedItem.getTitle(), 'Select all that apply', 'Title should be set correctly');
     t.is(retrievedItem.getHelpText(), 'You may select multiple options per row', 'Help text should be set correctly');
 
-    if (FormApp.isFake) console.log('...cumulative forms cache performance', getFormsPerformance());
+    if (FormApp.isFake) cachePerformance()
   });
 
   unit.section('Form.addSectionHeaderItem', (t) => {
@@ -348,7 +343,7 @@ export const testForm = (pack) => {
     t.is(sectionHeaderItem.getTitle(), 'New Section Title', 'Title should be updated');
     t.is(sectionHeaderItem.getHelpText(), 'Some help text', 'Help text should be updated');
 
-    if (FormApp.isFake) console.log('...cumulative forms cache performance', getFormsPerformance());
+    if (FormApp.isFake) cachePerformance()
   });
 
   unit.section('Form.addScaleItem', (t) => {
@@ -371,7 +366,7 @@ export const testForm = (pack) => {
     t.is(scaleItem.getLeftLabel(), 'Bad', 'Left label should be updated');
     t.is(scaleItem.getRightLabel(), 'Good', 'Right label should be updated');
 
-    if (FormApp.isFake) console.log('...cumulative forms cache performance', getFormsPerformance());
+    if (FormApp.isFake) cachePerformance()
   });
 
   unit.section('Form.moveItem', (t) => {
@@ -429,8 +424,7 @@ export const testForm = (pack) => {
     const retrievedItem = form.getItemById(listItem.getId()).asListItem();
     t.is(retrievedItem.getTitle(), 'Select an option', 'Title should be set correctly');
     t.deepEqual(retrievedItem.getChoices().map(c => c.getValue()), newChoiceValues, 'Choices should be set correctly');
-
-    if (FormApp.isFake) console.log('...cumulative forms cache performance', getFormsPerformance());
+    if (FormApp.isFake) cachePerformance()
   });
 
   unit.section('Form.addTextItem', (t) => {
@@ -450,7 +444,7 @@ export const testForm = (pack) => {
     t.is(retrievedItem.getTitle(), 'Enter your name', 'Title should be set correctly');
     t.true(retrievedItem.isRequired(), 'Item should be required');
 
-    if (FormApp.isFake) console.log('...cumulative forms cache performance', getFormsPerformance());
+    if (FormApp.isFake) cachePerformance()
   });
 
   unit.section('Form.getItems by type', (t) => {
@@ -543,7 +537,7 @@ export const testForm = (pack) => {
         }
       }
     }
-    if (FormApp.isFake) console.log('...cumulative forms cache performance', getFormsPerformance());
+    if (FormApp.isFake) cachePerformance()
   });
 
   if (!pack) {

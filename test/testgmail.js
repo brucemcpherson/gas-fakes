@@ -3,7 +3,7 @@ import '@mcpher/gas-fakes';
 import is from '@sindresorhus/is';
 
 import { initTests } from './testinit.js';
-import { getGmailPerformance, wrapupTest, trasher } from './testassist.js';
+import { cachePerformance, wrapupTest, trasher } from './testassist.js';
 
 export const testGmail = (pack) => {
   const activeEmail = Session.getActiveUser().getEmail();
@@ -58,7 +58,7 @@ export const testGmail = (pack) => {
     const err = t.threw(() => Gmail.Users.Labels.get('me', createdLabel.id));
     t.rxMatch(err.message, /(404|not found)/i, 'getting a deleted label should throw a 404 or not found error');
 
-    if (Gmail.isFake) console.log('...cumulative gmail cache performance', getGmailPerformance());
+    if (Gmail.isFake) cachePerformance()
   });
 
   unit.section('GmailApp basic methods', (t) => {

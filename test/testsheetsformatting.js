@@ -21,10 +21,11 @@ import {
   fillRangeFromDomain,
   isEnum,
   BLACK,
-  transpose2DArray,
+  cachePerformance,
   trasher,
+  wrapupTest
 } from "./testassist.js";
-import { getSheetsPerformance, wrapupTest } from "./testassist.js";
+
 // this can run standalone, or as part of combined tests if result of inittests is passed over
 export const testSheetsFormatting = (pack) => {
   const toTrash = [];
@@ -177,11 +178,7 @@ export const testSheetsFormatting = (pack) => {
     const style3 = result3.getTextStyle();
     t.false(style3.isBold(), "Default style should not be bold");
     t.is(style3.getFontSize(), 10, "Default font size should be 10");
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("exotic styles", (t) => {
@@ -321,12 +318,7 @@ export const testSheetsFormatting = (pack) => {
       t.is(f.isUnderline(), false);
       t.is(f.getForegroundColor(), "#00ff00");
     });
-
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("setting and repeating cell formats", (t) => {
@@ -605,11 +597,7 @@ export const testSheetsFormatting = (pack) => {
     const clearRange = sheet.getRange("a1:z100");
     clearRange.clearFormat();
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   // this section is kind of redundant now as I've consolodated most of these tests into setting and repearing cell formats
@@ -679,11 +667,7 @@ export const testSheetsFormatting = (pack) => {
     t.is(b2.getTop().getColor().asRgbColor().asHexString(), GREEN);
     t.is(b2.getLeft().getColor().asRgbColor().asHexString(), BLACK);
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("cell and font backgrounds, styles and alignments", (t) => {
@@ -887,12 +871,7 @@ export const testSheetsFormatting = (pack) => {
       "general",
       "newly created sheet will have general"
     );
-
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section(
@@ -931,11 +910,7 @@ export const testSheetsFormatting = (pack) => {
       t.is(leftCol.getLeft().getBorderStyle(), null);
       t.is(rightCol.getRight().getBorderStyle(), null);
 
-      if (SpreadsheetApp.isFake)
-        console.log(
-          "...cumulative sheets cache performance",
-          getSheetsPerformance()
-        );
+    if (SpreadsheetApp.isFake) cachePerformance()
     },
     { skip: true }
   );
@@ -990,11 +965,7 @@ export const testSheetsFormatting = (pack) => {
       tc
     );
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("color objects and builders", (t) => {
@@ -1061,11 +1032,7 @@ export const testSheetsFormatting = (pack) => {
       "Object is not of type RgbColor."
     );
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("setting and getting color objects}", (t) => {
@@ -1196,21 +1163,13 @@ export const testSheetsFormatting = (pack) => {
         .every((f) => f === "")
     );
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
 
   // running standalone
   if (!pack) {
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
     unit.report();
   }
   if (fixes.CLEAN) trasher(toTrash);

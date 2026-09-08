@@ -29,12 +29,16 @@ const getAppHandler = (getApp, name) => {
       // now we have a loaded service
       loadedRegistry.add(name)
 
-      // are we being asked to run a method?
       const member = Reflect.get(app, prop, receiver);
 
-      // Check method whitelist if it's a function call on a service
-      if (Utils.is.function(member) && name && globalThis.ScriptApp?.__behavior) {
-        globalThis.ScriptApp.__behavior.checkMethod(name, prop);
+      if (Utils.is.function(member)) {
+        return (...args) => {
+          // Only check behavior when the method is ACTUALLY EXECUTED
+          if (name && globalThis.ScriptApp?.__behavior) {
+            globalThis.ScriptApp.__behavior.checkMethod(name, prop);
+          }
+          return member.apply(app, args);
+        };
       }
 
       return member;

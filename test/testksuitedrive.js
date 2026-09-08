@@ -1,7 +1,8 @@
 import '@mcpher/gas-fakes'
-import { initTests } from './testinit.js'
-import { wrapupTest, getDrivePerformance, trasher, checkBackend, createTrashCollector } from './testassist.js'
+
+import { wrapupTest, trasher, checkBackend, createTrashCollector, cachePerformance } from './testassist.js'
 import is from '@sindresorhus/is'
+import { initTests } from './testinit.js'
 
 export const testKSuiteDrive = (pack) => {
 
@@ -14,11 +15,18 @@ export const testKSuiteDrive = (pack) => {
   const toTrash = createTrashCollector()
 
   // sandbox check
-  if (behavior) behavior.sandboxMode = false
+  //if (behavior) behavior.sandboxMode = false
 
   // --- Fixture Setup for KSuite ---
   let kFixes = { ...originalFixes };
 
+  // dynmically whitelist an item for read (we may be reusing an existing find)
+  const whitelistItem = (id) => {
+    if (behavior && behavior.sandboxMode) {
+      behavior.addIdWhitelist(behavior.newIdWhitelistItem(id));
+      console.log ('...dynamically whitelisted file item', id, ' on platform ', ScriptApp.__platform)
+    }
+  }
   unit.section('KSuite Fixture Setup', t => {
     const root = DriveApp.getRootFolder();
     const prefix = originalFixes.PREFIX;
@@ -29,10 +37,12 @@ export const testKSuiteDrive = (pack) => {
     let testFolder;
     if (existingFolders.hasNext()) {
       testFolder = existingFolders.next();
+      whitelistItem (testFolder.getId())
     } else {
       testFolder = root.createFolder(folderName);
       toTrash.push(testFolder);
     }
+    
     kFixes.TEST_FOLDER_ID = testFolder.getId();
     kFixes.TEST_FOLDER_NAME = testFolder.getName();
 
@@ -42,18 +52,20 @@ export const testKSuiteDrive = (pack) => {
     let textFile;
     if (existingTextFiles.hasNext()) {
       textFile = existingTextFiles.next();
+      whitelistItem (textFile.getId())
     } else {
       textFile = testFolder.createFile(textFileName, originalFixes.TEXT_FILE_CONTENT, originalFixes.TEXT_FILE_TYPE);
-      toTrash.push(textFile);
     }
     kFixes.TEXT_FILE_ID = textFile.getId();
     kFixes.TEXT_FILE_NAME = textFile.getName();
+
 
     // PDF_ID - Using provided file ID 644
     kFixes.PDF_ID = "644";
     try {
       const pdfFile = DriveApp.getFileById(kFixes.PDF_ID);
       kFixes.PDF_NAME = pdfFile.getName();
+      whitelistItem (pdfFile.getId())  
     } catch (err) {
       // Fallback
       const pdfFile = root.createFile(prefix + "k-fix-pdf.pdf", "fake pdf content", "application/pdf");
@@ -83,6 +95,7 @@ export const testKSuiteDrive = (pack) => {
     let sharedFile;
     if (existingShared.hasNext()) {
       sharedFile = existingShared.next();
+      whitelistItem (sharedFile.getId())  
     } else {
       sharedFile = root.createFile(sharedFileName, "shared content");
       toTrash.push(sharedFile);
@@ -198,8 +211,7 @@ export const testKSuiteDrive = (pack) => {
     t.rxMatch(t.threw(() => Drive.Files.copy(null, null)).toString(), /API call to drive\.files\.copy failed with error: Required/)
     t.rxMatch(t.threw(() => dcfile.makeCopy(folder, "xx")).toString(), /The parameters \(DriveApp.Folder,String\) don't match/)
     t.rxMatch(t.threw(() => dcfile.makeCopy("yy", "xx")).toString(), /The parameters \(String,String\) don't match/)
-
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+    if (DriveApp.isFake) cachePerformance()
   })
 
   unit.section('driveapp permission management', t => {
@@ -217,8 +229,7 @@ export const testKSuiteDrive = (pack) => {
 
     file.setSharing(DriveApp.Access.PRIVATE, DriveApp.Permission.NONE);
     t.is(file.getSharingAccess(), DriveApp.Access.PRIVATE);
-
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+    if (DriveApp.isFake) cachePerformance()
   });
 
   unit.section("advanced drive basics", t => {
@@ -232,7 +243,7 @@ export const testKSuiteDrive = (pack) => {
     t.is(file.mimeType, kFixes.TEXT_FILE_TYPE)
     t.is(file.kind, 'drive#file')
 
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+    if (DriveApp.isFake) cachePerformance()
   })
 
   unit.section("root folder checks", t => {
@@ -247,7 +258,7 @@ export const testKSuiteDrive = (pack) => {
     const root = Drive.Files.get('root', { fields: 'parents' })
     t.true(is.undefined(root.parents) || is.null(root.parents) || (Array.isArray(root.parents) && (root.parents.length === 0 || root.parents[0] === '1')))
 
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+    if (DriveApp.isFake) cachePerformance()
   })
 
   unit.section("driveapp searches", t => {
@@ -278,7 +289,7 @@ export const testKSuiteDrive = (pack) => {
     const folderPile = parentCheck(folders, root)
     t.true(folderPile.length >= 0)
 
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+    if (DriveApp.isFake) cachePerformance()
   })
 
   unit.section('updates and moves advdrive and driveapp', t => {
@@ -305,14 +316,14 @@ export const testKSuiteDrive = (pack) => {
 
     cf.setContent("foo")
     t.is(cf.getBlob().getDataAsString(), "foo")
-
+    // TODO we need to check this --- is it a timiing thing --- is it actually working.!! currently we're failing on ksuite with this test
     t.false(cf.isTrashed())
     cf.setTrashed(true)
     t.true(cf.isTrashed())
     cf.setTrashed(false)
     t.false(cf.isTrashed())
 
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+    if (DriveApp.isFake) cachePerformance()
   })
 
   unit.section('driveapp and adv permissions', t => {
@@ -327,7 +338,7 @@ export const testKSuiteDrive = (pack) => {
     const file = DriveApp.getFileById(kFixes.SHARED_FILE_ID)
     t.true(is.nonEmptyString(file.getOwner().getEmail()))
 
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+    if (DriveApp.isFake) cachePerformance()
   })
 
   unit.section('create files with driveapp and compare content with adv drive and urlfetch', t => {
@@ -341,7 +352,7 @@ export const testKSuiteDrive = (pack) => {
     t.is(rootFile.getName(), rname)
     toTrash.push(rootFile)
 
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+    if (DriveApp.isFake) cachePerformance()
   })
 
   unit.section('drive JSON api tests with urlfetchapp directly', t => {
@@ -353,7 +364,7 @@ export const testKSuiteDrive = (pack) => {
     t.is(df.id, kFixes.TEXT_FILE_ID)
     t.true(Reflect.has(df, 'id'))
 
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+    if (DriveApp.isFake) cachePerformance()
   })
 
   unit.section('driveapp basics and Drive equivalence', t => {
@@ -368,8 +379,7 @@ export const testKSuiteDrive = (pack) => {
     const adv = Drive.Files.get(kFixes.TEXT_FILE_ID)
     t.is(adv.id, kFixes.TEXT_FILE_ID)
     t.is(adv.name, kFixes.TEXT_FILE_NAME)
-
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+    if (DriveApp.isFake) cachePerformance()
   })
 
   unit.section('adv drive downloads', t => {
@@ -387,7 +397,7 @@ export const testKSuiteDrive = (pack) => {
     const bytes = Drive.Files.get(kFixes.TEXT_FILE_ID, { alt: 'media' })
     t.is(Utilities.newBlob(bytes).getDataAsString(), kFixes.TEXT_FILE_CONTENT)
 
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+    if (DriveApp.isFake) cachePerformance()
   })
 
   unit.section('check where google doesnt support in adv drive', t => {
@@ -414,7 +424,7 @@ export const testKSuiteDrive = (pack) => {
     }
     t.true(count >= 1)
 
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+    if (DriveApp.isFake) cachePerformance()
   })
 
   unit.section("driveapp searching with queries", t => {
@@ -439,13 +449,13 @@ export const testKSuiteDrive = (pack) => {
     }
     t.is(fileCount, kFixes.TEST_FOLDER_FILES)
 
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+    if (DriveApp.isFake) cachePerformance()
   })
 
   unit.section('getting content', t => {
     const file = DriveApp.getFileById(kFixes.TEXT_FILE_ID)
     t.is(file.getBlob().getDataAsString(), kFixes.TEXT_FILE_CONTENT)
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+    if (DriveApp.isFake) cachePerformance()
   })
 
   unit.section('extended meta data', t => {
@@ -459,7 +469,7 @@ export const testKSuiteDrive = (pack) => {
     t.true(is.date(folder.getLastUpdated()))
     t.true(is.date(folder.getDateCreated()))
 
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
+    if (DriveApp.isFake) cachePerformance()
   })
 
   unit.section('trap null ids', t => {

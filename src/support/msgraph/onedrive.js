@@ -256,7 +256,7 @@ export class OneDrive {
       },
       webViewLink: msFile.webUrl,
       iconLink: null,
-      __rootRequested,
+      __rootRequested: rootRequested,
       platform: 'msgraph'
     };
   }

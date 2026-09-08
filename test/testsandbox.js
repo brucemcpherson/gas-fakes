@@ -1,14 +1,9 @@
-import '@mcpher/gas-fakes'
+import "@mcpher/gas-fakes";
 
-import is from '@sindresorhus/is';
+import is from "@sindresorhus/is";
 
 import { initTests } from "./testinit.js";
-import {
-  getDrivePerformance,
-  getSheetsPerformance,
-  getDocsPerformance,
-  getSlidesPerformance,
-} from "./testassist.js";
+import { cachePerformance } from "./testassist.js";
 
 export const testSandbox = (pack) => {
   const { unit, fixes } = pack || initTests();
@@ -26,29 +21,39 @@ export const testSandbox = (pack) => {
     cleanup: behavior.cleanup,
     // a shallow copy is sufficient as the items themselves are not modified
     idWhitelist: behavior.idWhitelist ? [...behavior.idWhitelist] : null,
-    serviceStates: {}
+    serviceStates: {},
   };
-  unit.section('init tests', t => {
+  unit.section("init tests", (t) => {
     if (behavior.sandboxService) {
-      const registered = ScriptApp.__registeredServices
+      const registered = ScriptApp.__registeredServices;
       const sandboxedServices = Object.keys(behavior.sandboxService).sort();
-      const nonSandboxedServices = ['PropertiesService', 'CacheService'];
-      const loaded = ScriptApp.__loadedServices
-      t.true(is.nonEmptyArray(registered), 'these are the services that have been registered')
-      t.true(is.nonEmptyArray(loaded), 'these are the services that have been loaded')
+      const nonSandboxedServices = ["PropertiesService", "CacheService"];
+      const loaded = ScriptApp.__loadedServices;
+      t.true(
+        is.nonEmptyArray(registered),
+        "these are the services that have been registered",
+      );
+      t.true(
+        is.nonEmptyArray(loaded),
+        "these are the services that have been loaded",
+      );
 
+      t.deepEqual(
+        loaded.filter((f) => !nonSandboxedServices.includes(f)).sort(),
+        sandboxedServices.filter((f) => loaded.includes(f)),
+      );
 
-      t.deepEqual(loaded.filter(f => !nonSandboxedServices.includes(f)).sort(), sandboxedServices.filter(f=>loaded.includes(f)))
-
-      registered.forEach(serviceName => {
+      registered.forEach((serviceName) => {
         const service = behavior.sandboxService[serviceName];
         // a bit naughty to access private property, but it's the only way to preserve state
         if (service && service.__state) {
-          initialState.serviceStates[serviceName] = JSON.parse(JSON.stringify(service.__state));
+          initialState.serviceStates[serviceName] = JSON.parse(
+            JSON.stringify(service.__state),
+          );
         }
       });
     }
-  })
+  });
 
   // Helper to reset sandbox to the default state defined in testinit.js for each section
   const resetSandbox = () => {
@@ -81,14 +86,14 @@ export const testSandbox = (pack) => {
     t.is(
       DriveApp.getFileById(file.getId()).getName(),
       fileName,
-      "Should be able to access file created in session"
+      "Should be able to access file created in session",
     );
 
     const err = t.threw(() => DriveApp.getFileById(fixes.TEXT_FILE_ID));
     t.rxMatch(
       err?.message,
       /Access to file .* is denied by sandbox rules/,
-      "Should deny access to external file in strict mode"
+      "Should deny access to external file in strict mode",
     );
 
     // 2. Test non-strict sandbox mode
@@ -97,7 +102,7 @@ export const testSandbox = (pack) => {
     t.is(
       externalFile.getId(),
       fixes.TEXT_FILE_ID,
-      "Should allow access to external file in non-strict mode"
+      "Should allow access to external file in non-strict mode",
     );
   });
 
@@ -112,11 +117,14 @@ export const testSandbox = (pack) => {
     t.is(
       readFile.getName(),
       fixes.TEXT_FILE_NAME,
-      "Should be able to read whitelisted file"
+      "Should be able to read whitelisted file",
     );
 
     // Create a temporary file to test write-denial without modifying a shared fixture.
-    const tempFile = DriveApp.createFile('sandbox-write-test.txt', 'original temp content');
+    const tempFile = DriveApp.createFile(
+      "sandbox-write-test.txt",
+      "original temp content",
+    );
     const tempFileId = tempFile.getId();
 
     // Add the new file to the whitelist with read-only permissions (the default).
@@ -126,11 +134,15 @@ export const testSandbox = (pack) => {
     t.rxMatch(
       writeErr?.message,
       /Write access to file .* is denied by sandbox whitelist rules/,
-      "Should deny write access to read-only whitelisted file"
+      "Should deny write access to read-only whitelisted file",
     );
 
     // Verify the content was not changed.
-    t.is(DriveApp.getFileById(tempFileId).getBlob().getDataAsString(), 'original temp content', 'File content should not have changed after denied write.');
+    t.is(
+      DriveApp.getFileById(tempFileId).getBlob().getDataAsString(),
+      "original temp content",
+      "File content should not have changed after denied write.",
+    );
 
     // 2. Whitelist a spreadsheet for reading
     const sheetId = fixes.TEST_SHEET_ID;
@@ -145,7 +157,7 @@ export const testSandbox = (pack) => {
     t.not(
       sheet.getRange("A1").getValue(),
       null,
-      "Should be able to read whitelisted spreadsheet"
+      "Should be able to read whitelisted spreadsheet",
     );
   });
 
@@ -159,7 +171,7 @@ export const testSandbox = (pack) => {
     t.rxMatch(
       err?.message,
       /SlidesApp service is disabled by sandbox settings/,
-      "Should deny access to disabled service"
+      "Should deny access to disabled service",
     );
     const ss = SpreadsheetApp.create("will work"); // Other services should still work
     t.is(ss.getName(), "will work", "Other services should remain enabled");
@@ -170,14 +182,14 @@ export const testSandbox = (pack) => {
     t.is(
       folder.getName(),
       fixes.PREFIX + "whitelist-folder",
-      "createFolder should be allowed by methodWhitelist"
+      "createFolder should be allowed by methodWhitelist",
     );
 
     const fileErr = t.threw(() => DriveApp.createFile("wont-work.txt", ""));
     t.rxMatch(
       fileErr?.message,
       /Method DriveApp.createFile is not allowed by sandbox settings/,
-      "createFile should be denied by methodWhitelist"
+      "createFile should be denied by methodWhitelist",
     );
   });
 
@@ -203,13 +215,13 @@ export const testSandbox = (pack) => {
     t.rxMatch(
       t.threw(() => DocumentApp.openById(docId))?.message,
       /Access to file .* is denied by sandbox rules/,
-      "Should deny access to external Doc without whitelist"
+      "Should deny access to external Doc without whitelist",
     );
 
     t.rxMatch(
       t.threw(() => SlidesApp.openById(presId))?.message,
       /Access to file .* is denied by sandbox rules/,
-      "Should deny access to external Presentation without whitelist"
+      "Should deny access to external Presentation without whitelist",
     );
 
     // 2. Test read access with whitelisting
@@ -225,9 +237,10 @@ export const testSandbox = (pack) => {
 
     // 3. Test write/trash permissions
     t.rxMatch(
-      t.threw(() => openedDoc.getBody().appendParagraph("no write access"))?.message,
+      t.threw(() => openedDoc.getBody().appendParagraph("no write access"))
+        ?.message,
       /Write access to file .* is denied by sandbox whitelist rules/,
-      "Should deny write access to read-only whitelisted Doc"
+      "Should deny write access to read-only whitelisted Doc",
     );
 
     // Now allow writing to the doc
@@ -239,14 +252,14 @@ export const testSandbox = (pack) => {
     t.is(
       DocumentApp.openById(docId).getBody().getText(),
       "\nwrite access granted",
-      "Should allow writing to whitelisted Doc"
+      "Should allow writing to whitelisted Doc",
     );
 
     // Test trashing the presentation (should fail)
     t.rxMatch(
       t.threw(() => DriveApp.getFileById(presId).setTrashed(true))?.message,
       /Trash access to file .* is denied by sandbox whitelist rules/,
-      "Should deny trash access to read-only whitelisted Presentation"
+      "Should deny trash access to read-only whitelisted Presentation",
     );
 
     // Now allow trashing the presentation
@@ -257,7 +270,7 @@ export const testSandbox = (pack) => {
     DriveApp.getFileById(presId).setTrashed(true);
     t.true(
       DriveApp.getFileById(presId).isTrashed(),
-      "Should allow trashing of whitelisted Presentation"
+      "Should allow trashing of whitelisted Presentation",
     );
   });
 
@@ -266,35 +279,75 @@ export const testSandbox = (pack) => {
     const behavior = ScriptApp.__behavior;
 
     // Test ID whitelist methods
-    behavior.addIdWhitelist(behavior.newIdWhitelistItem('id1'));
+    behavior.addIdWhitelist(behavior.newIdWhitelistItem("id1"));
     t.is(behavior.idWhitelist.length, 1, "addIdWhitelist should add one item");
-    t.is(behavior.idWhitelist[0].id, 'id1', "addIdWhitelist should add correct item");
+    t.is(
+      behavior.idWhitelist[0].id,
+      "id1",
+      "addIdWhitelist should add correct item",
+    );
 
-    behavior.addIdWhitelist(behavior.newIdWhitelistItem('id2'));
-    t.is(behavior.idWhitelist.length, 2, "addIdWhitelist should add a second item");
+    behavior.addIdWhitelist(behavior.newIdWhitelistItem("id2"));
+    t.is(
+      behavior.idWhitelist.length,
+      2,
+      "addIdWhitelist should add a second item",
+    );
 
-    behavior.removeIdWhitelist('id1');
-    t.is(behavior.idWhitelist.length, 1, "removeIdWhitelist should remove an item");
-    t.is(behavior.idWhitelist[0].id, 'id2', "removeIdWhitelist should leave correct item");
+    behavior.removeIdWhitelist("id1");
+    t.is(
+      behavior.idWhitelist.length,
+      1,
+      "removeIdWhitelist should remove an item",
+    );
+    t.is(
+      behavior.idWhitelist[0].id,
+      "id2",
+      "removeIdWhitelist should leave correct item",
+    );
 
     behavior.clearIdWhitelist();
     t.is(behavior.idWhitelist, null, "clearIdWhitelist should clear the list");
 
     // Test method whitelist methods
     const driveService = behavior.sandboxService.DriveApp;
-    driveService.addMethodWhitelist('method1');
-    t.is(driveService.methodWhitelist.length, 1, "addMethodWhitelist should add one method");
-    t.is(driveService.methodWhitelist[0], 'method1', "addMethodWhitelist should add correct method");
+    driveService.addMethodWhitelist("method1");
+    t.is(
+      driveService.methodWhitelist.length,
+      1,
+      "addMethodWhitelist should add one method",
+    );
+    t.is(
+      driveService.methodWhitelist[0],
+      "method1",
+      "addMethodWhitelist should add correct method",
+    );
 
-    driveService.addMethodWhitelist('method2');
-    t.is(driveService.methodWhitelist.length, 2, "addMethodWhitelist should add a second method");
+    driveService.addMethodWhitelist("method2");
+    t.is(
+      driveService.methodWhitelist.length,
+      2,
+      "addMethodWhitelist should add a second method",
+    );
 
-    driveService.removeMethodWhitelist('method1');
-    t.is(driveService.methodWhitelist.length, 1, "removeMethodWhitelist should remove a method");
-    t.is(driveService.methodWhitelist[0], 'method2', "removeMethodWhitelist should leave correct method");
+    driveService.removeMethodWhitelist("method1");
+    t.is(
+      driveService.methodWhitelist.length,
+      1,
+      "removeMethodWhitelist should remove a method",
+    );
+    t.is(
+      driveService.methodWhitelist[0],
+      "method2",
+      "removeMethodWhitelist should leave correct method",
+    );
 
     driveService.clearMethodWhitelist();
-    t.is(driveService.methodWhitelist, null, "clearMethodWhitelist should clear the list");
+    t.is(
+      driveService.methodWhitelist,
+      null,
+      "clearMethodWhitelist should clear the list",
+    );
   });
 
   // Restore the initial sandbox state
@@ -304,7 +357,7 @@ export const testSandbox = (pack) => {
   behavior.setIdWhitelist(initialState.idWhitelist);
 
   if (behavior.sandboxService) {
-    Object.keys(initialState.serviceStates).forEach(serviceName => {
+    Object.keys(initialState.serviceStates).forEach((serviceName) => {
       const service = behavior.sandboxService[serviceName];
       if (service) {
         // a bit naughty, but necessary to restore private state
@@ -323,25 +376,7 @@ export const testSandbox = (pack) => {
 if (ScriptApp.isFake && globalThis.process?.argv.slice(2).includes("execute")) {
   testSandbox();
 
-  if (Drive.isFake)
-    console.log("...cumulative drive cache performance", getDrivePerformance());
-  if (SpreadsheetApp.isFake) {
-    console.log(
-      "...cumulative sheets cache performance",
-      getSheetsPerformance()
-    );
-  }
-  if (DocumentApp.isFake) {
-    console.log(
-      "...cumulative docs cache performance",
-      getDocsPerformance()
-    );
-  }
-  if (SlidesApp.isFake) {
-    console.log(
-      "...cumulative slides cache performance",
-      getSlidesPerformance()
-    );
-  }
+  if (Drive.isFake) cachePerformance()
+
   ScriptApp.__behavior.trash();
 }

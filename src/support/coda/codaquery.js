@@ -50,18 +50,3 @@ export const convertDriveQueryToCoda = (driveQuery, extraOptions = {})=> {
 
   return codaOptions;
 }
-
-// ==========================================
-// Usage Examples
-// ==========================================
-/*
-// Example 1: Folder check & standard drive query
-const driveQuery1 = "'fl-Vn2t1pUvlj' in parents and mimeType != 'application/vnd.google-apps.folder'";
-console.log(convertDriveQueryToCoda(driveQuery1));
-// Output: { folderId: 'fl-Vn2t1pUvlj' }
-
-// Example 2: Combined ownership, query, and starred check
-const driveQuery2 = "'me' in owners and name contains 'Project Plan' and starred = true";
-console.log(convertDriveQueryToCoda(driveQuery2, { limit: 20 }));
-// Output: { limit: 20, isOwner: true, isStarred: true, query: 'Project Plan' }
-*/

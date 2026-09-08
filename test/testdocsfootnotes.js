@@ -1,6 +1,6 @@
 import '@mcpher/gas-fakes';
 import { initTests } from './testinit.js';
-import { wrapupTest, getDocsPerformance, maketdoc, getChildren, trasher } from './testassist.js';
+import { wrapupTest, cachePerformance, maketdoc, getChildren, trasher } from './testassist.js';
 
 
 ;
@@ -49,7 +49,7 @@ export const testDocsFootnotes = (pack) => {
       t.is(doc.getFootnote(fn1.getId()).getText(), footnoteText, "Can retrieve first footnote by ID");
       t.is(doc.getFootnote(fn2.getId()).getText(), "Second footnote.", "Can retrieve second footnote by ID");
 
-      if (DocumentApp.isFake) console.log('...cumulative docs cache performance', getDocsPerformance());
+      if (DocumentApp.isFake) cachePerformance()
     });
 
     unit.section("Footnote methods", t => {
@@ -73,7 +73,7 @@ export const testDocsFootnotes = (pack) => {
       t.is(fn.getText(), "New text.\nA new paragraph.", "appendParagraph should add text");
       t.is(p1.getParent().toString(), 'Footnote', "Paragraph parent should be the footnote");
 
-      if (DocumentApp.isFake) console.log('...cumulative docs cache performance', getDocsPerformance());
+      if (DocumentApp.isFake) cachePerformance()
     });
 
     unit.section("FootnoteSection methods", t => {

@@ -10,9 +10,9 @@ import {
   maketss,
   fillRangeFromDomain,
   transpose2DArray,
-  trasher,
+  trasher,cachePerformance, wrapupTest
 } from "./testassist.js";
-import { getSheetsPerformance, wrapupTest } from "./testassist.js";
+
 // this can run standalone, or as part of combined tests if result of inittests is passed over
 export const testSheets = (pack) => {
   const toTrash = [];
@@ -188,11 +188,8 @@ export const testSheets = (pack) => {
     cellB3.setFormulaR1C1("=SUM(R1C1:R2C[0])");
     t.is(cellB3.getFormula(), "=SUM($A$1:B$2)", "R1C1 mixed range to A1");
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
+
   });
 
   unit.section("getRange with R1C1 notation", (t) => {
@@ -226,11 +223,8 @@ export const testSheets = (pack) => {
     const range5 = sheet.getRange("r1c1:r2c2");
     t.is(range5.getA1Notation(), "A1:B2", "getRange with lowercase r1c1 range");
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
 
@@ -353,11 +347,8 @@ export const testSheets = (pack) => {
     );
     verticalRange.breakApart();
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
 
@@ -439,11 +430,7 @@ export const testSheets = (pack) => {
       "Cleared part of overlap should have default format"
     );
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("Range.autoFill and autoFillToNeighbor", (t) => {
@@ -514,11 +501,8 @@ export const testSheets = (pack) => {
       )?.message || "",
       /AutoFill destination range must extend the source range in only one direction./
     );
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("Range.deleteCells and Range.insertCells", (t) => {
@@ -590,11 +574,8 @@ export const testSheets = (pack) => {
       "insertCells(ROWS) should shift cells down"
     );
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("Range.getNextDataCell", (t) => {
@@ -765,11 +746,8 @@ export const testSheets = (pack) => {
       "PREVIOUS: From first cell stays at first cell"
     );
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("Range.copyTo", (t) => {
@@ -1313,11 +1291,8 @@ export const testSheets = (pack) => {
 
     // --- Test Case 7: Invalid arguments ---
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("copy values and formats to range", (t) => {
@@ -1426,11 +1401,8 @@ export const testSheets = (pack) => {
       "setFontSizes"
     );
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
 
@@ -1438,11 +1410,8 @@ export const testSheets = (pack) => {
 
   // running standalone
   if (!pack) {
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+
+    if (SpreadsheetApp.isFake) cachePerformance()
     unit.report();
   }
   if (fixes.CLEAN) trasher(toTrash);

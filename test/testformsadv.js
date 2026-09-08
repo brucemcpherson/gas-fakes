@@ -8,7 +8,7 @@ import '@mcpher/gas-fakes'
 //import '@mcpher/gas-fakes/main.js'
 
 import { initTests } from './testinit.js'
-import { wrapupTest, trasher, getFormsPerformance } from './testassist.js';
+import { wrapupTest, trasher, cachePerformance } from './testassist.js';
 // this can run standalone, or as part of combined tests if result of inittests is passed over
 
 export const testFormsAdv = (pack) => {
@@ -32,7 +32,7 @@ export const testFormsAdv = (pack) => {
         })
       t.is(is(Forms.Form), "Object")
       t.is(Forms.toString(), Forms.Form.toString())
-      if (Forms.isFake) console.log('...cumulative forms cache performance', getFormsPerformance())
+    if (FormApp.isFake) cachePerformance()
     })
 
     unit.section("adv forms create and get", t => {
@@ -54,7 +54,7 @@ export const testFormsAdv = (pack) => {
       t.is(gotForm.formId, form.formId, "get() should retrieve the correct form by ID");
       t.is(gotForm.info.title, formName, "Retrieved form should have the correct title");
 
-      if (Forms.isFake) console.log('...cumulative forms cache performance', getFormsPerformance());
+    if (FormApp.isFake) cachePerformance()
     });
 
     unit.section("adv forms batchUpdate", t => {
@@ -87,7 +87,7 @@ export const testFormsAdv = (pack) => {
       const updatedForm = Forms.Form.get(form.formId);
       t.is(updatedForm.info.title, newTitle, "form title should be updated after batchUpdate");
 
-      if (Forms.isFake) console.log('...cumulative forms cache performance', getFormsPerformance());
+    if (FormApp.isFake) cachePerformance()
     });
   } else {
     console.log('...Advanced forms doesnt exist in live environment - skipping tests')

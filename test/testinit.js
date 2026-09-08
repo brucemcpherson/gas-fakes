@@ -56,12 +56,12 @@ export const initTests = () => {
       if (key.endsWith('_ID') && fixes[key]) {
         const platform = ScriptApp.__platform || 'google';
         wc++;
-       //  console.log(`...whitelisting test file ${key}: ${fixes[key]} on ${platform}`);
+        console.log(`...whitelisting test file ${key}: ${fixes[key]} on ${platform}`);
         behavior.addIdWhitelist(behavior.newIdWhitelistItem(fixes[key]));
       }
 
     });
-    console.log ('...whitelisted', wc, 'fixture files')
+    // console.log ('...whitelisted', wc, 'fixture files')
     // The root folder should always be accessible for read operations.
     // We'll add its ID to the whitelist to ensure tests that traverse
     // up to the root folder don't fail in sandbox mode.

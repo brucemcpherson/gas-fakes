@@ -1,7 +1,7 @@
 import is from '@sindresorhus/is';
 import '@mcpher/gas-fakes';
 import { initTests } from './testinit.js';
-import { getSlidesPerformance, wrapupTest, getDrivePerformance, trasher } from './testassist.js';
+import { cachePerformance, wrapupTest, trasher } from './testassist.js';
 
 ;
 export const testSlides = (pack) => {
@@ -47,10 +47,8 @@ export const testSlides = (pack) => {
     t.is(SlidesApp.ShapeType.TEXT_BOX.toString(), 'TEXT_BOX', 'should have ShapeType enum');
     t.is(SlidesApp.PredefinedLayout.TITLE_AND_BODY.toString(), 'TITLE_AND_BODY', 'should have PredefinedLayout enum');
 
-    if (SlidesApp.isFake) {
-      console.log('...cumulative slides cache performance', getSlidesPerformance())
-      console.log('...cumulative drive cache performance', getDrivePerformance())
-    }
+    if (SlidesApp.isFake) cachePerformance()
+
   });
 
 

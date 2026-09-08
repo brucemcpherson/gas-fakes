@@ -38,6 +38,7 @@ if (!hasEnvFileFlag) {
 
   if (customEnvPath && existsSync(customEnvPath)) {
     dotenv.config({ path: customEnvPath, override: false, quiet: true });
+    console.log ('...using .env in custom path', customEnvPath)
   } else {
     const mainScript = process.argv[1];
     if (mainScript) {
@@ -45,13 +46,16 @@ if (!hasEnvFileFlag) {
       const envPath = join(dirname(mainScript), '.env');
       if (existsSync(envPath)) {
         dotenv.config({ path: envPath, override: false, quiet: true });
+        console.log ('...using .env in ', envPath)
       } else {
         // Fallback to default dotenv behavior (CWD)
         dotenv.config({ override: false, quiet: true });
+        console.log ('...using .env in ', process.cwd())
       }
     } else {
       // Fallback if mainScript is not available (e.g. REPL)
       dotenv.config({ override: false, quiet: true });
+      console.log ('...no main script available - using .env in ', process.cwd())
     }
   }
 }

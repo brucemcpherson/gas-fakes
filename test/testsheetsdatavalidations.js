@@ -8,8 +8,8 @@ import '@mcpher/gas-fakes'
 //import '@mcpher/gas-fakes/main.js'
 
 import { initTests } from './testinit.js';
-import { maketss, wrapupTest, compareValue, addDays, zeroizeTime, getDimensions, trasher } from './testassist.js';
-import { getDrivePerformance, getSheetsPerformance } from './testassist.js';
+import { maketss, wrapupTest, compareValue, addDays, zeroizeTime, getDimensions, trasher, cachePerformance } from './testassist.js';
+
 import is from '@sindresorhus/is';
 
 // this can run standalone, or as part of combined tests if result of inittests is passed over
@@ -134,7 +134,7 @@ export const testSheetsDataValidations = (pack) => {
     const range4 = sheet.getRange("D1").setDataValidation(SpreadsheetApp.newDataValidation().requireNumberEqualTo(5).build());
     t.is(range4.insertCheckboxes().getDataValidation().getCriteriaType().toString(), "CHECKBOX", "Should overwrite existing data validation");
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("unchecking checkboxes", t => {
@@ -174,7 +174,7 @@ export const testSheetsDataValidations = (pack) => {
     noValidationRange.uncheck();
     t.deepEqual(noValidationRange.getValues(), beforeNoValidation, "uncheck() on a range with no data validations should not change values");
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("checking checkboxes", t => {
@@ -214,7 +214,7 @@ export const testSheetsDataValidations = (pack) => {
     noValidationRange.check();
     t.deepEqual(noValidationRange.getValues(), beforeNoValidation, "check() on a range with no data validations should not change values");
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("setting data validations", t => {
@@ -291,7 +291,7 @@ export const testSheetsDataValidations = (pack) => {
 
     scritty(t, sb, "a15:b15", "DATE_AFTER", "requireDateAfter", [da])
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
 
   })
 
@@ -321,8 +321,7 @@ export const testSheetsDataValidations = (pack) => {
     critty(t, sb, "g24", "DATE_EQUAL_TO", ['=I1'])
     critty(t, sb, "f24", "TEXT_CONTAINS", ['=F7'])
 
-
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   })
 
 
@@ -431,28 +430,12 @@ export const testSheetsDataValidations = (pack) => {
     const b2 = builder.copy()
     t.is(b2.toString(), "DataValidationBuilder")
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   // running standalone
   if (!pack) {
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
     unit.report()
 
   }

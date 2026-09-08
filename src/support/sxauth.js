@@ -10,7 +10,7 @@ import { Auth } from './auth.js';
 import { syncError, syncLog, syncWarn } from './workersync/synclogger.js';
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import path from 'path';
-import { KSuiteDrive } from './ksuite/kdrive.js';
+import { newKSuiteDrive } from './ksuite/kdrive.js';
 import { getMsGraphToken, mapGasScopesToMsGraph } from './msgraph/msauth.js';
 import { MsGraph } from './msgraph/msclient.js';
 import { CodaConstants } from './coda/constants.js';
@@ -203,7 +203,8 @@ export const sxInit = async ({ manifestPath, claspPath, settingsPath, cachePath,
     } else {
       try {
         Auth.setPlatform('ksuite');
-        const kDrive = new KSuiteDrive(kToken);
+        // at this point we dont know the the effective user
+        const kDrive = newKSuiteDrive({token: kToken, effectiveUser: undefined});
         const accountId = await kDrive.getAccountId();
 
         if (!accountId) throw new Error("Could not retrieve Infomaniak account info.");

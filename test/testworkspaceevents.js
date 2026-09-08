@@ -2,7 +2,7 @@ import '@mcpher/gas-fakes';
 import is from '@sindresorhus/is';
 
 import { initTests } from './testinit.js';
-import { getWorkspaceEventsPerformance, wrapupTest, trasher } from './testassist.js';
+import { cachePerformance , wrapupTest, trasher } from './testassist.js';
 
 export const testWorkspaceEvents = (pack) => {
   const toTrash = [];
@@ -28,7 +28,7 @@ export const testWorkspaceEvents = (pack) => {
         t.is(WorkspaceEvents.toString(), WorkspaceEvents[resource].toString(), `WorkspaceEvents.${resource} should have the correct toString()`);
       });
 
-      if (WorkspaceEvents.isFake) console.log('...cumulative workspaceevents cache performance', getWorkspaceEventsPerformance())
+      if (WorkspaceEvents.isFake)cachePerformance()
     })
   
 

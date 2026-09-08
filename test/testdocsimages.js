@@ -2,7 +2,7 @@
 import '@mcpher/gas-fakes'
 
 import { initTests } from "./testinit.js";
-import { getDocsPerformance, maketdoc, docReport, getChildren, wrapupTest, trasher } from "./testassist.js";
+import { cachePerformance, maketdoc, getChildren, wrapupTest, trasher } from "./testassist.js";
 
 
 export const testDocsImages = (pack) => {
@@ -161,7 +161,7 @@ export const testDocsImages = (pack) => {
       // On live GAS, we can't mock. We'll skip this specific size check.
       // The live environment will throw its own error for oversized blobs anyway, but it's hard to test without memory issues.
       console.log("Skipping oversized blob test on live GAS due to memory constraints.");
-      if (DocumentApp.isFake) console.log('...cumulative docs cache performance', getDocsPerformance());
+      if (DocumentApp.isFake) cachePerformance()
       return; // End this test section for live GAS
     }
     t.rxMatch(
@@ -170,7 +170,7 @@ export const testDocsImages = (pack) => {
       "Should throw error for oversized blob"
     );
 
-    if (DocumentApp.isFake) console.log('...cumulative docs cache performance', getDocsPerformance());
+      if (DocumentApp.isFake) cachePerformance()
   });
 
   unit.section("insertImage behavior on new documents", t => {

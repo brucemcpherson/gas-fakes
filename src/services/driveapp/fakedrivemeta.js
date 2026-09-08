@@ -58,7 +58,8 @@ export class FakeDriveMeta {
     const currentPlatform = ScriptApp.__platform;
     try {
       ScriptApp.__platform = this.platform;
-      return fn();
+      const result = fn();
+      return result;
     } finally {
       ScriptApp.__platform = currentPlatform;
     }

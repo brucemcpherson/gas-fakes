@@ -1,8 +1,17 @@
-import { GoogleAuth, JWT, Impersonated, OAuth2Client } from "google-auth-library";
-import is from "@sindresorhus/is";
-import { createHash } from "node:crypto";
-import { syncLog, syncError } from "./workersync/synclogger.js";
-import { clearFileCache } from "./filecache.js";
+import fsSync from 'node:fs';
+const dbg = (msg) => fsSync.appendFileSync('/tmp/worker-debug.log', `${new Date().toISOString()} ${msg}\n`);
+
+dbg('[sxauth.js] START');
+const { GoogleAuth, JWT, Impersonated, OAuth2Client } = await import("google-auth-library");
+dbg('[sxauth.js] google-auth-library loaded');
+const { default: is } = await import("@sindresorhus/is");
+dbg('[sxauth.js] is loaded');
+const { createHash } = await import("node:crypto");
+dbg('[sxauth.js] crypto loaded');
+const { syncLog, syncError } = await import("./workersync/synclogger.js");
+dbg('[sxauth.js] synclogger loaded');
+const { clearFileCache } = await import("./filecache.js");
+dbg('[sxauth.js] filecache loaded');
 
 // Multi-identity storage
 export const _identities = new Map();
@@ -142,7 +151,13 @@ const getSourceAccessTokenInfo = async () => {
 
 const getAccessToken = async () => {
   const id = _getIdentity();
-  if (_platform === 'ksuite' || _platform === 'msgraph' || _platform === 'coda') return id.accessToken;
+  if (_platform === 'ksuite' || _platform === 'msgraph' || _platform === 'coda') {
+    if (!id.accessToken) {
+      throw new Error(`... no access token set for platform ${_platform}`);
+    }
+    return id.accessToken;
+  }
+  
   if (!id.authClient) throw `auth isnt set yet for platform ${_platform}`;
   return (await getAccessTokenInfo()).token;
 }
@@ -343,7 +358,7 @@ export const responseSyncify = (result) => {
   if (!result) return {
     status: 503, statusCode: 503,
     statusText: "Worker Error: No response object",
-    error: { message: "No response object" },
+    error: { message: "No response object" }
   };
   return {
     status: result.status || result.statusCode,

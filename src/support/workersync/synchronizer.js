@@ -1,9 +1,13 @@
-import { Worker } from 'worker_threads';
-import { fileURLToPath } from 'url';
-import path from 'path';
+
+import path from 'node:path';
 import fs from 'node:fs';
-import { slogger } from '../slogger.js'
-import { Auth } from '../auth.js';
+const { Worker, isMainThread, threadId } = await import('worker_threads');
+process.stdout.write(`[synchronizer.js] EVALUATING module. pid=${process.pid} tid=${threadId} isMainThread=${isMainThread} GF_WORKER=${process.env.GF_WORKER}\nstack=${new Error().stack}\n`);
+
+const { fileURLToPath } = await import('url');
+const { slogger } = await import('../slogger.js')
+const { Auth } = await import('../auth.js');
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,6 +59,7 @@ const textDecoder = new TextDecoder();
 
 // The single, long-lived worker
 const worker = new Worker(path.resolve(__dirname, 'worker.js'), {
+  // GF_WORKER now replaced by node isMainthread  so this env prop can be removed
   env: { ...process.env, GF_WORKER: 'true' }
 });
 
@@ -80,13 +85,23 @@ worker.on('exit', (code) => {
     console.error(`Worker thread stopped with exit code ${code}`);
     Atomics.store(control, CONTROL_INDICES.STATUS, 0); // Unblock main thread
     Atomics.notify(control, 0);
+    process.exit(1);
   }
 });
 
 // Send the shared buffers to the worker once and wait for it to confirm initialization
 Atomics.store(control, CONTROL_INDICES.STATUS, 2); // Set status to "worker_init"
 worker.postMessage({ controlBuf, dataBuf });
-Atomics.wait(control, CONTROL_INDICES.STATUS, 2); // Wait for worker to set status to "free" (0)
+
+// Pass a timeout (e.g. 10,000ms) to Atomics.wait so it never hangs forever
+const WORKER_INIT_TIMEOUT = 10000 // 10 seconds
+const initResult = Atomics.wait(control, CONTROL_INDICES.STATUS, 2, WORKER_INIT_TIMEOUT);
+
+if (initResult === 'timed-out') {
+  console.error('Fatal: Worker initialization timed out during module imports.');
+  worker.terminate();
+  process.exit(1);
+}
 
 // Allow the main process to exit even if the worker is still running.
 worker.unref();
@@ -158,7 +173,12 @@ export function callSync(method, ...args) {
   // 3. Block and wait for the worker to finish.
   // It's "busy" (1) until the worker sets it back to "free" (0).
   // This is a true blocking wait, consuming minimal CPU.
-  Atomics.wait(control, CONTROL_INDICES.STATUS, 1);
+  const WORKER_TIMEOUT = 240000 // 240 seconds for testing - change to long number in released code
+  const result = Atomics.wait(control, CONTROL_INDICES.STATUS, 1, WORKER_TIMEOUT);
+  if (result === 'timed-out') {
+    worker.terminate();
+    throw new Error(`Worker timed out after ${WORKER_TIMEOUT}ms`);
+  }
 
   // 4. Worker is done, result is in the shared buffer.
   const resultSize = Atomics.load(control, CONTROL_INDICES.DATA_SIZE);

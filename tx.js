@@ -1,12 +1,15 @@
 // test-direct.js
+import './src/index.js';
 import { Auth } from './src/support/auth.js';
 import { sxDrive, sxStreamUpMedia } from './src/support/sxdrive.js'; // adjust path
 
+
 async function runDirectTest() {
-  try {
+
     console.log('--- Initializing Auth ---');
-    Auth.setPlatform('coda');
-    
+    Auth.setPlatform('google');
+    const token = ScriptApp.getOAuthToken ()
+
     // Set token if testing with API keys directly or via Auth
     // Auth.setIdentity('coda', { accessToken: process.env.CODA_API_KEY });
 
@@ -28,10 +31,6 @@ async function runDirectTest() {
     });
     console.log('Create Success:', createRes);
 
-  } catch (err) {
-    console.error('*** DIRECT EXECUTION FAILED WITH STACK TRACE ***');
-    console.error(err);
-  }
 }
 
 runDirectTest();

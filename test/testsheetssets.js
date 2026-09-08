@@ -7,8 +7,7 @@ import '@mcpher/gas-fakes'
 //import '@mcpher/gas-fakes/main.js'
 
 import { initTests } from './testinit.js';
-import { getDrivePerformance, getSheetsPerformance } from './testassist.js';
-import { maketss, wrapupTest, makeSheetsGridRange, makeExtendedValue, dateToSerial, fillRange, trasher } from './testassist.js';
+import { maketss, wrapupTest, makeSheetsGridRange, makeExtendedValue, dateToSerial, fillRange, trasher , cachePerformance} from './testassist.js';
 import is from '@sindresorhus/is';
 
 // this can run standalone, or as part of combined tests if result of inittests is passed over
@@ -67,8 +66,7 @@ export const testSheetsSets = (pack) => {
     const newRange = sheet.getRange("B2:C4");
     const newFilter = newRange.createFilter();
     t.is(newFilter.getRange().getA1Notation(), "B2:C4", "Should be able to create a new filter after removal");
-
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance());
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("Filter methods", t => {
@@ -137,8 +135,7 @@ export const testSheetsSets = (pack) => {
     // --- Test removeColumnFilterCriteria() ---
     filter.removeColumnFilterCriteria(4); // remove filter
     t.is(filter.getColumnFilterCriteria(4), null, "Post-remove: Filter criteria for column 4 should be gone");
-
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance());
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("FilterCriteriaBuilder methods", t => {
@@ -189,7 +186,7 @@ export const testSheetsSets = (pack) => {
     builder.whenNumberEqualTo(100); // Modify original
     t.deepEqual(copiedCriteria.getCriteriaValues(), [50], 'Copy should be independent of original after modification');
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance());
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("Range.getDataRegion", t => {
@@ -226,7 +223,7 @@ export const testSheetsSets = (pack) => {
     t.is(sheet.getRange("C3").getDataRegion(Dimension.COLUMNS).getA1Notation(), "B3:D3", "COLUMNS: From inside data block");
     t.is(sheet.getRange("F7").getDataRegion(Dimension.COLUMNS).getA1Notation(), "F7:G7", "COLUMNS: From inside second data block");
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance());
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("Range.applyBanding", t => {
@@ -250,7 +247,7 @@ export const testSheetsSets = (pack) => {
     rowBanding.remove();
     t.is(sheet.getBandings().length, 0, "Banding should be removed");
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance());
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("Color Name Support", t => { // this test is to verify that the hardcoded theme colors match the live API
@@ -336,7 +333,7 @@ export const testSheetsSets = (pack) => {
       skip: !SpreadsheetApp.isFake
     });
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance());
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("Banding Theme Colors Verification", t => { // this test is to verify that the hardcoded theme colors match the live API
@@ -377,7 +374,7 @@ export const testSheetsSets = (pack) => {
       }
     }
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance());
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("Banding methods", t => {
@@ -471,7 +468,7 @@ export const testSheetsSets = (pack) => {
     t.truthy(allBandings.find(b => b.getRange().getA1Notation() === "A1:E10"), "getBandings should return the original banding");
     t.truthy(allBandings.find(b => b.getRange().getA1Notation() === "G1:K10"), "getBandings should return the copied banding");
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance());
+    if (SpreadsheetApp.isFake) cachePerformance()
   })
 
 
@@ -521,8 +518,7 @@ export const testSheetsSets = (pack) => {
     const d3 = r3.getValues()
     t.deepEqual(d3, expect)
 
-
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   })
 
   unit.section("advanced class maker", t => {
@@ -600,14 +596,13 @@ export const testSheetsSets = (pack) => {
     cr.clearDataValidations()
     const cbs2 = cr.getDataValidations()
     t.deepEqual(cbs2, fillRange(cr, null))
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
   })
 
 
   // running standalone
   if (!pack) {
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
     unit.report()
 
   }

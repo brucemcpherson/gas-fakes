@@ -15,6 +15,40 @@ const prepareMediaBlob = ({ mimeType, bytes, name }) => {
     throw new Error("only support text content for coda for now");
   }
 };
+
+
+// see coda.md for notes
+// folders are not filterable, but docs are
+// folderId will indicate a container folder, workspaceId if no folderid provided, the default workspace if neither is provided
+const fixupFolderId = async (params = {}) => {
+  let patched = { ...params };
+
+  // query params in coda a very different so we need to extract any parent info
+  if (params.q) {
+    patched = convertDriveQueryToCoda(params.q);
+  }
+
+  // if there's no folderID and no workspace id, then we'll see everything we're allowed to see across all workspaces
+  if (!patched.folderId) {
+    return patched;
+  }
+
+  // if we're a root folder or workspace, we get top level omittings parentFolder settings
+  if (patched.folderId === "root" || patched.folderId?.startsWith("ws-")) {
+    patched.workspaceId = patched.folderId;
+    // this is actually workspace level, so lets not confuse things
+    delete patched.folderId;
+    return patched;
+  }
+
+  // a real folder works ok
+  if (patched.folderId?.startsWith("fl-")) return patched;
+
+  // we got a folderId but it was the wrong format
+  throw new Error(
+    `expected to get a workspace or folder id for a coda drive parameter list but got ${JSON.stringify(params)}`,
+  );
+};
 export const handleCodaDrive = async (
   Auth,
   {
@@ -35,25 +69,19 @@ export const handleCodaDrive = async (
   // coda has an entirely different approach for queries so we'll need to do a comprehensive translation where equivalents exist
   // and we have to drop the fields query too
   let { fields, ...params } = googleParams;
-  if (params.q) {
-    params = convertDriveQueryToCoda(params.q);
-  }
+
   // the file id could be in either depenind ont where we're called from
   const codaId = fileId || params.fileId;
 
   // various ways we could be talking about a folder or a doc
   // the paraneters might contain a mimetype filer, or the resource itself might contain a mimetype filtwe
   const fResource =
-    isFolderOnly(googleParams) || isFolder(resource) || codaId?.startsWith ('fl-') ? "folders" : "docs";
-  
-  // its possible that the folderId is actually a workspaceId, so we need to drop the folder filter
-  if (params.folderId?.startsWith("ws-")) {
-    params.workspaceId = params.folderId;
-    // we also need to add the inFolder= false parameter as we want to only include things at the top level
-    params.inFolder = false;
-    delete params.folderId;
-  }
-  
+    isFolderOnly(googleParams) ||
+    isFolder(resource) ||
+    codaId?.startsWith("fl-")
+      ? "folders"
+      : "docs";
+
   switch (prop) {
     case "files":
       switch (method) {
@@ -69,9 +97,7 @@ export const handleCodaDrive = async (
         }
 
         case "list": {
-          // listing at workspace level will have a workspaceId 
-          // list at folder level will have a folderId     
-          let result = await coda[fResource].list(params);
+          let result = await coda[fResource].list(await fixupFolderId(params));
           const files = result?.items || [];
           return {
             data: { files: files ? files.map(translateFile) : files },
@@ -85,7 +111,9 @@ export const handleCodaDrive = async (
 
           // Normalize folderId: null/'root'/undefined means top-level workspace
           let folderId = parents[0];
-          if (folderId === "root") {
+          let workspaceId;
+          if (folderId.startsWith("ws-")) {
+            workspaceId = folderId;
             folderId = undefined; // Top-level workspace creation
           }
 
@@ -107,13 +135,15 @@ export const handleCodaDrive = async (
             createdDoc = await coda.folders.createItem({
               name,
               folderId,
+              workspaceId,
             });
           }
 
-          return {
+          const result =  {
             data: translateFile(createdDoc),
             response: { status: 200 },
           };
+          return result
         }
 
         // --- Handle File/Content Update ---
@@ -143,25 +173,28 @@ export const handleCodaDrive = async (
 const translateFile = (codaItem) => {
   if (!codaItem) return null;
 
-  const id = codaItem.id === 'root' ? String(codaItem.workspaceId) : codaItem.id ;
+  const id =
+    codaItem.id === "root" ? String(codaItem.workspaceId) : codaItem.id;
   if (!codaItem.id) {
-    throw new Error (`failed to get coda id for ${JSON.stringify(codaItem)}`)
+    throw new Error(`failed to get coda id for ${JSON.stringify(codaItem)}`);
   }
   // Handle Parent Mapping for Google Drive compatibility
   let parents = null;
 
-  let isRoot = codaItem.type === "workspace_root"
+  let isRoot = codaItem.type === "workspace_root";
   if (isRoot) {
-    parents = []; // Root container has no parent
+    parents = null; // Root container has no parent
   } else if (codaItem.folder?.id) {
     parents = [String(codaItem.folder.id)]; // Item lives inside a Coda folder
   } else if (codaItem.parentFolder?.id) {
     parents = [String(codaItem.parentFolder.id)]; // Coda Subfolder parent
   } else {
     // If no parent folder is defined, it lives in the root Workspace
-    const { workspace } = codaItem
+    const { workspace } = codaItem;
     if (!workspace?.id) {
-      throw new Error (`failed to get coda workspace id for ${JSON.stringify(codaItem)}`)
+      throw new Error(
+        `failed to get coda workspace id for ${JSON.stringify(codaItem)}`,
+      );
     }
     parents = [workspace.id];
   }
@@ -169,9 +202,8 @@ const translateFile = (codaItem) => {
   // Map MIME types
   let mimeType = CodaConstants.TYPES[codaItem.type];
   if (!mimeType) {
-    throw new Error ('unknown coda type', codaItem.type)
+    throw new Error("unknown coda type", codaItem.type);
   }
-
 
   const createdTime = codaItem.createdAt
     ? new Date(codaItem.createdAt).toISOString()
@@ -190,7 +222,7 @@ const translateFile = (codaItem) => {
     sourceDoc: codaItem.sourceDoc,
     workspace: codaItem.workspace,
     canEdit: codaItem.canEdit,
-    workspaceId: codaItem.workspaceId
+    workspaceId: codaItem.workspaceId,
   };
 
   return {
@@ -207,6 +239,6 @@ const translateFile = (codaItem) => {
     webViewLink: codaItem.browserLink,
     __platformCustom,
     __rootRequested: isRoot,
-    platform: "coda"
+    platform: "coda",
   };
 };

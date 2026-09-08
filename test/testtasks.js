@@ -2,7 +2,7 @@ import '@mcpher/gas-fakes';
 import is from '@sindresorhus/is';
 
 import { initTests } from './testinit.js';
-import { getTasksPerformance, wrapupTest, trasher } from './testassist.js';
+import { cachePerformance, wrapupTest, trasher } from './testassist.js';
 
 export const testTasks = (pack) => {
   const toTrash = [];
@@ -22,7 +22,7 @@ export const testTasks = (pack) => {
         })
       t.is(is(Tasks.Tasklists), "Object")
       t.is(Tasks.toString(), Tasks.Tasklists.toString())
-      if (Tasks.isFake) console.log('...cumulative tasks cache performance', getTasksPerformance())
+      if (Tasks.isFake) cachePerformance()
     })
   
 

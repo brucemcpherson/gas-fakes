@@ -1,5 +1,5 @@
 import { initTests } from "./testinit.js";
-import { maketss, wrapupTest, getSheetsPerformance, trasher } from "./testassist.js";
+import { maketss, wrapupTest, cachePerformance  , trasher } from "./testassist.js";
 
 export const testSheetsChart = (pack) => {
   const toTrash = [];
@@ -243,11 +243,7 @@ export const testSheetsChart = (pack) => {
 
   // running standalone
   if (!pack) {
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
     unit.report();
   }
   if (fixes.CLEAN) trasher(toTrash);

@@ -7,7 +7,7 @@ import '@mcpher/gas-fakes'
 //import '@mcpher/gas-fakes/main.js'
 
 import { initTests } from './testinit.js'
-import { maketss, wrapupTest, getDrivePerformance, getSheetsPerformance, trasher } from './testassist.js';
+import { maketss, wrapupTest, cachePerformance, trasher } from './testassist.js';
 import is from '@sindresorhus/is';
 
 
@@ -282,7 +282,7 @@ export const testSheetsExotics = (pack) => {
     t.is(getDisplayType('C1'), 'LINKED', 'RangeList: C1 hyperlink should be shown');
     t.is(getDisplayType('D1'), 'LINKED', 'RangeList: D1 hyperlink should be shown');
 
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance());
+    if (SpreadsheetApp.isFake) cachePerformance()
 
 
   });
@@ -366,13 +366,11 @@ export const testSheetsExotics = (pack) => {
     ({ rowGroups, columnGroups } = getGroups(sheet.getSheetId()));
     t.is(rowGroups.length, 0, "All row groups should be removed");
     t.is(columnGroups.length, 0, "All column groups should be removed");
-
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance());
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
   // running standalone
   if (!pack) {
-    if (Drive.isFake) console.log('...cumulative drive cache performance', getDrivePerformance())
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
     unit.report()
 
   }

@@ -29,14 +29,14 @@ export class FakeSpreadsheetTheme {
   getThemeColors() {
     const { nargs, matchThrow } = signatureArgs(arguments, "SpreadsheetTheme.getThemeColors");
     if (nargs) matchThrow();
-    const app = global.SpreadsheetApp || {};
+    const app = SpreadsheetApp;
     return app.ThemeColorType ? Object.values(app.ThemeColorType) : [];
   }
 
   getConcreteColor(themeColorType) {
     const { nargs, matchThrow } = signatureArgs(arguments, "SpreadsheetTheme.getConcreteColor");
     if (nargs !== 1) matchThrow();
-    const app = global.SpreadsheetApp || {};
+    const app = SpreadsheetApp;
     if (app.newColor) {
       return app.newColor().setRgbColor("#000000").build();
     }

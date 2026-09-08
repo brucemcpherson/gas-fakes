@@ -8,7 +8,7 @@ import '@mcpher/gas-fakes'
 //import '@mcpher/gas-fakes/main.js'
 
 import { initTests } from './testinit.js'
-import { getSheetsPerformance } from './testassist.js';
+import { cachePerformance } from './testassist.js';
 import { wrapupTest } from './testassist.js';
 import is from '@sindresorhus/is';
 
@@ -171,7 +171,7 @@ export const testEnums = (pack) => {
 
   // running standalone
   if (!pack) {
-    if (SpreadsheetApp.isFake) console.log('...cumulative sheets cache performance', getSheetsPerformance())
+    if (SpreadsheetApp.isFake) cachePerformance()
     unit.report()
   }
 

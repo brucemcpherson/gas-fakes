@@ -2,7 +2,7 @@ import '@mcpher/gas-fakes';
 import is from '@sindresorhus/is';
 
 import { initTests } from './testinit.js';
-import { getChatPerformance, wrapupTest, trasher } from './testassist.js';
+import { cachePerformance, wrapupTest, trasher } from './testassist.js';
 
 export const testChat = (pack) => {
   const toTrash = [];
@@ -23,7 +23,7 @@ export const testChat = (pack) => {
         })
       t.is(is(Chat.Spaces), "Object")
       t.is(Chat.toString(), Chat.Spaces.toString())
-      if (Chat.isFake) console.log('...cumulative chat cache performance', getChatPerformance())
+      if (Chat.isFake) cachePerformance()
     })
 
   if (!pack) {

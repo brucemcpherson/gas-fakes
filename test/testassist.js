@@ -1,75 +1,109 @@
-import is from '@sindresorhus/is';
-import { _null } from 'zod/v4/core';
+import is from "@sindresorhus/is";
+import { _null } from "zod/v4/core";
 import { getPotentialBackends } from "./testfixes.js";
-// import { signatureArgs, notYetImplemented } from '../src/support/helpers.js';
 
-let __mss = null
-let __mdoc = null
-let __mfolder = null
+let __mss = null;
+let __mdoc = null;
+let __mfolder = null;
 let __mcals = new Map();
 
+export const performances = {
+  get getDrivePerformance() {
+    return ScriptApp.isFake && Drive?.__getDrivePerformance;
+  },
+  get getSheetsPerformance() {
+    return ScriptApp.isFake && Sheets?.__getSheetsPerformance;
+  },
+  get getDocsPerformance() {
+    return ScriptApp.isFake && Docs?.__getDocsPerformance;
+  },
+  get getSlidesPerformance() {
+    return ScriptApp.isFake && Slides?.__getSlidesPerformance;
+  },
+  get getFormsPerformance() {
+    return ScriptApp.isFake && Forms?.__getFormsPerformance;
+  },
+  get getGmailPerformance() {
+    return ScriptApp.isFake && Gmail?.__getGmailPerformance;
+  },
+  get getChatPerformance() {
+    return ScriptApp.isFake && Chat?.__getChatPerformance;
+  },
+  get getPeoplePerformance() {
+    return ScriptApp.isFake && People?.__getPeoplePerformance;
+  },
+  get getTasksPerformance() {
+    return ScriptApp.isFake && Tasks?.__getTasksPerformance;
+  },
+  get getCalendarPerformance() {
+    return ScriptApp.isFake && Calendar?.__getCalendarPerformance;
+  },
+  get getWorkspaceEventsPerformance() {
+    return ScriptApp.isFake && WorkspaceEvents?.__getWorkspaceEventsPerformance;
+  },
+};
 
-
-
-export let getDrivePerformance
-export let getSheetsPerformance
-export let getDocsPerformance
-export let getSlidesPerformance
-export let getFormsPerformance
-export let getGmailPerformance
-export let getChatPerformance
-export let getPeoplePerformance
-export let getTasksPerformance
-export let getCalendarPerformance
-export let getWorkspaceEventsPerformance
-
-
-if (ScriptApp.isFake) {
-  getDrivePerformance = Drive.__getDrivePerformance;
-  getSheetsPerformance = Sheets.__getSheetsPerformance;
-  getDocsPerformance = Docs.__getDocsPerformance;
-  getSlidesPerformance = Slides.__getSlidesPerformance;
-  getFormsPerformance = Forms.__getFormsPerformance;
-  getGmailPerformance = Gmail.__getGmailPerformance;
-  getChatPerformance = Chat.__getChatPerformance;
-  getPeoplePerformance = People.__getPeoplePerformance;
-  getTasksPerformance = Tasks.__getTasksPerformance;
-  getCalendarPerformance = Calendar.__getCalendarPerformance;
-  getWorkspaceEventsPerformance = WorkspaceEvents.__getWorkspaceEventsPerformance;
-}
 export const cachePerformance = () => {
   if (ScriptApp.isFake) {
-    console.log('...cumulative drive cache performance', getDrivePerformance());
-    console.log('...cumulative docs cache performance', getDocsPerformance());
-    console.log('...cumulative sheets cache performance', getSheetsPerformance());
-    console.log('...cumulative slides cache performance', getSlidesPerformance());
-    console.log('...cumulative forms cache performance', getFormsPerformance());
-    console.log('...cumulative people cache performance', getPeoplePerformance());
-    console.log('...cumulative workspaceevents cache performance', getWorkspaceEventsPerformance());
-    console.log('...cumulative calendar cache performance', getCalendarPerformance());
-    console.log('...cumulative tasks cache performance', getTasksPerformance());
-    console.log('...cumulative gmail cache performance', getGmailPerformance());
+    let p = performances.getDrivePerformance();
+    if (p.hits + p.misses)
+      console.log("...cumulative drive cache performance", p);
+
+    p = performances.getDocsPerformance();
+    if (p.hits + p.misses)
+      console.log("...cumulative docs cache performance", p);
+
+    p = performances.getSheetsPerformance();
+    if (p.hits + p.misses)
+      console.log("...cumulative sheets cache performance", p);
+
+    p = performances.getSlidesPerformance();
+    if (p.hits + p.misses)
+      console.log("...cumulative slides cache performance", p);
+
+    p = performances.getFormsPerformance();
+    if (p.hits + p.misses)
+      console.log("...cumulative forms cache performance", p);
+
+    p = performances.getChatPerformance();
+    if (p.hits + p.misses)
+      console.log("...cumulative people cache performance", p);
+
+    p = performances.getWorkspaceEventsPerformance();
+    if (p.hits + p.misses)
+      console.log("...cumulative workspaceevents cache performance", p);
+
+    p = performances.getCalendarPerformance();
+    if (p.hits + p.misses)
+      console.log("...cumulative calendar cache performance", p);
+    p = performances.getTasksPerformance();
+    if (p.hits + p.misses)
+      console.log("...cumulative tasks cache performance", p);
+    p = performances.getGmailPerformance();
+    if (p.hits + p.misses)
+      console.log("...cumulative gmail cache performance", p);
   }
-}
+};
 
 export const getSharedScriptStore = (kind) => {
-
-  const type = kind === 'property' 
-    ? 'getScriptProperties' 
-    : kind === 'cache' ? 'getScriptCache' : null
+  const type =
+    kind === "property"
+      ? "getScriptProperties"
+      : kind === "cache"
+        ? "getScriptCache"
+        : null;
 
   if (!type) {
     throw new Error(`Unsupported store kind: ${kind}`);
   }
 
-  let store= PropertiesService[type]()
+  let store = PropertiesService[type]();
 
   if (!ScriptApp.isFake) {
-
     // on live apps script we'll try to use a drop in
     // if its not defined then they'll need to be set up manually over there
     const scriptStore = PropertiesService[type]();
-  
+
     // this will define whether it knows how to share properties
     const dope = scriptStore.getProperty("dropin_upstash_credentials");
     const crob = dope && JSON.parse(dope);
@@ -78,15 +112,18 @@ export const getSharedScriptStore = (kind) => {
         creds: { ...crob, scriptId: ScriptApp.getScriptId(), kind },
       });
     } else {
-      console.log ('...didnt find a share store for '+kind + ' using native apps script store')
+      console.log(
+        "...didnt find a share store for " +
+          kind +
+          " using native apps script store",
+      );
       store = scriptStore;
     }
   }
-  return store
-}
+  return store;
+};
 
 export const getJdbcBackends = (Jdbc, use) => {
-  
   const potentialBackends = getPotentialBackends(Jdbc, use);
   const props = getSharedScriptStore("property");
 
@@ -102,10 +139,12 @@ export const getJdbcBackends = (Jdbc, use) => {
     });
   }
 
-  return potentialBackends.filter((b) => props.getProperty(b.prop)).map(b => ({
-    ...b,
-    storedVal: props.getProperty(b.prop)
-  }));
+  return potentialBackends
+    .filter((b) => props.getProperty(b.prop))
+    .map((b) => ({
+      ...b,
+      storedVal: props.getProperty(b.prop),
+    }));
 };
 
 /**
@@ -119,46 +158,47 @@ export const getJdbcConnection = (Jdbc, envConfig) => {
   } else {
     return Jdbc.getConnection(url, user, password);
   }
-}
+};
 
-
-export const checkBackend = (name)=> {
-    if (!ScriptApp.isFake) {
-    console.log('...skipping ' + name + ' tests as not in fake mode')
-    return false
+export const checkBackend = (name) => {
+  if (!ScriptApp.isFake) {
+    console.log("...skipping " + name + " tests as not in fake mode");
+    return false;
   }
   if (!is.array(ScriptApp.__platforms)) {
-    throw 'ScriptApp.__platforms- should be a list of supported platforms'
+    throw "ScriptApp.__platforms- should be a list of supported platforms";
   }
 
   if (!ScriptApp.__isPlatformAuthed(name)) {
-    console.log('...skipping ' + name + ' tests as not authenticated')
-    return false
-  } 
-  return true
-}
+    console.log("...skipping " + name + " tests as not authenticated");
+    return false;
+  }
+  return true;
+};
 
 export const wrapupTest = (func) => {
-  if (ScriptApp.isFake && globalThis.process?.argv.slice(2).includes("execute")) {
-    func()
-    cachePerformance()
+  if (
+    ScriptApp.isFake &&
+    globalThis.process?.argv.slice(2).includes("execute")
+  ) {
+    func();
+    cachePerformance();
     // actually most of these should already have been trashed
 
     ScriptApp.__behavior.trash();
-    
+
     // Clear global state to prevent hangovers between sequential test suites
     __mss = null;
     __mdoc = null;
     __mfolder = null;
     __mcals.clear();
-    
+
     // Reset global platform back to default to avoid backend hangovers between test suites
-    ScriptApp.__platform = 'google';
+    ScriptApp.__platform = "google";
 
-    console.log('...its a wrap');
+    console.log("...its a wrap");
   }
-
-}
+};
 
 /**
  * Creates a simple array for toTrash.
@@ -174,60 +214,90 @@ export const trasher = (toTrash) => {
   if (behavior) behavior.sandboxMode = false;
 
   try {
-    toTrash.forEach(item => {
+    toTrash.forEach((item) => {
       // For backwards compatibility with any remaining wrapped items
-      const f = (item && item.file) ? item.file : item;
+      const f = item && item.file ? item.file : item;
 
-      if (f && typeof f.deleteCalendar === 'function') {
-        const platformLabel = (typeof f.getPlatform === 'function') ? f.getPlatform() : (ScriptApp.isFake ? (ScriptApp.__platform || 'default') : 'live GAS');
+      if (f && typeof f.deleteCalendar === "function") {
+        const platformLabel =
+          typeof f.getPlatform === "function"
+            ? f.getPlatform()
+            : ScriptApp.isFake
+              ? ScriptApp.__platform || "default"
+              : "live GAS";
         console.log(`deleting temp calendar ${f.getId()} on ${platformLabel}`);
         try {
           f.deleteCalendar();
         } catch (e) {
-          console.log('...warning:failed to delete calendar', f.getId(), e.message);
+          console.log(
+            "...warning:failed to delete calendar",
+            f.getId(),
+            e.message,
+          );
         }
-      } else if (f && typeof f.setTrashed === 'function') {
-        const platformLabel = (typeof f.getPlatform === 'function') ? f.getPlatform() : (ScriptApp.isFake ? (ScriptApp.__platform || 'default') : 'live GAS');
+      } else if (f && typeof f.setTrashed === "function") {
+        const platformLabel =
+          typeof f.getPlatform === "function"
+            ? f.getPlatform()
+            : ScriptApp.isFake
+              ? ScriptApp.__platform || "default"
+              : "live GAS";
         console.log(`trashing temp file ${f.getId()} on ${platformLabel}`);
         try {
           f.setTrashed(true);
         } catch (e) {
-          console.log('...warning:failed to trash file', f.getId(), e.message);
+          console.log("...warning:failed to trash file", f.getId(), e.message);
         }
       }
     });
   } finally {
     if (behavior) behavior.sandboxMode = originalMode;
   }
-}
+};
 
 export const moveToTestFolder = (id) => {
-  const file = DriveApp.getFileById(id)
-  file.moveTo(getTestFolder())
-  return file
-}
+  const file = DriveApp.getFileById(id);
+  file.moveTo(getTestFolder());
+  return file;
+};
 
 export const getTestFolder = (fixes) => {
-  const p = ScriptApp.__platform || 'google';
+  const p = ScriptApp.__platform || "google";
   if (!__mfolder) {
-    const folderName = fixes.PREFIX + "gassy-mcfakeface"
-    const folders = DriveApp.getFoldersByName(folderName)
+    const folderName = fixes.PREFIX + "gassy-mcfakeface";
+    const folders = DriveApp.getFoldersByName(folderName);
     if (folders.hasNext()) {
-      __mfolder = folders.next()
+      __mfolder = folders.next();
     } else {
-      __mfolder = DriveApp.createFolder(folderName)
+      __mfolder = DriveApp.createFolder(folderName);
     }
-    console.log("...created folder", __mfolder.getName(), __mfolder.getId(), "on", p)
+    console.log(
+      "...created folder",
+      __mfolder.getName(),
+      __mfolder.getId(),
+      "on",
+      p,
+    );
   }
-  console.log("...test files will be in", __mfolder.getName(), __mfolder.getId(), "on", p)
-  return __mfolder
-}
+  console.log(
+    "...test files will be in",
+    __mfolder.getName(),
+    __mfolder.getId(),
+    "on",
+    p,
+  );
+  return __mfolder;
+};
 
-export const maketcal = (toTrash, fixes, { nameSuffix = 'default', clear = true } = {}) => {
+export const maketcal = (
+  toTrash,
+  fixes,
+  { nameSuffix = "default", clear = true } = {},
+) => {
   const behavior = ScriptApp.isFake ? ScriptApp.__behavior : null;
   const originalMode = behavior ? behavior.sandboxMode : false;
   if (behavior) behavior.sandboxMode = false;
-  const p = ScriptApp.__platform || 'google';
+  const p = ScriptApp.__platform || "google";
 
   const calName = fixes.PREFIX + "tss-calendar-" + nameSuffix;
   let cal = __mcals.get(calName);
@@ -240,29 +310,50 @@ export const maketcal = (toTrash, fixes, { nameSuffix = 'default', clear = true 
       if (existing.length > 0) {
         cal = existing[0];
         if (existing.length > 1) {
-          console.log('...cleaning up duplicate calendars for', calName, "on", p);
+          console.log(
+            "...cleaning up duplicate calendars for",
+            calName,
+            "on",
+            p,
+          );
           for (let i = 1; i < existing.length; i++) {
-            try { existing[i].deleteCalendar(); } catch (e) { console.log('failed to delete duplicate', e.message); }
+            try {
+              existing[i].deleteCalendar();
+            } catch (e) {
+              console.log("failed to delete duplicate", e.message);
+            }
           }
         }
-        console.log('...found existing calendar', cal.getName(), cal.getId(), "on", p);
+        console.log(
+          "...found existing calendar",
+          cal.getName(),
+          cal.getId(),
+          "on",
+          p,
+        );
         reuse = true;
       } else {
         cal = CalendarApp.createCalendar(calName);
-        console.log('...created calendar', cal.getName(), cal.getId(), "on", p);
+        console.log("...created calendar", cal.getName(), cal.getId(), "on", p);
       }
       __mcals.set(calName, cal);
     } else {
       try {
         // Refresh reference
         cal = CalendarApp.getCalendarById(cal.getId());
-        if (!cal) throw new Error('Calendar not found');
+        if (!cal) throw new Error("Calendar not found");
         reuse = true;
       } catch (e) {
         // Recreate if it was deleted
         cal = CalendarApp.createCalendar(calName);
         __mcals.set(calName, cal);
-        console.log('...re-created calendar (was deleted)', cal.getName(), cal.getId(), "on", p);
+        console.log(
+          "...re-created calendar (was deleted)",
+          cal.getName(),
+          cal.getId(),
+          "on",
+          p,
+        );
         reuse = false;
       }
     }
@@ -279,9 +370,9 @@ export const maketcal = (toTrash, fixes, { nameSuffix = 'default', clear = true 
   if (toTrash && cal) {
     const id = cal.getId();
     // Avoid duplicates in toTrash
-    const exists = toTrash.some(item => {
-      const f = (item && item.file) ? item.file : item;
-      return f && typeof f.getId === 'function' && f.getId() === id;
+    const exists = toTrash.some((item) => {
+      const f = item && item.file ? item.file : item;
+      return f && typeof f.getId === "function" && f.getId() === id;
     });
 
     if (!exists) {
@@ -292,40 +383,46 @@ export const maketcal = (toTrash, fixes, { nameSuffix = 'default', clear = true 
   return {
     cal,
     calName,
-    reuse
+    reuse,
   };
 };
 
-
-export const maketdoc = (toTrash, fixes, { clear = true, forceNew = false } = {}) => {
+export const maketdoc = (
+  toTrash,
+  fixes,
+  { clear = true, forceNew = false } = {},
+) => {
   const docName = fixes.PREFIX + "tss-docs";
   const folder = getTestFolder(fixes);
-  const p = ScriptApp.__platform || 'google';
+  const p = ScriptApp.__platform || "google";
   let reuse = false;
-  // because some test may have renamed it and drive/document service on Apps Script 
+  // because some test may have renamed it and drive/document service on Apps Script
   // might not actually be in sync - doesnt actually happen on Node but we'll leave for consistency.
   if (forceNew || !__mdoc || __mdoc.getName() !== docName) {
     __mdoc = DocumentApp.create(docName);
-    console.log('...created doc', __mdoc.getName(), __mdoc.getId(), "on", p);
+    console.log("...created doc", __mdoc.getName(), __mdoc.getId(), "on", p);
     moveToTestFolder(__mdoc.getId());
 
     // no need to do this as sandbox mode will take care of it
     if (fixes.CLEAN) {
       const id = __mdoc.getId();
-      const exists = toTrash.some(f => {
-        const fileObj = (f && f.file) ? f.file : f;
-        return fileObj && typeof fileObj.getId === 'function' && fileObj.getId() === id;
+      const exists = toTrash.some((f) => {
+        const fileObj = f && f.file ? f.file : f;
+        return (
+          fileObj &&
+          typeof fileObj.getId === "function" &&
+          fileObj.getId() === id
+        );
       });
       if (!exists) {
-        console.log('...will be deleting it later on', p);
+        console.log("...will be deleting it later on", p);
         toTrash.push(DriveApp.getFileById(id));
       }
     }
-
   } else {
     // in case there had been a save and close some point
     __mdoc = DocumentApp.openById(__mdoc.getId());
-    console.log('...re-opened doc', __mdoc.getName(), __mdoc.getId(), "on", p);
+    console.log("...re-opened doc", __mdoc.getName(), __mdoc.getId(), "on", p);
     if (ScriptApp.isFake) ScriptApp.__behavior.addFile(__mdoc.getId(), true);
     reuse = true;
   }
@@ -339,7 +436,7 @@ export const maketdoc = (toTrash, fixes, { clear = true, forceNew = false } = {}
     if (footer) footer.removeFromParent();
 
     // Workaround for live GAS bug where clear() fails on a document with only one paragraph.
-    __mdoc.getBody().appendParagraph('');
+    __mdoc.getBody().appendParagraph("");
 
     // The clear() method in the fake environment also resets named styles.
     __mdoc.clear();
@@ -347,48 +444,60 @@ export const maketdoc = (toTrash, fixes, { clear = true, forceNew = false } = {}
   return {
     doc: __mdoc,
     docName,
-    reuse
+    reuse,
   };
 };
 
 // to minimize the number of test sheets created we'll share this across all tests
-export const maketss = (sheetName, toTrash, fixes, { clearContents = true, clearFormats = true } = {}) => {
-  const folder = getTestFolder(fixes)
-  const aname = fixes.PREFIX + "tss-sheet"
-  const p = ScriptApp.__platform || 'google';
+export const maketss = (
+  sheetName,
+  toTrash,
+  fixes,
+  { clearContents = true, clearFormats = true } = {},
+) => {
+  const folder = getTestFolder(fixes);
+  const aname = fixes.PREFIX + "tss-sheet";
+  const p = ScriptApp.__platform || "google";
   if (!__mss || __mss.getName() !== aname) {
-    __mss = SpreadsheetApp.create(aname)
-    moveToTestFolder(__mss.getId())
-    console.log('...created ss', __mss.getName(), __mss.getId(), "on", p)
+    __mss = SpreadsheetApp.create(aname);
+    moveToTestFolder(__mss.getId());
+    console.log("...created ss", __mss.getName(), __mss.getId(), "on", p);
   } else {
     // re-register with sandbox if it's a fake
-    if (ScriptApp.isFake) ScriptApp.__behavior.addFile(__mss.getId(), true)
+    if (ScriptApp.isFake) ScriptApp.__behavior.addFile(__mss.getId(), true);
   }
   // no need to do this as sandbox mode will take care of it
   if (fixes.CLEAN) {
     const id = __mss.getId();
-    const exists = toTrash.some(f => {
-      const fileObj = (f && f.file) ? f.file : f;
-      return fileObj && typeof fileObj.getId === 'function' && fileObj.getId() === id;
+    const exists = toTrash.some((f) => {
+      const fileObj = f && f.file ? f.file : f;
+      return (
+        fileObj && typeof fileObj.getId === "function" && fileObj.getId() === id
+      );
     });
     if (!exists) {
-      console.log('...will be deleting it later on', p)
-      toTrash.push(DriveApp.getFileById(id))
+      console.log("...will be deleting it later on", p);
+      toTrash.push(DriveApp.getFileById(id));
     }
   }
 
-
-  let sheet = null
+  let sheet = null;
   if (sheetName) {
-    sheet = __mss.getSheetByName(sheetName)
+    sheet = __mss.getSheetByName(sheetName);
   }
 
   if (!sheet) {
-    sheet = __mss.insertSheet(sheetName)
-    console.log('...created sheet', sheet.getName(), sheet.getSheetId(), "on", p)
+    sheet = __mss.insertSheet(sheetName);
+    console.log(
+      "...created sheet",
+      sheet.getName(),
+      sheet.getSheetId(),
+      "on",
+      p,
+    );
   } else {
     if (clearContents || clearFormats) {
-      sheet.clear({ contentsOnly: !clearFormats, formatsOnly: !clearContents })
+      sheet.clear({ contentsOnly: !clearFormats, formatsOnly: !clearContents });
     }
   }
 
@@ -396,78 +505,97 @@ export const maketss = (sheetName, toTrash, fixes, { clearContents = true, clear
     ss: __mss,
     sheet,
     sheets: __mss.getSheets(),
-    folder
-  }
-}
+    folder,
+  };
+};
 
 export const toHex = (c) => {
-  if (!c) return '00';
+  if (!c) return "00";
   const val = Math.round(c * 255);
   const hex = val.toString(16);
-  return hex.length === 1 ? '0' + hex : hex;
+  return hex.length === 1 ? "0" + hex : hex;
 };
 
 export const rgbToHex = ({ red: r, green: g, blue: b }) => {
-
   const red = toHex(r);
   const green = toHex(g);
   const blue = toHex(b);
   return `#${red}${green}${blue}`;
-}
-export const getRandomRgb = () => ({ red: Math.random(), green: Math.random(), blue: Math.random() })
-export const getRandomHex = () => rgbToHex(getRandomRgb())
+};
+export const getRandomRgb = () => ({
+  red: Math.random(),
+  green: Math.random(),
+  blue: Math.random(),
+});
+export const getRandomHex = () => rgbToHex(getRandomRgb());
 export const getStuff = (range, funStuff = () => Utilities.getUuid()) =>
-  Array.from({ length: range.getNumRows() }, _ => Array.from({ length: range.getNumColumns() }, funStuff))
+  Array.from({ length: range.getNumRows() }, (_) =>
+    Array.from({ length: range.getNumColumns() }, funStuff),
+  );
 
-export const getRandomBetween = (max, min = 0) => Math.floor(Math.random() * (max - min + 1)) + min;
-export const getRandomFromDomain = (domain) => domain[getRandomBetween(domain.length - 1)]
-export const fillRangeFromDomain = (range, domain) => getStuff(range, () => getRandomFromDomain(domain))
-export const isACheckbox = (cell) => is.nonEmptyObject(cell) && cell.getCriteriaType().toString() === "CHECKBOX"
-export const BLACK = '#000000'
-export const RED = '#ff0000'
+export const getRandomBetween = (max, min = 0) =>
+  Math.floor(Math.random() * (max - min + 1)) + min;
+export const getRandomFromDomain = (domain) =>
+  domain[getRandomBetween(domain.length - 1)];
+export const fillRangeFromDomain = (range, domain) =>
+  getStuff(range, () => getRandomFromDomain(domain));
+export const isACheckbox = (cell) =>
+  is.nonEmptyObject(cell) && cell.getCriteriaType().toString() === "CHECKBOX";
+export const BLACK = "#000000";
+export const RED = "#ff0000";
 
-export const isRange = (a) => is.object(a) && !is.null(a) && is.function(a.toString) && a.toString() === "Range"
-export const isEnum = (a) => is.object(a) && Reflect.has(a, "compareTo") && is.function(a.compareTo)
-export const bothEnums = (a, b) => isEnum(a) && isEnum(b)
-export const rangeFix = (a) => isRange(a) ? `=${a.getSheet().getName()}!${a.getA1Notation()}` : a
-export const valuesFix = (a) => is.array(a) ? a.map(stringer) : stringer(a)
-export const stringer = (a) => (is.null(a) || is.undefined(a)) ? a : (isRange(a) ? rangeFix(a) : (is.function(a.toString) ? a.toString() : a))
-export const eString = (a) => isEnum(a) ? a.toString() : a
+export const isRange = (a) =>
+  is.object(a) &&
+  !is.null(a) &&
+  is.function(a.toString) &&
+  a.toString() === "Range";
+export const isEnum = (a) =>
+  is.object(a) && Reflect.has(a, "compareTo") && is.function(a.compareTo);
+export const bothEnums = (a, b) => isEnum(a) && isEnum(b);
+export const rangeFix = (a) =>
+  isRange(a) ? `=${a.getSheet().getName()}!${a.getA1Notation()}` : a;
+export const valuesFix = (a) => (is.array(a) ? a.map(stringer) : stringer(a));
+export const stringer = (a) =>
+  is.null(a) || is.undefined(a)
+    ? a
+    : isRange(a)
+      ? rangeFix(a)
+      : is.function(a.toString)
+        ? a.toString()
+        : a;
+export const eString = (a) => (isEnum(a) ? a.toString() : a);
 
 export const compareValue = (t, a, b, prop) => {
   if (bothEnums(a, b)) {
-    t.is(a.compareTo(b), 0, prop)
-    t.is(a.toString(), b.toString(), prop)
+    t.is(a.compareTo(b), 0, prop);
+    t.is(a.toString(), b.toString(), prop);
   } else {
-    t.deepEqual(valuesFix(a), valuesFix(b), prop)
+    t.deepEqual(valuesFix(a), valuesFix(b), prop);
   }
-}
+};
 
 export const addDays = (date, daysToAdd = 1) => {
   const newDate = new Date(date);
   newDate.setDate(date.getDate() + daysToAdd);
   return newDate;
-}
-
+};
 
 export const zeroizeTime = (date) => {
   const year = date.getFullYear();
   const month = date.getMonth(); // Month is 0-indexed
   const day = date.getDate();
   return new Date(year, month, day, 0, 0, 0, 0);
-}
+};
 
 // how many dimensions the values array has
 export const getDimensions = (v) => {
-  let dims = 0
+  let dims = 0;
   while (is.array(v)) {
-    dims++
-    v = v[0]
+    dims++;
+    v = v[0];
   }
-  return dims
-}
-
-
+  return dims;
+};
 
 // Make a gridrange from a range
 export const makeGridRange = (range) => {
@@ -476,75 +604,85 @@ export const makeGridRange = (range) => {
     startRowIndex: range.getRowIndex() - 1,
     startColumnIndex: range.getColumnIndex() - 1,
     endRowIndex: range.getRowIndex() + range.getNumRows() - 1,
-    endColumnIndex: range.getColumnIndex() + range.getNumColumns() - 1
-  }
-}
+    endColumnIndex: range.getColumnIndex() + range.getNumColumns() - 1,
+  };
+};
 
 export const makeExtendedValue = (value) => {
-
-  const ev = Sheets.newExtendedValue()
+  const ev = Sheets.newExtendedValue();
   if (is.string(value)) {
-    if (value.substring(0, 1) === '=') return ev.setFormulaValue(value)
-    return ev.setStringValue(value)
+    if (value.substring(0, 1) === "=") return ev.setFormulaValue(value);
+    return ev.setStringValue(value);
   } else if (is.boolean(value)) {
-    return ev.setBoolValue(value)
+    return ev.setBoolValue(value);
   } else if (is.number(value)) {
-    return ev.setNumberValue(value)
-  } else if (!is.nullOrUndefined(value) && is.object(value) && Reflect.has(value, "type")) {
+    return ev.setNumberValue(value);
+  } else if (
+    !is.nullOrUndefined(value) &&
+    is.object(value) &&
+    Reflect.has(value, "type")
+  ) {
     /// TODO
-    const errorValue = Sheets.newErrorValue().setType('REF').setMessage('Invalid cell reference!');
+    const errorValue = Sheets.newErrorValue()
+      .setType("REF")
+      .setMessage("Invalid cell reference!");
     extendedValue.setErrorValue(errorValue);
     //
-    throw new Error("not implemented yet - setErrorValue")
+    throw new Error("not implemented yet - setErrorValue");
   } else if (is.date(value)) {
-    return ev.setNumberValue(dateToSerial(value))
+    return ev.setNumberValue(dateToSerial(value));
     // TODO we could consider setting a numberformat to type data as well
   } else {
-    throw new Error(`Invalid type ${is(value)}`)
+    throw new Error(`Invalid type ${is(value)}`);
   }
-}
+};
 
 export const dateToSerial = (date) => {
   if (!is.date(date)) {
-    throw new Error(`dateToSerial is expecting a date but got ${is(date)}`)
+    throw new Error(`dateToSerial is expecting a date but got ${is(date)}`);
   }
   // these are held in a serial number like in Excel, rather than JavaScript epoch
   // so the epoch is actually Dec 30 1899 rather than Jan 1 1970
-  const epochCorrection = 2209161600000
-  const msPerDay = 24 * 60 * 60 * 1000
-  const adjustedMs = date.getTime() + epochCorrection
-  return adjustedMs / msPerDay
-}
+  const epochCorrection = 2209161600000;
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const adjustedMs = date.getTime() + epochCorrection;
+  return adjustedMs / msPerDay;
+};
 
 export const makeSheetsGridRange = (range) => {
-  const gr = Sheets.newGridRange()
-  const mr = makeGridRange(range)
-  return gr.setSheetId(mr.sheetId)
+  const gr = Sheets.newGridRange();
+  const mr = makeGridRange(range);
+  return gr
+    .setSheetId(mr.sheetId)
     .setStartRowIndex(mr.startRowIndex)
     .setStartColumnIndex(mr.startColumnIndex)
     .setEndRowIndex(mr.endRowIndex)
-    .setEndColumnIndex(mr.endColumnIndex)
-}
+    .setEndColumnIndex(mr.endColumnIndex);
+};
 
 export const fillRange = (range, value) => {
   if (is.function(value)) {
-    return fillRangeFunc(range, value)
+    return fillRangeFunc(range, value);
   }
-  return Array.from({ length: range.getNumRows() }).fill(Array.from({ length: range.getNumColumns() }).fill(value))
-}
+  return Array.from({ length: range.getNumRows() }).fill(
+    Array.from({ length: range.getNumColumns() }).fill(value),
+  );
+};
 
 export const fillRangeFunc = (range, value) => {
-  return Array.from({ length: range.getNumRows() }, _ => Array.from({ length: range.getNumColumns() }, () => value()))
-}
+  return Array.from({ length: range.getNumRows() }, (_) =>
+    Array.from({ length: range.getNumColumns() }, () => value()),
+  );
+};
 
 export const arrMatchesRange = (range, arr, itemType) => {
-  if (!is.array(arr)) return false
-  if (arr.length !== range.getNumRows()) return false
-  if (arr.some(r => !is.array(r))) return false
-  if (arr.some(r => r.length !== range.getNumColumns())) return false
-  if (itemType && !arr.flat().every(f => isitemType)) return false
-  return true
-}
+  if (!is.array(arr)) return false;
+  if (arr.length !== range.getNumRows()) return false;
+  if (arr.some((r) => !is.array(r))) return false;
+  if (arr.some((r) => r.length !== range.getNumColumns())) return false;
+  if (itemType && !arr.flat().every((f) => isitemType)) return false;
+  return true;
+};
 
 /**
  * Compares two values using Google Sheets' ascending sort logic.
@@ -553,8 +691,8 @@ export const arrMatchesRange = (range, arr, itemType) => {
  * @returns {number} a<b: -1, a===b: 0, a>b: 1
  */
 const compareMixedValues = (a, b) => {
-  const isBlankA = (a === null || a === undefined || a === "");
-  const isBlankB = (b === null || b === undefined || b === "");
+  const isBlankA = a === null || a === undefined || a === "";
+  const isBlankB = b === null || b === undefined || b === "";
 
   // Handle blanks - always sorted to the top in this ascending comparator
   if (isBlankA && !isBlankB) return -1;
@@ -564,9 +702,9 @@ const compareMixedValues = (a, b) => {
   // Get type priorities (lower number = sorts first)
   const getTypePriority = (val) => {
     // Correct Google Sheets ascending priority
-    if (typeof val === 'number') return 1;
-    if (typeof val === 'string') return 2;
-    if (typeof val === 'boolean') return 3;
+    if (typeof val === "number") return 1;
+    if (typeof val === "string") return 2;
+    if (typeof val === "boolean") return 3;
     if (val instanceof Date) return 4;
     return 5;
   };
@@ -580,11 +718,14 @@ const compareMixedValues = (a, b) => {
   }
 
   // Same types - compare values
-  if (typeof a === 'number' && typeof b === 'number') {
+  if (typeof a === "number" && typeof b === "number") {
     return a - b;
   }
-  if (typeof a === 'string' && typeof b === 'string') {
-    return a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true });
+  if (typeof a === "string" && typeof b === "string") {
+    return a.localeCompare(b, undefined, {
+      sensitivity: "base",
+      numeric: true,
+    });
   }
   /*
   if (typeof a === 'boolean' && typeof b === 'boolean') {
@@ -592,14 +733,13 @@ const compareMixedValues = (a, b) => {
   }
 */
   // *** THE FIX IS HERE (Explicit Boolean Comparison) ***
-  if (typeof a === 'boolean' && typeof b === 'boolean') {
+  if (typeof a === "boolean" && typeof b === "boolean") {
     if (a === b) return 0;
     // In ascending sort, FALSE is less than TRUE.
     return a === false ? -1 : 1;
     // OR: return (a ? 1 : 0) - (b ? 1 : 0); // TRUE is 1, FALSE is 0
   }
   // *** END OF FIX ***
-
 
   if (a instanceof Date && b instanceof Date) {
     return a.getTime() - b.getTime();
@@ -608,15 +748,16 @@ const compareMixedValues = (a, b) => {
   // Fallback for other types
   const strA = String(a);
   const strB = String(b);
-  return strA.localeCompare(strB, undefined, { sensitivity: 'base' });
+  return strA.localeCompare(strB, undefined, { sensitivity: "base" });
 };
 
 export const sort2d = (spec, arr) => {
-  const deepCopy = arr.map(row => [...row]);
+  const deepCopy = arr.map((row) => [...row]);
   return deepCopy.sort((a, b) => {
     for (const s of spec) {
-      const index = (typeof s === 'object' && s !== null) ? s.column - 1 : s - 1;
-      const ascending = (typeof s === 'object' && s !== null) ? s.ascending !== false : true;
+      const index = typeof s === "object" && s !== null ? s.column - 1 : s - 1;
+      const ascending =
+        typeof s === "object" && s !== null ? s.ascending !== false : true;
       let result = compareMixedValues(a[index], b[index]);
       if (!ascending) {
         result = -result;
@@ -629,23 +770,25 @@ export const sort2d = (spec, arr) => {
   });
 };
 
-
-
 /**
-* Prepares a 2D array by repeating a source array's values to fit within a target range's dimensions.
-* This mimics the repeating behavior of SpreadsheetApp.Range.copyValuesToRange when the target is larger than the source,
-* and ensures the result is at least the size of the source if the target is smaller.
-*
-* @param {any[][]} sourceValues - The source 2D array of values.
-* @param {FakeSheetRange} targetRange - The target Apps Script Range.
-* @returns {any[][]} A 2D array with the repeated values.
-*/
+ * Prepares a 2D array by repeating a source array's values to fit within a target range's dimensions.
+ * This mimics the repeating behavior of SpreadsheetApp.Range.copyValuesToRange when the target is larger than the source,
+ * and ensures the result is at least the size of the source if the target is smaller.
+ *
+ * @param {any[][]} sourceValues - The source 2D array of values.
+ * @param {FakeSheetRange} targetRange - The target Apps Script Range.
+ * @returns {any[][]} A 2D array with the repeated values.
+ */
 export const prepareTarget = (sourceValues, targetRange) => {
-
   if (!isRange(targetRange)) {
-    throw new Error(`target must be a range - it's a ${is(targetRange)}`)
+    throw new Error(`target must be a range - it's a ${is(targetRange)}`);
   }
-  if (!sourceValues || sourceValues.length === 0 || !sourceValues[0] || sourceValues[0].length === 0) {
+  if (
+    !sourceValues ||
+    sourceValues.length === 0 ||
+    !sourceValues[0] ||
+    sourceValues[0].length === 0
+  ) {
     return [];
   }
   const sourceRows = sourceValues.length;
@@ -663,15 +806,20 @@ export const prepareTarget = (sourceValues, targetRange) => {
   const finalCols = Math.max(1, colMultiplier) * sourceCols;
 
   return Array.from({ length: finalRows }, (_, rIndex) =>
-    Array.from({ length: finalCols }, (_, cIndex) => sourceValues[rIndex % sourceRows][cIndex % sourceCols])
+    Array.from(
+      { length: finalCols },
+      (_, cIndex) => sourceValues[rIndex % sourceRows][cIndex % sourceCols],
+    ),
   );
-}
+};
 
 export const transpose2DArray = (arr) => {
   if (!arr || arr.length === 0 || arr[0].length === 0) return [];
   const rows = arr.length;
   const cols = arr[0].length;
-  const transposed = Array.from({ length: cols }, () => Array(rows).fill(undefined));
+  const transposed = Array.from({ length: cols }, () =>
+    Array(rows).fill(undefined),
+  );
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       transposed[c][r] = arr[r][c];
@@ -681,17 +829,18 @@ export const transpose2DArray = (arr) => {
 };
 
 export const unpackedDoc = (id) => {
-  return unpackDocumentTab(Docs.Documents.get(id, { includeTabsContent: true }))?.documentTab
-}
+  return unpackDocumentTab(Docs.Documents.get(id, { includeTabsContent: true }))
+    ?.documentTab;
+};
 export const unpackDocumentTab = (data) => {
-  const tabs = data?.tabs
-  const documentTab = tabs?.[0]?.documentTab || data
-  const body = documentTab?.body
+  const tabs = data?.tabs;
+  const documentTab = tabs?.[0]?.documentTab || data;
+  const body = documentTab?.body;
   if (!documentTab) {
-    throw new Error("failed to find document tab in document")
+    throw new Error("failed to find document tab in document");
   }
   if (!body) {
-    throw new Error("failed to find body in document")
+    throw new Error("failed to find body in document");
   }
   return {
     tabs,
@@ -706,57 +855,54 @@ export const unpackDocumentTab = (data) => {
     documentStyle: documentTab.documentStyle,
     inlineObjects: documentTab.inlineObjects,
     positionedObjects: documentTab.positionedObjects,
-  }
-}
+  };
+};
 export const whichType = (element) => {
-  const ts = ["paragraph", "pageBreak", "textRun"]
-  const [t] = ts.filter(f => Reflect.has(element, f))
-  if (!t) console.log('skipping element', element)
-  return t
-}
-export const docReport = (gasdoc, what = '\ndoc report') => {
-
-  const id = gasdoc.getId()
-  gasdoc.saveAndClose()
+  const ts = ["paragraph", "pageBreak", "textRun"];
+  const [t] = ts.filter((f) => Reflect.has(element, f));
+  if (!t) console.log("skipping element", element);
+  return t;
+};
+export const docReport = (gasdoc, what = "\ndoc report") => {
+  const id = gasdoc.getId();
+  gasdoc.saveAndClose();
   const doc = Docs.Documents.get(id, { includeTabsContent: true });
-  console.log(JSON.stringify(doc))
-  const content = doc.body.content
+  console.log(JSON.stringify(doc));
+  const content = doc.body.content;
   // drop the section break
-  const children = content.slice(1)
-  what += ` -children:${children.length}`
-  console.log(what)
-  let text = '  '
+  const children = content.slice(1);
+  what += ` -children:${children.length}`;
+  console.log(what);
+  let text = "  ";
   const typer = (child, text) => {
-    const type = whichType(child)
+    const type = whichType(child);
 
     if (type) {
-
-      text += ` -type:${type} ${child.startIndex}:${child.endIndex}`
-      if (type === 'textRun') {
-        text += ` -text:${JSON.stringify(child[type].content)}`
+      text += ` -type:${type} ${child.startIndex}:${child.endIndex}`;
+      if (type === "textRun") {
+        text += ` -text:${JSON.stringify(child[type].content)}`;
       }
 
-      if (Reflect.has(child[type], 'textStyle')) {
-        text += ` -textStyle:${JSON.stringify(child[type].textStyle)}\n  `
+      if (Reflect.has(child[type], "textStyle")) {
+        text += ` -textStyle:${JSON.stringify(child[type].textStyle)}\n  `;
       }
-      if (Reflect.has(child[type], 'paragraphStyle')) {
-        text += ` -paragraphStyle:${JSON.stringify(child[type].paragraphStyle)}\n  `
+      if (Reflect.has(child[type], "paragraphStyle")) {
+        text += ` -paragraphStyle:${JSON.stringify(child[type].paragraphStyle)}\n  `;
       }
       if (Reflect.has(child[type], "elements")) {
-        text += ` (`
-        child[type].elements.forEach(f => text = typer(f, text))
-        text += ')'
+        text += ` (`;
+        child[type].elements.forEach((f) => (text = typer(f, text)));
+        text += ")";
       }
     }
-    return text
-  }
-  const mess = children.map(f => typer(f, text)).join("\n")
+    return text;
+  };
+  const mess = children.map((f) => typer(f, text)).join("\n");
   return {
     mess,
-    gasdoc: DocumentApp.openById(id)
-  }
-
-}
+    gasdoc: DocumentApp.openById(id),
+  };
+};
 // The custom replacer function
 const getCircularReplacer = () => {
   const seen = new WeakSet(); // Use WeakSet to avoid memory leaks
@@ -783,4 +929,4 @@ export const getChildren = (body) => {
     children.push(body.getChild(i));
   }
   return children;
-}
+};

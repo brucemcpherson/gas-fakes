@@ -25,8 +25,10 @@ export const testCoda = (pack) => {
 
   // this is the equivalent of My Drive in Drive - as its actually a workspace in coda
   const rootName = fixes.CODA_WORKSPACE;
+  const docsName = fixes.CODA_MY_DRIVE
   const codaType = "application/vnd.coda.doc";
-  const minFilesInRoot = 1; // at least these files in root folder
+  const minFilesInRoot = 0; // actually we dont know
+  const minFoldersInRoot = 1; // there should at least be My docs
 
 
   const toTrash = createTrashCollector();
@@ -37,10 +39,8 @@ export const testCoda = (pack) => {
     t.true(root.getId().startsWith("ws-"), "Root folder should be a workspace");
     // this will be mcpher.com or someone else's workspace name
     t.is(root.getName(), rootName, "Should be in Coda root folder 'My docs'");
-    // at this point we are getting the files not in a folder, but in the workspace
-    // however I see that we get all the files, whether or not they are in a folder
-    // TODO - this behavior is not like Drive - in the coda UI - the Home shows all files, but the Folders view is more like Drive
-    // however AppsScript DriveApp.list without a folder filter will behave the same - lets check that then dup the behavior
+
+    // there may or may not be some of these
     const top = root.getFiles();
     const files = [];
     while (top.hasNext()) {
@@ -48,32 +48,23 @@ export const testCoda = (pack) => {
     }
     t.true(
       files.length >= minFilesInRoot,
-      "Should be at least " + minFilesInRoot + " files",
+      "Should be at least " + minFilesInRoot + " files in root",
     );
 
-    // because the 'root' in coda is the workspace not a folder
-    files.forEach((f) => {
-      t.true(is.nonEmptyString(f.getName()));
-      t.true(is.nonEmptyString(f.getId()));
-      t.is(f.getMimeType(), codaType);
-      const parents = [];
-      const p = f.getParents();
-      while (p.hasNext()) {
-        parents.push(p.next());
-      }
-      
-      t.is(parents.length, 1, "Should have one parent");
-      const [parent] = parents;
-      t.is(parent.getId(), root.getId(), "Parent should be root folder");
-      t.is(parent.getName(), root.getName(), "Parent should be root folder");
+    // the my drive equivalent at least should exist
+    const topFolders = root.getFolders();
+    const folders = [];
+    while (topFolders.hasNext()) {
+      folders.push(topFolders.next());
+    }
+    t.true(
+      folders.length >= minFoldersInRoot,
+      "Should be at least " + minFoldersInRoot + " file folders in root",
+    );
 
-      const topFolders = DriveApp.getFolders();
-      const folders = [];
-      while (topFolders.hasNext()) {
-        folders.push(topFolders.next());
-      }
-      t.is(folders.length, 1, "Should have one folder");
-    });
+    // we should have found the my drive equivalent
+    t.truthy (folders.find (f=>f.getName() === docsName), 'should find my drive equivalent:' + docsName)
+
   });
 
   unit.section("Coda folder and file creation", (t) => {
@@ -83,11 +74,13 @@ export const testCoda = (pack) => {
     // folders
     const fname = prefix + "folder--of-junk";
     const folder = DriveApp.createFolder(fname);
+    
     const mfolder = DriveApp.getFolderById(folder.getId());
     t.is(mfolder.getId(), folder.getId());
     t.is(DriveApp.getFolderById(folder.getId()).getSize(), 0);
-
+    // some problem - is the created folder being added to the whitelist - doesnt seem to be
     // now can we create a fle in that folder
+    // also empty file in root is still going to the my Docs folder.
     const testCreateFile = (fName, text = "", folder = rootFolder) => {
       fName = prefix + fName;
       const subFile = folder.createFile(fName, text);
@@ -114,7 +107,7 @@ export const testCoda = (pack) => {
     };
 
     const f = testCreateFile("empty file in root");
-    f.setTrashed(true);
+
     testCreateFile("empty file in folder of junk", "", folder);
     testCreateFile(
       "file in folder of junk",

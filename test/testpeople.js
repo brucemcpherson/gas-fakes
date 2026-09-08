@@ -2,7 +2,7 @@ import '@mcpher/gas-fakes';
 import is from '@sindresorhus/is';
 
 import { initTests } from './testinit.js';
-import { getPeoplePerformance, wrapupTest, trasher } from './testassist.js';
+import { cachePerformance , wrapupTest, trasher } from './testassist.js';
 
 export const testPeople = (pack) => {
   const toTrash = [];
@@ -24,7 +24,7 @@ export const testPeople = (pack) => {
         })
       t.is(is(People.People), "Object")
       t.is(People.toString(), People.People.toString())
-      if (People.isFake) console.log('...cumulative people cache performance', getPeoplePerformance())
+      if (People.isFake) cachePerformance()
     })
   }
 

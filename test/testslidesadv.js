@@ -9,7 +9,7 @@ import '@mcpher/gas-fakes'
 //import '@mcpher/gas-fakes/main.js'
 
 import { initTests } from './testinit.js'
-import { wrapupTest, getSlidesPerformance, trasher, createTrashCollector } from './testassist.js';
+import { wrapupTest, trasher, createTrashCollector } from './testassist.js';
 // this can run standalone, or as part of combined tests if result of inittests is passed over
 
 export const testSlidesAdv = (pack) => {
@@ -66,6 +66,7 @@ export const testSlidesAdv = (pack) => {
 
   // running standalone
   if (!pack) {
+    if (SlidesApp.isFake) cachePerformance()
     unit.report()
 
   }

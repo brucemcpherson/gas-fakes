@@ -11,9 +11,9 @@ import {
   maketss,
   fillRangeFromDomain,
   trasher,
-  fillRange
+  fillRange,cachePerformance, wrapupTest
 } from "./testassist.js";
-import { getSheetsPerformance, wrapupTest } from "./testassist.js";
+
 // this can run standalone, or as part of combined tests if result of inittests is passed over
 export const testSheetsBasic  = (pack) => {
   const toTrash = [];
@@ -57,11 +57,8 @@ export const testSheetsBasic  = (pack) => {
     spreadsheet.deleteActiveSheet();
     t.is(spreadsheet.getSheets().length, initialSheetsCount, "deleteActiveSheet should remove the active sheet");
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
+
   });
 
 
@@ -161,11 +158,7 @@ export const testSheetsBasic  = (pack) => {
       "sort() on a sheet with one data row should sort the header as well"
     );
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
 
@@ -296,12 +289,7 @@ export const testSheetsBasic  = (pack) => {
       testRange.getDataValidations()[0][0],
       "clearNotes() should NOT clear data validations"
     );
-
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
 
@@ -332,11 +320,7 @@ export const testSheetsBasic  = (pack) => {
       /don't match the method signature/
     );
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
 
@@ -348,11 +332,7 @@ export const testSheetsBasic  = (pack) => {
     const sheetName = sheet.getName();
     t.is(sheetName, "sample");
 
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
   unit.section("Protection", (t) => {
@@ -413,22 +393,13 @@ export const testSheetsBasic  = (pack) => {
     p4.remove();
 
     namedRange.remove();
-
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
   });
 
 
   // running standalone
   if (!pack) {
-    if (SpreadsheetApp.isFake)
-      console.log(
-        "...cumulative sheets cache performance",
-        getSheetsPerformance()
-      );
+    if (SpreadsheetApp.isFake) cachePerformance()
     unit.report();
   }
   if (fixes.CLEAN) trasher(toTrash);

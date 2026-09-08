@@ -2,8 +2,7 @@ import is from '@sindresorhus/is';
 import '@mcpher/gas-fakes';
 import { initTests } from './testinit.js';
 import {
-  wrapupTest,
-  getDocsPerformance, maketdoc, trasher, createTrashCollector
+  wrapupTest,maketdoc, trasher, createTrashCollector
 } from './testassist.js';
 
 export const testDocsExtra = (pack) => {

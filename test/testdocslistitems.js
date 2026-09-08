@@ -1,6 +1,6 @@
 import '@mcpher/gas-fakes';
 import { initTests } from './testinit.js';
-import { wrapupTest, getDocsPerformance, maketdoc, trasher, unpackedDoc } from './testassist.js';
+import { wrapupTest, cachePerformance, maketdoc, trasher, unpackedDoc } from './testassist.js';
 
 
 export const testDocsListItems = (pack) => {
@@ -69,7 +69,7 @@ export const testDocsListItems = (pack) => {
     // t.is(li.getNumChildren(), 3, "insertInlineImage should add another child");
     // t.is(li.getChild(0).getType(), DocumentApp.ElementType.INLINE_IMAGE, "inserted child should be an image at the start");
 
-    if (DocumentApp.isFake) console.log('...cumulative docs cache performance', getDocsPerformance());
+      if (DocumentApp.isFake) cachePerformance()
   });
 
   unit.section("ListItem methods", t => {
@@ -113,7 +113,7 @@ export const testDocsListItems = (pack) => {
         t.threw(() => li1_reloaded.setGlyphType(DocumentApp.GlyphType.SQUARE_BULLET))?.message || 'no error thrown', /not yet implemented/, "setGlyphType should throw notYetImplemented");
     }
 
-    if (DocumentApp.isFake) console.log('...cumulative docs cache performance', getDocsPerformance())
+      if (DocumentApp.isFake) cachePerformance()
   });
 
 
@@ -160,7 +160,7 @@ export const testDocsListItems = (pack) => {
     const children3 = getChildren(body);
     t.is(children3.length, 4, "Body should have 4 children after appending copy");
     t.is(children3[3].getType(), DocumentApp.ElementType.LIST_ITEM, "Appended copy should be a ListItem");
-    if (DocumentApp.isFake) console.log('...cumulative docs cache performance', getDocsPerformance())
+      if (DocumentApp.isFake) cachePerformance()
   });
 
   unit.section("Body.insertListItem", t => {
@@ -186,7 +186,7 @@ export const testDocsListItems = (pack) => {
     t.is(children2.length, 6, "Body should have 6 children after inserting copy");
     t.is(children2[1].getType(), DocumentApp.ElementType.LIST_ITEM, "Inserted copy should be a ListItem");
     t.is(children2[1].getText(), "Item 1", "Inserted copy text should be correct");
-    if (DocumentApp.isFake) console.log('...cumulative docs cache performance', getDocsPerformance())
+      if (DocumentApp.isFake) cachePerformance()
   });
 
 
