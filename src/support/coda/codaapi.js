@@ -1,6 +1,7 @@
 import { Proxies } from "../proxies.js";
 import { CodaConstants } from "./constants.js";
 import is from "@sindresorhus/is";
+import { slogger } from "../slogger.js";
 
 export class CodaAPIError extends Error {
   constructor(message, status, data) {
@@ -12,14 +13,12 @@ export class CodaAPIError extends Error {
   }
 }
 
-
 /**
  * Creates a doc and initializes it with text content - shared between folder an file resource
  * @param {string} title - File/doc title
  * @param {string} media - content
  * @param {string} [folderId] - Optional destination folder ID
  */
-// In codaapi.js
 const createItem = async ({
   name: title,
   media,
@@ -27,7 +26,7 @@ const createItem = async ({
   thisResource,
   workspaceId,
 }) => {
-  const docPayload = { title, name: title , workspaceId, folderId };
+  const docPayload = { title, name: title, workspaceId, folderId };
   const params = {};
 
   // Create the Doc or Folder
@@ -35,19 +34,32 @@ const createItem = async ({
 
   // Add text content if provided and this is a doc
   if (is.nonEmptyString(media)) {
-    const pages = await thisResource.client.pages.list(doc.id, { limit: 1 });
-    const firstPage = pages.items?.[0];
+    let firstPage = null;
+    let attempts = 0;
+
+    // Poll until Coda backend finishes creating the default initial page shell
+    while (!firstPage && attempts < 10) {
+      try {
+        const pages = await thisResource.client.pages.list(doc.id, {
+          limit: 1,
+        });
+        firstPage = pages.items?.[0];
+      } catch (e) {
+        // Page shell is still initializing on Coda backend
+      }
+      if (!firstPage) {
+        attempts++;
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
+    }
 
     if (firstPage) {
       await thisResource.client.pages.update(doc.id, firstPage.id, {
-        contentUpdate: {
-          insertionMode: "replace",
-          canvasContent: {
-            format: "markdown",
-            content: media,
-          },
-        },
+        content: media,
       });
+
+      // Pause briefly to allow Coda canvas indexer to commit content
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     } else {
       throw new Error(
         `Failed to find first page to add text content for: ${title}`,
@@ -58,12 +70,6 @@ const createItem = async ({
   return doc;
 };
 export class CodaAPI {
-  /**
-   * @param {string} key - Coda API Bearer Token
-   * @param {object} [options]
-   * @param {string} [options.baseUrl] - API Base URL (defaults to CodaConstants.END_POINT or v1 endpoint)
-   * @param {number} [options.maxRetries=3] - Automatic retries on 429 / 5xx
-   */
   constructor(key, options = {}) {
     if (!key) throw new Error("Coda API token is required.");
     this.key = key;
@@ -72,6 +78,7 @@ export class CodaAPI {
       "",
     );
     this.maxRetries = options.maxRetries ?? 7;
+
     // Attach domain namespaces
     this.docs = new DocsResource(this);
     this.pages = new PagesResource(this);
@@ -85,13 +92,22 @@ export class CodaAPI {
   }
 
   /**
-   * Generic request handler handling auth, query params, JSON parsing, and retry backoff.
+   * Generic request handler handling auth, query params, optional initial delay, JSON parsing, and retry backoff.
+   * @param {string} method
+   * @param {string} path
+   * @param {object} [options]
+   * @param {number} [options.initialDelay=0] - Optional delay (in ms) before dispatching the HTTP request
    */
   async request(
     method,
     path,
-    { params, body, headers = {}, retryCount = 0 } = {},
+    { params, body, headers = {}, retryCount = 0, initialDelay = 0 } = {},
   ) {
+    // Apply initial delay if specified (useful right after doc creation to avoid 409 locks)
+    if (initialDelay > 0 && retryCount === 0) {
+      await new Promise((resolve) => setTimeout(resolve, initialDelay));
+    }
+
     const cleanPath = path.replace(/^\/+/, "");
     const url = new URL(`${this.baseUrl}/${cleanPath}`);
 
@@ -118,26 +134,36 @@ export class CodaAPI {
       reqHeaders["Content-Type"] = "application/json";
       fetchOptions.body = JSON.stringify(body);
     }
-    // url can look like this ../docs?workspaceId=ws-... for root level listings - also https://coda.io/apis/v1/folders/fl-Vn2t1pUvlj for listing folders
+
     const res = await fetch(url.toString(), fetchOptions);
 
-    // Rate-limiting backoff (429) and transient errors (500/503) or 409 - not settled yet
+    // Rate-limiting backoff (429) and transient errors (500/503/409)
     if (
       !res.ok &&
       (res.status === 429 || res.status >= 500 || res.status === 409) &&
       retryCount < this.maxRetries
     ) {
       const retryAfter =
-        Number(res.headers.get("Retry-After")) || Math.pow(2, retryCount);
-      console.log(
-        `...retry attempt ${retryCount + 1} due to error ${res.status} : ${method} ${path} in ${retryAfter} seconds`,
+        Number(res.headers.get("Retry-After")) || Math.pow(2, retryCount) * 2;
+      const reason =
+        res.status === 409
+          ? "Coda item initializing/locked"
+          : res.status === 429
+            ? "Rate limit reached"
+            : "Server error";
+
+      slogger.log(
+        `...waiting ${retryAfter}s to retry ${method} ${path} (${reason} - HTTP ${res.status}, attempt ${retryCount + 1}/${this.maxRetries})`,
       );
       await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+
+      // Pass initialDelay: 0 on retries so initial delay isn't re-executed inside the retry loop
       return this.request(method, path, {
         params,
         body,
         headers,
         retryCount: retryCount + 1,
+        initialDelay: 0,
       });
     }
 
@@ -153,47 +179,29 @@ export class CodaAPI {
     }
 
     if (!res.ok) {
-      // Extract detail/message array if present in Coda API error schemas
       const message =
         `${data?.message}` + `HTTP error ${res.status}: ${res.statusText}`;
       throw new CodaAPIError(message, res.status, data);
     }
 
-    // console.log(url.toString(), JSON.stringify(data.items));
-
     return data;
   }
 
-  // Base HTTP helper verbs
-  get(path, params) {
-    return this.request("GET", path, { params });
+  // Base HTTP helper verbs - pass options straight through
+  get(path, params, options = {}) {
+    return this.request("GET", path, { params, ...options });
   }
-  post(path, body, params) {
-    return this.request("POST", path, { body, params });
+  post(path, body, params, options = {}) {
+    return this.request("POST", path, { body, params, ...options });
   }
-  put(path, body, params) {
-    return this.request("PUT", path, { body, params });
+  put(path, body, params, options = {}) {
+    return this.request("PUT", path, { body, params, ...options });
   }
-  patch(path, body, params) {
-    return this.request("PATCH", path, { body, params });
+  patch(path, body, params, options = {}) {
+    return this.request("PATCH", path, { body, params, ...options });
   }
-  delete(path, body, params) {
-    return this.request("DELETE", path, { body, params });
-  }
-
-  /**
-   * Async generator to auto-paginate through list endpoints that use pageToken
-   */
-  async *paginate(path, params = {}) {
-    let pageToken = params.pageToken;
-    do {
-      const response = await this.get(path, { ...params, pageToken });
-      const items = response.items || [];
-      for (const item of items) {
-        yield item;
-      }
-      pageToken = response.nextPageToken;
-    } while (pageToken);
+  delete(path, body, params, options = {}) {
+    return this.request("DELETE", path, { body, params, ...options });
   }
 }
 
@@ -214,7 +222,7 @@ class DocsResource {
     if (data?.items && params.workspaceId && !params.folderId) {
       data.items = data.items.filter((f) => !f.folder);
     }
-    return data
+    return data;
   }
 
   /**
@@ -270,35 +278,179 @@ class PagesResource {
     this.client = client;
   }
 
-  list(docId, params) {
-    return this.client.get(`docs/${docId}/pages`, params);
-  }
-  get(docId, pageIdOrName) {
-    return this.client.get(`docs/${docId}/pages/${pageIdOrName}`);
-  }
-  create(docId, body) {
-    return this.client.post(`docs/${docId}/pages`, body);
-  }
-  update(docId, pageIdOrName, body) {
-    return this.client.put(`docs/${docId}/pages/${pageIdOrName}`, body);
-  }
-  delete(docId, pageIdOrName) {
-    return this.client.delete(`docs/${docId}/pages/${pageIdOrName}`);
+  list(docId, params, options) {
+    return this.client.get(`docs/${docId}/pages`, params, options);
   }
 
-  /**
-   * Sets canvas content for an existing page
-   * @param {string} docId
-   * @param {string} pageId
-   * @param {string} content - Markdown or plain text
-   */
-  async setContent(docId, pageId, content) {
-    return this.update(docId, pageId, {
-      canvasContent: {
-        format: "markdown",
-        content,
-      },
+  get(docId, pageIdOrName, options) {
+    return this.client.get(
+      `docs/${docId}/pages/${pageIdOrName}`,
+      null,
+      options,
+    );
+  }
+
+  create(docId, body, options) {
+    return this.client.post(`docs/${docId}/pages`, body, null, options);
+  }
+
+  async update(docId, pageId, payload = {}, options = {}) {
+    return this._retryOperation(async () => {
+      let pageObj = {};
+
+      // 1. Rename page if title/name provided
+      if (payload.title || payload.name) {
+        pageObj = await this.client.put(
+          `docs/${docId}/pages/${pageId}`,
+          { name: payload.title || payload.name },
+          null,
+          options,
+        );
+      } else {
+        pageObj = await this.get(docId, pageId, options);
+      }
+
+      // 2. Set markdown canvas content using Coda REST API spec
+      if (payload.content !== undefined) {
+        await this.client.put(
+          `docs/${docId}/pages/${pageId}`,
+          {
+            contentUpdate: {
+              insertionMode: "replace",
+              canvasContent: {
+                format: "markdown",
+                content: payload.content,
+              },
+            },
+          },
+          null,
+          options,
+        );
+      }
+
+      return pageObj;
     });
+  }
+
+  delete(docId, pageIdOrName, options) {
+    return this.client.delete(
+      `docs/${docId}/pages/${pageIdOrName}`,
+      null,
+      options,
+    );
+  }
+
+  async _retryOperation(fn, maxAttempts = 7, initialDelay = 2000) {
+    let attempt = 0;
+    let delay = initialDelay;
+
+    while (attempt < maxAttempts) {
+      try {
+        return await fn();
+      } catch (error) {
+        attempt++;
+
+        const isInitializing = error.status === 409 || error.statusCode === 409;
+        const isParentNotFoundYet =
+          (error.status === 404 || error.statusCode === 404) &&
+          error.message?.includes("Could not find a page");
+
+        if ((isInitializing || isParentNotFoundYet) && attempt < maxAttempts) {
+          slogger.log(
+            `...waiting ${delay / 1000}s to retry page operation (Coda item initializing/indexing - HTTP ${
+              error.status || error.statusCode
+            }, attempt ${attempt}/${maxAttempts})`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          delay *= 2;
+          continue;
+        }
+
+        throw error;
+      }
+    }
+  }
+
+  async createWithContent(
+    docId,
+    { name, parentPageId, content },
+    options = {},
+  ) {
+    const page = await this.client.post(
+      `docs/${docId}/pages`,
+      { name, parentPageId },
+      null,
+      options,
+    );
+
+    if (content) {
+      await this.setContent(docId, page.id, content, options);
+    }
+
+    return page;
+  }
+
+  async setContent(docId, pageId, content, options = {}) {
+    return this.update(docId, pageId, { content }, options);
+  }
+
+  async getContent(docId, pageId, options = {}) {
+    const maxAttempts = 6;
+    let delay = 1000;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        // Begin export job for markdown content
+        const exportReq = await this.client.post(
+          `docs/${docId}/pages/${pageId}/export`,
+          { outputFormat: "markdown" },
+          null,
+          options,
+        );
+
+        // Poll export status against official enum values
+        let exportStatus = exportReq;
+        let statusAttempts = 0;
+
+        while (exportStatus.status === "inProgress" && statusAttempts < 10) {
+          statusAttempts++;
+          await new Promise((r) => setTimeout(r, 1000));
+          
+          exportStatus = await this.client.get(
+            `docs/${docId}/pages/${pageId}/export/${exportReq.id}`,
+            null,
+            options,
+          );
+        }
+
+        if (exportStatus.status === "complete" && exportStatus.downloadLink) {
+          const response = await fetch(exportStatus.downloadLink);
+          const text = await response.text();
+          if (text || attempt === maxAttempts) {
+            return text;
+          }
+        }
+
+        if (exportStatus.status === "failed" || exportStatus.status === "canceled") {
+          slogger.log(`[CODA EXPORT] Page export ${exportStatus.status} for page ${pageId}`);
+        }
+      } catch (e) {
+        // Fallback to standard GET metadata if export endpoint errors out
+        try {
+          const page = await this.get(docId, pageId, options);
+          const metadataContent =
+            page?.canvasContent?.content ||
+            page?.subtitle ||
+            "";
+          if (metadataContent) return metadataContent;
+        } catch (_) {}
+      }
+
+      await new Promise((r) => setTimeout(r, delay));
+      delay *= 1.5;
+    }
+
+    return "";
   }
 }
 
@@ -310,14 +462,23 @@ class TablesResource {
   list(docId, params) {
     return this.client.get(`docs/${docId}/tables`, params);
   }
+
   get(docId, tableIdOrName) {
     return this.client.get(`docs/${docId}/tables/${tableIdOrName}`);
   }
+
   listColumns(docId, tableIdOrName, params) {
     return this.client.get(
       `docs/${docId}/tables/${tableIdOrName}/columns`,
       params,
     );
+  }
+
+  /**
+   * Delete a table/grid from a doc if supported by endpoint/extension
+   */
+  delete(docId, tableIdOrName) {
+    return this.client.delete(`docs/${docId}/tables/${tableIdOrName}`);
   }
 }
 

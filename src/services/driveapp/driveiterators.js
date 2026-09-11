@@ -187,7 +187,7 @@ export const getParentsIterator = ({
  * @param {boolean} fileTypes whether to get fileTypes 
  * @returns {object} a collection of files {response, data}
  */
-const fileLister = ({
+const xxxxxfileLister = ({
   qob, parentId, fields, folderTypes, fileTypes, pageToken = null
 }) => {
   // enhance any already supplied query params
@@ -220,8 +220,45 @@ const fileLister = ({
     const result = Drive.Files.list(params)
     return result
   } catch (err) {
-    console.error('...failed iterating over ${JSON.stringify(params)}')
+    console.error('...failed iterating over ${JSON.stringify(params)}', err)
     throw new Error(err)
   }
 
+}
+const fileLister = ({
+  qob, parentId, fields, folderTypes, fileTypes, pageToken = null
+}) => {
+  qob = Utils.arrify(qob) || []
+  qob = [...qob]
+
+  if (parentId) {
+    ScriptApp.__behavior.isAccessible(parentId) // validates access
+    
+    // Extract the page/canvas segment if parentId is composite (e.g., "docId/pageId")
+    // this is because coda has doc/page style ids.
+    const targetParent = parentId.includes('/') ? parentId : parentId
+    qob.push(`'${targetParent}' in parents`)
+  }
+
+  if (!(folderTypes || fileTypes)) {
+    throw new Error(`Must specify either folder type, file type or both`)
+  }
+
+  if (folderTypes !== fileTypes) {
+    qob.push(`mimeType ${fileTypes ? "!" : ""}= '${folderType}'`)
+  }
+
+  const q = qob.map(f => `${f}`).join(" and ")
+  let params = { q, fields }
+  if (pageToken) {
+    params.pageToken = pageToken
+  }
+
+  try {
+    const result = Drive.Files.list(params)
+    return result
+  } catch (err) {
+    console.error(`...failed iterating over ${JSON.stringify(params)}`, err)
+    throw new Error(err)
+  }
 }

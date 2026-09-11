@@ -1,7 +1,7 @@
 import { FakeDriveFolder, newFakeDriveFolder } from "./fakedrivefolder.js";
 import { newFakeDriveFile } from "./fakedrivefile.js";
 import { newFakeFolderApp } from "./fakefolderapp.js";
-import { notYetImplemented, isFolder } from "../../support/helpers.js";
+import { isFolder, folderType } from "../../support/helpers.js";
 import { Proxies } from "../../support/proxies.js";
 import { Utils } from "../../support/utils.js";
 import { Access, Permission } from "../enums/driveenums.js";
@@ -24,11 +24,12 @@ export class FakeDriveApp {
 
   // decide whether its a file or a folder
   // this would be called after a query /list request
-  // so we need to enhance the file with platform and whethere its a root (it never will be unless already set)
+  // so we need to enhance the file with platform and whether its a root (it never will be unless already set)
   __settleClass = (file) => {
-    file = {__rootRequested: false, platform: ScriptApp.__platform, ...file }
+    file = { __rootRequested: false, platform: ScriptApp.__platform, ...file };
     return isFolder(file) ? newFakeDriveFolder(file) : newFakeDriveFile(file);
   };
+
   toString() {
     return "Drive";
   }
@@ -38,36 +39,46 @@ export class FakeDriveApp {
    * folders can get files
    * @returns {FakeDriveFolder}
    */
+
   getRootFolder() {
-    // imprtant that we register this as a root folder as the various
     if (!this.__rootFolder) {
       const rf = Drive.Files.get("root", {}, { allow404: true });
-      // patch for coda
       if (!rf.platform) {
         throw new Error("platform missing from Drive file 'root'");
       }
+
+      // Flag metadata so FakeDriveFolder constructor triggers addRoot()
+      rf.__rootRequested = true;
+
+      // Ensure virtual root is typed as a folder for Coda
       if (rf.platform === "coda") {
-        const workspaceId =
-          rf?.__platformCustom?.workspace?.id ||
-          rf?.__platformCustom?.workspaceId;
-        if (!workspaceId) {
-          throw new Error("..failed to find real coda workspace id");
+        if (rf.id === "root") {
+          rf.mimeType = folderType;
+        }
+
+        // If the backend mapped "root" to a real Coda Master Doc ID (e.g. xmSMQ-Q7ks),
+        // register that actual doc ID as a root in the sandbox behavior engine
+        const masterDocId = rf.id !== "root" ? rf.id : rf.__platformCustom?.masterDocId;
+        if (masterDocId && ScriptApp.__behavior?.registerRoot) {
+          ScriptApp.__behavior.registerRoot(masterDocId);
         }
       }
+
       this.__rootFolder = newFakeDriveFolder(rf);
 
-      // special hack for ksuite is to add the 'superroot' folder which always has an id of '1'
-      if (rf?.platform ==='ksuite') {
-        if (!rf?.parents || !rf.parents?.length) {
-          throw new Error ('...failed to get id of super folder on ksuite')
+      if (rf.platform === "ksuite") {
+        if (!rf.parents || !rf.parents.length) {
+          throw new Error("...failed to get id of super folder on ksuite");
         }
-        // this will whitelist it
-        this.__superFolder = newFakeDriveFolder ({...rf,id:rf.parents[0], capabilities: {canEdit: false, canRename: false, parents:null}})
+        this.__superFolder = newFakeDriveFolder({
+          ...rf,
+          id: rf.parents[0],
+          capabilities: { canEdit: false, canRename: false, parents: null },
+        });
       }
     }
     return this.__rootFolder;
   }
-
   __reset() {
     this.__rootFolder = null;
   }
@@ -87,7 +98,7 @@ export class FakeDriveApp {
     const file = Drive.Files.get(id, {}, { allow404: true });
     return file ? newFakeDriveFile(file) : null;
   }
-
+  // src/services/driveapp/fakedriveapp.js
   getFolderById(id) {
     if (!is.nonEmptyString(id)) {
       throw new Error(
@@ -237,7 +248,7 @@ export class FakeDriveApp {
 }
 
 /**
- * create a new driveapp  instance
+ * create a new driveapp instance
  * @param  {...any} args
  * @returns {FakeDriveApp}
  */

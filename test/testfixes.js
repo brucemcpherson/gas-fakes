@@ -38,7 +38,7 @@ export const testFixes = {
   "CLEAN": true,
   get PREFIX() { return ScriptApp.isFake ? "--f" : "--g"; },
   "CODA_WORKSPACE": "mcpher.com",
-  "CODA_MY_DRIVE": "My docs"
+  "CODA_MY_DRIVE": "My Drive"
 };
 
 // altough we are set up to use multiple backends, to save cost i;ve closed the paid for ones down

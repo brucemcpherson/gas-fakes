@@ -649,7 +649,7 @@ class FakeBehavior {
       if (this.__cleanup) {
         const rootId = DriveApp.getRootFolder().getId();
         trashed = Array.from(this.__createdIds.values()).reduce(
-          (acc,  {id, platform}) => {
+          (acc, { id, platform }) => {
             if (id === rootId || this.isRegisteredRoot(id, platform)) {
               slogger.log(`...skipped attempt to trash root folder ` + id);
               return acc;
@@ -659,13 +659,20 @@ class FakeBehavior {
               ScriptApp.__platform = platform;
               d = DriveApp.getFileById(id);
             } catch (e) {
-              try {
-                ScriptApp.__platform = platform;
-                d = DriveApp.getFolderById(id);
-              } catch (ee) {
-                // Ignore if not found
+              // Ignore 404 / Not Found errors if already deleted
+              if (
+                !e.message?.includes("404") &&
+                !e.message?.includes("Not Found")
+              ) {
+                try {
+                  ScriptApp.__platform = platform;
+                  d = DriveApp.getFolderById(id);
+                } catch (ee) {
+                  // Ignore if folder lookup also fails
+                }
               }
             }
+
             if (d && d.getId() !== rootId) {
               try {
                 ScriptApp.__platform = platform;
@@ -675,7 +682,13 @@ class FakeBehavior {
                 slogger.log(`...trashed file ${logLabel} on ${platform}`);
                 acc.push(id);
               } catch (e) {
-                slogger.error(`...failed to trash file ${id}: ${e.message}`);
+                // Ignore 404 / Not Found during trashing (e.g., cascade deleted by parent doc)
+                if (
+                  !e.message?.includes("404") &&
+                  !e.message?.includes("Not Found")
+                ) {
+                  slogger.error(`...failed to trash file ${id}: ${e.message}`);
+                }
               }
             }
             return acc;
@@ -691,26 +704,22 @@ class FakeBehavior {
       // Clean up Gmail artifacts
       let trashedGmail = [];
       const gmailSettings = this.sandboxService.GmailApp;
-      const gmailCleanup = gmailSettings && gmailSettings.cleanup; // This will return true/false (inherits or specific)
+      const gmailCleanup = gmailSettings && gmailSettings.cleanup;
 
       if (gmailCleanup) {
         trashedGmail = Array.from(this.__createdGmailIds.values()).reduce(
-          (acc, {id, platform}) => {
+          (acc, { id, platform }) => {
             ScriptApp.__platform = platform;
-            // Try as message
             try {
-              // Try as label
               Gmail.Users.Labels.remove("me", id);
               slogger.log(`...deleted gmail label ${id}`);
               acc.push(id);
               return acc;
             } catch (e) {
-              // wasnt a label - lets try a thread
+              /* not a label */
             }
 
             try {
-
-              // Try as thread - move to trash
               Gmail.Users.Threads.trash("me", id);
               slogger.log(`...trashed gmail thread ${id}`);
               acc.push(id);
@@ -746,15 +755,19 @@ class FakeBehavior {
       if (calendarCleanup) {
         trashedCalendars = Array.from(
           this.__createdCalendarIds.values(),
-        ).reduce((acc, {id, platform}) => {
+        ).reduce((acc, { id, platform }) => {
           try {
             ScriptApp.__platform = platform;
-            // Delete calendar
             Calendar.Calendars.delete(id, { noLog404: true });
             slogger.log(`...deleted calendar ${id}`);
             acc.push(id);
           } catch (e) {
-            slogger.log(`...failed to delete calendar ${id}: ${e.message}`);
+            if (
+              !e.message?.includes("404") &&
+              !e.message?.includes("Not Found")
+            ) {
+              slogger.log(`...failed to delete calendar ${id}: ${e.message}`);
+            }
           }
           return acc;
         }, []);

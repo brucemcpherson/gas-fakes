@@ -44,3 +44,4 @@ export const isTextMimeType = (mimeType) => {
   return ['PLAIN_TEXT','OPENDOCUMENT_TEXT','JAVASCRIPT','HTML','CSV','CSS','GOOGLE_APPS_SCRIPT',"application/json","application/jsonl"]
     .map (f=>googleMimeTypes[f] || f).includes(mimeType  )
 }
+

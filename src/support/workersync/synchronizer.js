@@ -173,7 +173,7 @@ export function callSync(method, ...args) {
   // 3. Block and wait for the worker to finish.
   // It's "busy" (1) until the worker sets it back to "free" (0).
   // This is a true blocking wait, consuming minimal CPU.
-  const WORKER_TIMEOUT = 240000 // 240 seconds for testing - change to long number in released code
+  const WORKER_TIMEOUT = 100000 //  seconds for testing - change to long number in released code
   const result = Atomics.wait(control, CONTROL_INDICES.STATUS, 1, WORKER_TIMEOUT);
   if (result === 'timed-out') {
     worker.terminate();

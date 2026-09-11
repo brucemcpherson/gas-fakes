@@ -231,7 +231,13 @@ export class FakeDriveMeta {
   getUrl() {
     return this.__getDecorated("webViewLink")
   }
-
+  /**
+   * get the file mimetype
+   * @returns {string} the file mimetpe
+   */
+  getMimeType() {
+    return this.__getDecorated("mimeType")
+  }
   /**
    * moves a file to a mew destination
    * @param {FakeDriveFolder} destination

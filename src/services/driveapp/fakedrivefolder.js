@@ -22,11 +22,22 @@ export class FakeDriveFolder extends FakeDriveMeta {
     if (!isFolder(meta)) {
       throw new Error(`file must be a folder:` + JSON.stringify(meta));
     }
-    // these are methods shared between driveapp and folder
 
     this.folderApp = newFakeFolderApp();
-    if (ScriptApp.__behavior && meta.__rootRequested)
-      ScriptApp.__behavior.addRoot(this);
+
+    if (ScriptApp.__behavior) {
+      if (meta.__rootRequested) {
+        ScriptApp.__behavior.addRoot(this);
+      }
+
+      // Register Coda Document or Page folder IDs as accessible roots/known files
+      const codaId = this.getId();
+      if (meta.platform === "coda" && codaId && codaId !== "root") {
+        if (typeof ScriptApp.__behavior.registerRoot === "function") {
+          ScriptApp.__behavior.registerRoot(codaId);
+        }
+      }
+    }
   }
 
   searchFiles(params) {

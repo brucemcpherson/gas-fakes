@@ -176,7 +176,7 @@ export const checkBackend = (name) => {
   return true;
 };
 
-export const wrapupTest = (func) => {
+export const wrapupTest = (func, trash = true) => {
   if (
     ScriptApp.isFake &&
     globalThis.process?.argv.slice(2).includes("execute")
@@ -185,7 +185,11 @@ export const wrapupTest = (func) => {
     cachePerformance();
     // actually most of these should already have been trashed
 
-    ScriptApp.__behavior.trash();
+    if (trash){
+      ScriptApp.__behavior.trash();
+    } else {
+      console.log ('...wrap is skippping sandbox trashing')
+    }
 
     // Clear global state to prevent hangovers between sequential test suites
     __mss = null;
@@ -246,7 +250,17 @@ export const trasher = (toTrash) => {
         try {
           f.setTrashed(true);
         } catch (e) {
-          console.log("...warning:failed to trash file", f.getId(), e.message);
+          // If already deleted by parent document cascade, suppress warning
+          if (
+            !e.message?.includes("404") &&
+            !e.message?.includes("Not Found")
+          ) {
+            console.log(
+              "...warning:failed to trash file",
+              f.getId(),
+              e.message,
+            );
+          }
         }
       }
     });

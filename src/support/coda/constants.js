@@ -9,9 +9,8 @@ export const CodaConstants = {
   END_POINT: 'https://coda.io/apis/v1',
   TYPES: {
     'folder': 'application/vnd.google-apps.folder',
-    'doc': 'application/vnd.coda.doc',
-    'table': 'application/vnd.google-apps.spreadsheet',
-    'workspace': 'application/vnd.google-apps.folder',
-    'workspace_root': 'application/vnd.google-apps.folder'
+    'doc': 'application/vnd.google-apps.document',
+    'page': 'application/vnd.google-apps.document',
+    'master_doc': 'application/vnd.google-apps.folder'
   }
 };

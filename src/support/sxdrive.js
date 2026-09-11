@@ -235,6 +235,10 @@ export const sxDriveMedia = async (Auth, { id: fileId }) => {
   }
 
   if (Auth.getPlatform() === "coda") {
+    return handleCodaDrive(Auth, {
+        method: "download",
+        fileId,
+      });
   }
 
   return sxStreamer({

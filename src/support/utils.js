@@ -87,10 +87,12 @@ const settleAsBytes = (data, charset) => {
       // Check if the object's values look like a valid byte array.
       if (isByteArray(values)) return values;
     }
-    if (!is.array(data))
+    if (!is.array(data)) {
+      const keys = is.object(data) ? Object.keys(data) : "N/A";
       slogger.log(
-        `settleAsBytes: data is NOT an array. type: ${typeof data}, keys: ${Object.keys(data)}`,
+        `settleAsBytes: data is NOT an array. type: ${typeof data}, keys: ${keys}`,
       );
+    }
     assert.array(data);
     return data;
   }

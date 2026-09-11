@@ -1,4 +1,3 @@
-
 import path from "path";
 import { Auth } from "./auth.js";
 import { randomUUID } from "node:crypto";
@@ -20,6 +19,11 @@ import { calendarCacher } from "./calendarcacher.js";
 import { bigqueryCacher } from "./bigquerycacher.js";
 import is from "@sindresorhus/is";
 import { callSync } from "./workersync/synchronizer.js";
+
+const debugLog = (...args) => {
+  console.log(`[DEBUG-MAIN-SYNC] ${new Date().toISOString()}`, ...args);
+};
+
 const manifestDefaultPath = "./appsscript.json";
 const claspDefaultPath = "./.clasp.json";
 const propertiesDefaultPath = "/tmp/gas-fakes/properties";
@@ -27,14 +31,13 @@ const cacheDefaultPath = "/tmp/gas-fakes/cache";
 
 // Helper to ensure init has happened before any worker call
 const safeCallSync = (method, ...args) => {
-  // console.log('Main thread: Calling worker task...', method);
+  debugLog(`safeCallSync invoking worker task: ${method}`);
   if (method !== "sxInit" && !Auth.hasAuth()) {
-    // Attempt lazy initialization
-    // console.log('Main thread: calling fxInit');
+    debugLog(`safeCallSync triggering lazy fxInit for method: ${method}`);
     fxInit();
   }
   const result = callSync(method, ...args);
-  // console.log(`[callSync ${method}]`)
+  debugLog(`safeCallSync task completed: ${method}`);
   return result;
 };
 
@@ -54,28 +57,40 @@ const normalizeSerialization = (ob) =>
  */
 const registerSx = (result, allow404 = false, fields) => {
   const { data, response } = result;
+  debugLog("registerSx check:", {
+    hasData: Boolean(data),
+    isPlainObject: is.plainObject(data),
+    id: data?.id,
+    responseStatus: response?.status,
+  });
 
   // If data is a file metadata object (has an id), register it in the cache.
   // If it's media content (array) or doesn't have an ID, skip registration.
   if (is.plainObject(data) && is.nonEmptyString(data.id)) {
     checkResponse(data.id, response, allow404);
+    const cachedData = improveFileCache(data.id, data, fields);
+    debugLog(`registerSx cached file metadata for ID: ${data.id}`);
     return {
       ...result,
-      data: improveFileCache(data.id, data, fields),
+      data: cachedData,
     };
   }
 
   // For other cases (like alt=media content), just return the result as is.
+  debugLog("registerSx skipped caching (not a plain object metadata or lacks id)");
   return result;
 };
 
 const register = (id, cacher, result, allow404 = false, params) => {
   const { data, response } = result;
+  debugLog(`register checking cacher for ID: "${id}"`);
 
   if (checkResponseCacher(id, response, allow404, cacher)) {
     cacher.setEntry(id, params, normalizeSerialization(data));
+    debugLog(`register updated cacher entry for ID: "${id}"`);
     return result;
   } else {
+    debugLog(`register checkResponseCacher rejected caching for ID: "${id}"`);
     return result;
   }
 };
@@ -100,12 +115,20 @@ const fxStreamUpMedia = ({
   fileId,
   params = {},
 }) => {
+  debugLog(`fxStreamUpMedia method: "${method}", fileId: "${fileId}"`, { file, params });
   // merge the required fields with the minimum
   fields = mergeParamStrings(minFields, fields);
-  // note that we cant pass the blob here (it would be easier) as it cant be serializsd for the worker, so we pass the bytes + the mimeType of the blob
+  
+  const bytes = blob ? blob.getBytes() : null;
+  debugLog("fxStreamUpMedia byte info:", {
+    hasBlob: Boolean(blob),
+    byteCount: bytes?.length,
+    mimeType: blob?.getContentType() || file.mimeType,
+  });
+
   const result = safeCallSync("sxStreamUpMedia", {
     resource: file,
-    bytes: blob ? blob.getBytes() : null,
+    bytes,
     fields,
     method,
     mimeType: blob?.getContentType() || file.mimeType,
@@ -113,8 +136,11 @@ const fxStreamUpMedia = ({
     params,
   });
 
+  debugLog("fxStreamUpMedia sxStreamUpMedia result:", JSON.stringify(result));
+
   if (method === "create" && result.data?.id) {
     if (ScriptApp.__behavior.sandBoxMode) {
+      debugLog(`fxStreamUpMedia registering created file ${result.data.id} in sandbox`);
       ScriptApp.__behavior.addFile(result.data?.id);
     }
   }
@@ -132,13 +158,14 @@ const fxStreamUpMedia = ({
  * @return {DriveResponse} from the drive api
  */
 const fxDrive = ({ prop, method, params, options }) => {
+  debugLog(`fxDrive call: ${prop}.${method}`, { params, options });
   const result = safeCallSync("sxDrive", {
     prop,
     method,
     params: normalizeSerialization(params),
     options: normalizeSerialization(options),
   });
-
+  debugLog(`fxDrive result for ${prop}.${method}:`, JSON.stringify(result));
   return result;
 };
 
@@ -152,11 +179,13 @@ const fxGeneric = ({
   cacher,
   idField,
 }) => {
-  const { [idField]: resourceId, ...otherParams } = params;
+  const { [idField]: resourceId, ...otherParams } = params || {};
+  debugLog(`fxGeneric service: ${serviceName}, prop: ${prop}, method: ${method}, resourceId: "${resourceId}"`);
 
   if (method === "get") {
     const data = cacher.getEntry(resourceId, otherParams);
     if (data) {
+      debugLog(`fxGeneric cache HIT for ${serviceName} ID: "${resourceId}"`);
       return {
         data: normalizeSerialization(data),
         response: {
@@ -165,6 +194,7 @@ const fxGeneric = ({
         },
       };
     }
+    debugLog(`fxGeneric cache MISS for ${serviceName} ID: "${resourceId}"`);
   }
 
   const result = safeCallSync(`sx${serviceName}`, {
@@ -175,9 +205,12 @@ const fxGeneric = ({
     options: normalizeSerialization(options),
   });
 
+  debugLog(`fxGeneric sx${serviceName} result:`, JSON.stringify(result));
+
   if (method === "get") {
     return register(resourceId, cacher, result, false, otherParams);
   } else if (resourceId) {
+    debugLog(`fxGeneric clearing cache for ${serviceName} ID: "${resourceId}" due to non-get method`);
     cacher.clear(resourceId);
   }
   return result;
@@ -194,42 +227,44 @@ const fxGeneric = ({
  */
 const fxDriveGet = ({
   id,
-  params,
+  params = {},
   allow404 = false,
   allowCache = true,
   options,
 }) => {
-  // fixup the fields param
-  // we'll fiddle with the scopes to populate cache
+  debugLog(`fxDriveGet ID: "${id}", allowCache: ${allowCache}`, { params, options });
+
   params.fields = mergeParamStrings(minFields, params.fields || "");
   params.fileId = id;
 
-  // now we check if it's in cache and already has the necessary fields
-  // the cache will check the fields it already has against those requested
-  // but we must bypass cache if alt=media is requested
   const isMedia =
     params.alt === "media" || (params.params && params.params.alt === "media");
+
   if (allowCache && !isMedia) {
     const { cachedFile, good } = getFromFileCache(id, params.fields);
-    if (good)
+    if (good) {
+      debugLog(`fxDriveGet cache HIT for fileId: "${id}"`);
       return {
         data: normalizeSerialization(cachedFile),
-        // fake a good sxresponse
         response: {
           status: 200,
           fromCache: true,
         },
       };
+    }
+    debugLog(`fxDriveGet cache MISS for fileId: "${id}"`);
+  } else {
+    debugLog(`fxDriveGet bypassing cache (allowCache: ${allowCache}, isMedia: ${isMedia})`);
   }
 
-  // so we have to hit the API
   const result = safeCallSync("sxDriveGet", {
     id,
     params: normalizeSerialization(params),
     options: normalizeSerialization(options),
   });
 
-  // check result and register in cache
+  debugLog(`fxDriveGet sxDriveGet result for ID "${id}":`, JSON.stringify(result));
+
   return registerSx(result, allow404, params.fields);
 };
 
@@ -240,6 +275,7 @@ const fxDriveGet = ({
  * @returns {FakeBlob} a combined zip file
  */
 const fxZipper = ({ blobs }) => {
+  debugLog("fxZipper processing blobs count:", blobs?.length);
   const dupCheck = new Set();
   const blobsContent = blobs.map((f, i) => {
     const ext = mime.getExtension(f.getContentType());
@@ -266,6 +302,7 @@ const fxZipper = ({ blobs }) => {
  * @returns {FakeBlob[]} each of the files unzipped
  */
 const fxUnzipper = ({ blob }) => {
+  debugLog("fxUnzipper processing blob name:", blob?.getName());
   const blobContent = {
     name: blob.getName(),
     bytes: blob.getBytes(),
@@ -294,11 +331,17 @@ export const fxInit = ({
   propertiesPath = propertiesDefaultPath,
   platformAuth,
 } = {}) => {
-  // Use current working directory to resolve relative paths
+  debugLog("fxInit starting with paths:", {
+    manifestPath,
+    claspPath,
+    cachePath,
+    propertiesPath,
+    platformAuth,
+  });
+
   const cwd = process.cwd();
   const resolve = (p) => (path.isAbsolute(p) ? p : path.resolve(cwd, p));
 
-  // because this is all run in a synced subprocess it's not an async result
   const synced = callSync("sxInit", {
     claspPath: resolve(claspPath),
     manifestPath: resolve(manifestPath),
@@ -311,43 +354,34 @@ export const fxInit = ({
 
   const { identities, settings, manifest, clasp } = synced;
 
-  // set these values from the subprocess into the main project version of auth
   Auth.setSettings(settings);
   Auth.setClasp(clasp);
   Auth.setManifest(manifest);
 
-  // console.log(`...DEBUG: fxInit identities received keys=${Object.keys(identities || {}).join(',')}`);
+  debugLog(`fxInit identities received keys: ${Object.keys(identities || {}).join(",")}`);
 
-  // Populate all identities
   if (identities) {
     Object.keys(identities).forEach((p) => {
       Auth.setIdentity(p, identities[p]);
     });
   }
 
-  // Set default platform only if none is set
   const currentPlatform = Auth.getPlatform();
   if (currentPlatform === "google" || !currentPlatform) {
     const initialPlatforms = platformAuth ||
       ScriptApp.__platformAuth || ["google"];
-    // Prefer google if available in authorized platforms, otherwise use the first available.
     const defaultPlatform = initialPlatforms.includes("google")
       ? "google"
       : initialPlatforms[0];
     Auth.setPlatform(defaultPlatform);
+    debugLog(`fxInit platform set to: "${defaultPlatform}"`);
   }
 
   return synced;
 };
 
-/**
- * because we're using a file backed cache we need to syncit
- * it'll slow it down but it's necessary to emuate apps script behavior
- * @param {object} p params
- * @param {}
- * @returns {*}
- */
 const fxStore = (storeArgs, method = "get", ...kvArgs) => {
+  debugLog(`fxStore method: "${method}"`, { storeArgs, kvArgs });
   return safeCallSync("sxStore", {
     method,
     kvArgs,
@@ -356,33 +390,27 @@ const fxStore = (storeArgs, method = "get", ...kvArgs) => {
 };
 
 const fxRefreshToken = () => {
+  debugLog("fxRefreshToken triggered");
   return safeCallSync("sxRefreshToken");
 };
 
-/**
- * sync a call to Drive api to stream a download
- * @param {object} p pargs
- * @param {string} p.prop the prop of drive eg 'files' for drive.files
- * @param {string} p.method the method of drive eg 'list' for drive.files.list
- * @param {object} p.params the params to add to the request
- * @return {DriveResponse} from the drive api
- */
-const fxDriveMedia = ({ id }) => {
-  return safeCallSync("sxDriveMedia", {
+const fxDriveMedia = ({ id, params = {}, options = {} }) => {
+  // Enforce alt=media parameter so fxDriveGet/worker knows this is a media request
+  const mediaParams = {
+    ...params,
+    alt: "media",
+  };
+
+  return fxDriveGet({
     id,
+    params: mediaParams,
+    allowCache: false, // Force cache bypass for binary/text payload retrieval
+    options,
   });
 };
-/**
- * sync a call to Drive api to stream a download
- * @param {object} p pargs
- * @param {string} p.prop of drive eg 'files' for drive.files
- * @param {string} p.method the method of drive eg 'list' for drive.files.list
- * @param {object} p.params the params to add to the request
- * @return {DriveResponse} from the drive api
- */
+
 const fxDriveExport = ({ id, mimeType, options = { alt: "media" } }) => {
-  // see issue https://issuetracker.google.com/issues/468534237
-  // live apps script failes without this alt option
+  debugLog(`fxDriveExport ID: "${id}", mimeType: "${mimeType}"`, { options });
   return safeCallSync("sxDriveExport", {
     id,
     mimeType,
@@ -390,44 +418,42 @@ const fxDriveExport = ({ id, mimeType, options = { alt: "media" } }) => {
   });
 };
 
-/**
- * a sync version of fetching
- * @param {string} url the url to check
- * @param {object} options the options
- * @param {string[]} responseField the reponse fields to extract (we cant serialize native code)
- * @returns {reponse} urlfetch style reponse
- */
 const fxFetch = (url, options, responseFields) => {
+  debugLog(`fxFetch URL: "${url}"`, { options, responseFields });
   return safeCallSync("sxFetch", url, options, responseFields);
 };
 
 const fxFetchAll = (requests, responseFields) => {
+  debugLog("fxFetchAll requests count:", requests?.length);
   return safeCallSync("sxFetchAll", requests, responseFields);
 };
 
 const fxGetAccessToken = () => {
+  debugLog("fxGetAccessToken requested");
   return safeCallSync("sxGetAccessToken");
 };
 
 const fxGetAccessTokenInfo = () => {
+  debugLog("fxGetAccessTokenInfo requested");
   return safeCallSync("sxGetAccessTokenInfo");
 };
+
 const fxGetSourceAccessTokenInfo = () => {
+  debugLog("fxGetSourceAccessTokenInfo requested");
   return safeCallSync("sxGetSourceAccessTokenInfo");
 };
 
 const fxTestRetry = (errorMessage) => {
+  debugLog("fxTestRetry requested with message:", errorMessage);
   return safeCallSync("sxTestRetry", { errorMessage });
 };
 
 const fxJdbcConnect = (url, user, password) => {
+  debugLog(`fxJdbcConnect URL: "${url}"`);
   const args = { url };
   if (typeof user === "object" && user !== null) {
-    // Handling info object
     args.user = user.user || user.userName;
     args.password = user.password;
-    // We could pass the whole object if the worker was ready for it,
-    // but for now let's just stick to user/pass.
   } else {
     if (user !== null && typeof user !== "undefined") args.user = user;
     if (password !== null && typeof password !== "undefined")
@@ -437,30 +463,37 @@ const fxJdbcConnect = (url, user, password) => {
 };
 
 const fxJdbcQuery = (connectionId, sql) => {
+  debugLog(`fxJdbcQuery connectionId: "${connectionId}" SQL: "${sql}"`);
   return safeCallSync("sxJdbcQuery", { connectionId, sql });
 };
 
 const fxJdbcExecutePrepared = (connectionId, sql, values) => {
+  debugLog(`fxJdbcExecutePrepared connectionId: "${connectionId}" SQL: "${sql}"`);
   return safeCallSync("sxJdbcExecutePrepared", { connectionId, sql, values });
 };
 
 const fxJdbcCommit = (connectionId) => {
+  debugLog(`fxJdbcCommit connectionId: "${connectionId}"`);
   return safeCallSync("sxJdbcCommit", { connectionId });
 };
 
 const fxJdbcRollback = (connectionId) => {
+  debugLog(`fxJdbcRollback connectionId: "${connectionId}"`);
   return safeCallSync("sxJdbcRollback", { connectionId });
 };
 
 const fxJdbcSetAutoCommit = (connectionId, autoCommit) => {
+  debugLog(`fxJdbcSetAutoCommit connectionId: "${connectionId}", autoCommit: ${autoCommit}`);
   return safeCallSync("sxJdbcSetAutoCommit", { connectionId, autoCommit });
 };
 
 const fxJdbcClose = (connectionId) => {
+  debugLog(`fxJdbcClose connectionId: "${connectionId}"`);
   return safeCallSync("sxJdbcClose", { connectionId });
 };
 
 const fxSheets = (args) => {
+  debugLog("fxSheets executing with args:", args);
   const result = fxGeneric({
     ...args,
     serviceName: "Sheets",
@@ -468,18 +501,19 @@ const fxSheets = (args) => {
     idField: "spreadsheetId",
   });
 
-  // Handle sandbox file registration specifically for Sheets creation
   if (
     (args.method === "create" || args.method === "copy") &&
     result?.data?.spreadsheetId
   ) {
     if (ScriptApp.__behavior?.sandBoxMode) {
+      debugLog(`fxSheets registering created spreadsheet ${result.data.spreadsheetId} in sandbox`);
       ScriptApp.__behavior.addFile(result.data.spreadsheetId);
     }
   }
 
   return result;
 };
+
 const fxSlides = (args) =>
   fxGeneric({
     ...args,
@@ -487,6 +521,7 @@ const fxSlides = (args) =>
     cacher: slidesCacher,
     idField: "presentationId",
   });
+
 const fxDocs = (args) =>
   fxGeneric({
     ...args,
@@ -494,6 +529,7 @@ const fxDocs = (args) =>
     cacher: docsCacher,
     idField: "documentId",
   });
+
 const fxForms = (args) =>
   fxGeneric({
     ...args,
@@ -501,6 +537,7 @@ const fxForms = (args) =>
     cacher: formsCacher,
     idField: "formId",
   });
+
 const fxGmail = (args) =>
   fxGeneric({
     ...args,
@@ -508,6 +545,7 @@ const fxGmail = (args) =>
     cacher: gmailCacher,
     idField: "id",
   });
+
 const fxCalendar = (args) =>
   fxGeneric({
     ...args,
@@ -515,6 +553,7 @@ const fxCalendar = (args) =>
     cacher: calendarCacher,
     idField: "calendarId",
   });
+
 const fxBigQuery = (args) =>
   fxGeneric({
     ...args,
@@ -522,8 +561,6 @@ const fxBigQuery = (args) =>
     cacher: bigqueryCacher,
     idField: "projectId",
   });
-
-// const fxGetImagesFromXlsx = (args) => callSync("sxGetImagesFromXlsx", args);
 
 export const Syncit = {
   fxFetch,
