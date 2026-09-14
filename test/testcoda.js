@@ -15,6 +15,7 @@ export const testCoda = (pack) => {
 
   const folderMimeType = "application/vnd.google-apps.folder";
 
+
   const discoverFolders = (currentFolder, folderMap, visited = new Set()) => {
     const folderId = currentFolder.getId();
     if (visited.has(folderId)) return;
@@ -43,6 +44,469 @@ export const testCoda = (pack) => {
       }
     }
   };
+
+unit.section("research manual file", (t) => {
+    const sourceDocId = "DB19Al-hx7";
+    ScriptApp.__behavior.addIdWhitelist(
+      ScriptApp.__behavior.newIdWhitelistItem(sourceDocId)
+    );
+
+    const sourceDoc = DriveApp.getFolderById(sourceDocId);
+
+    const folderMap = new Map();
+    discoverFolders(sourceDoc, folderMap);
+
+    const fileMap = new Map();
+    discoverFiles(folderMap, fileMap);
+
+    // Whitelist discovered files in the sandbox
+    for (const [id, fileEntry] of fileMap.entries()) {
+      const file = fileEntry.file || fileEntry;
+      ScriptApp.__behavior.addIdWhitelist(
+        ScriptApp.__behavior.newIdWhitelistItem(file.getId())
+      );
+    }
+
+    // --- Log Discovered Folders ---
+    console.log(`\n=== DISCOVERED FOLDERS (${folderMap.size}) ===`);
+    for (const [id, folderObj] of folderMap.entries()) {
+      const folder = folderObj.folder || folderObj;
+      console.log(`[Folder] ID: ${id} | Name: "${folder.getName()}"`);
+    }
+
+    // --- Log Discovered Files & Contents ---
+    console.log(`\n=== DISCOVERED FILES & CONTENT (${fileMap.size}) ===`);
+    for (const [id, fileEntry] of fileMap.entries()) {
+      const file = fileEntry.file || fileEntry;
+
+      console.log(`\n----------------------------------------`);
+      console.log(`[File] ID: ${id}`);
+      console.log(`Name:      "${file.getName()}"`);
+      console.log(`MimeType:  ${file.getMimeType()}`);
+      console.log(`Parent ID: ${fileEntry.parentFolderId || "N/A"}`);
+
+      try {
+        const content = file.getBlob().getDataAsString();
+        console.log(`Content:\n${content || "(empty)"}`);
+      } catch (err) {
+        console.error(`Failed to read content for file ${id}:`, err.message);
+      }
+    }
+
+    // --- Structured Table Test (Rows & Columns) ---
+    console.log(`\n=== STRUCTURED TABLE DATA TEST ===`);
+    const tableFileId = "DB19Al-hx7/grid-5pYJctWhs8";
+    const tableEntry = fileMap.get(tableFileId);
+    
+    t.true(Boolean(tableEntry), "Table grid-5pYJctWhs8 should be discovered in fileMap");
+
+    if (tableEntry) {
+      const tableFile = tableEntry.file || tableEntry;
+      const csvContent = tableFile.getBlob().getDataAsString();
+
+      // Parse CSV into structured rows and columns
+      const lines = csvContent.trim().split("\n").map((line) =>
+        line.split(",").map((cell) => cell.replace(/^"|"$/g, ""))
+      );
+
+      const headers = lines[0] || [];
+      const rows = lines.slice(1);
+
+      console.log(`Headers (${headers.length}):`, headers);
+      console.log(`Row Count: ${rows.length}`);
+
+      t.is(headers.length, 4, "Table should have 4 columns");
+      t.is(headers[0], "t1label", "First column header should be 't1label'");
+      t.is(rows.length, 3, "Table should have 3 data rows");
+
+      console.log("\nParsed Table Rows:");
+      rows.forEach((row, idx) => {
+        const rowObj = {};
+        headers.forEach((h, colIdx) => {
+          rowObj[h] = row[colIdx] || "";
+        });
+        console.log(`Row ${idx + 1}:`, JSON.stringify(rowObj));
+      });
+
+      // Verify specific cell assertions
+      t.is(rows[0][0], "a", "Row 1, Column 1 should be 'a'");
+      t.is(rows[0][1], "a2", "Row 1, Column 2 should be 'a2'");
+      t.is(rows[2][2], "c3", "Row 3, Column 3 should be 'c3'");
+    }
+  });
+/*
+📁 example doc title (Doc Root: DB19Al-hx7)
+├── 📄 example doc title (Landing Page / Canvas Container)
+│   │   [ID: DB19Al-hx7/canvas-AkHaDeNcya]
+│   │   [Parent: DB19Al-hx7]
+│   │
+│   ├── 📝 example doc title.md (Canvas Markdown Content)
+│   │       [ID: DB19Al-hx7/canvas-AkHaDeNcya/_canvas]
+│   │       [Type: Synthetic File (text/markdown)]
+│   │
+│   └── 📊 table at top level (Coda Base Table)
+│           [ID: DB19Al-hx7/grid-5pYJctWhs8]
+│           [Type: Table (grid)]
+│
+└── 📄 this is a page (Subpage Container)
+    │   [ID: DB19Al-hx7/canvas-UhxoRbO5jB]
+    │   [Parent: DB19Al-hx7]
+    │
+    └── 📝 this is a page.md (Canvas Markdown Content)
+            [ID: DB19Al-hx7/canvas-UhxoRbO5jB/_canvas]
+            [Type: Synthetic File (text/markdown)]
+
+{
+  "meta": {
+    "createdTime": null,
+    "id": "DB19Al-hx7",
+    "kind": "drive#file",
+    "md5Checksum": null,
+    "mimeType": "application/vnd.google-apps.folder",
+    "modifiedTime": null,
+    "name": "example doc title",
+    "parents": [
+      "root"
+    ],
+    "size": null,
+    "trashed": false,
+    "webViewLink": "https://docs.superhuman.com/d/_dDB19Al-hx7",
+    "platform": "coda",
+    "__platformCustom": {
+      "docId": "DB19Al-hx7",
+      "pageId": null,
+      "isDoc": true,
+      "isPage": false,
+      "isFolder": true,
+      "contentType": "folder",
+      "item": {
+        "id": "DB19Al-hx7",
+        "type": "doc",
+        "href": "https://coda.io/apis/v1/docs/DB19Al-hx7",
+        "browserLink": "https://docs.superhuman.com/d/_dDB19Al-hx7",
+        "name": "example doc title",
+        "owner": "bruce@mcpher.com",
+        "ownerName": "Bruce Mcpherson",
+        "createdAt": "2026-09-14T09:21:36.118Z",
+        "updatedAt": "2026-09-14T09:25:54.046Z",
+        "docSize": {
+          "totalRowCount": 3,
+          "tableAndViewCount": 1,
+          "pageCount": 2,
+          "overApiSizeLimit": false,
+          "baseTableCount": 1
+        },
+        "workspaceId": "ws-g2n-BQgmpN",
+        "folderId": "fl-Vn2t1pUvlj",
+        "workspace": {
+          "id": "ws-g2n-BQgmpN",
+          "type": "workspace",
+          "browserLink": "https://docs.superhuman.com/docs?workspaceId=ws-g2n-BQgmpN",
+          "name": "mcpher.com"
+        },
+        "folder": {
+          "id": "fl-Vn2t1pUvlj",
+          "type": "folder",
+          "browserLink": "https://docs.superhuman.com/folders/fl-Vn2t1pUvlj",
+          "name": "My docs"
+        }
+      }
+    },
+    "__rootRequested": false
+  },
+  "__gas_fake_service": "DriveApp",
+  "platform": "coda",
+  "folderApp": {}
+}
+[
+  {
+    "meta": {
+      "createdTime": null,
+      "id": "DB19Al-hx7",
+      "kind": "drive#file",
+      "md5Checksum": null,
+      "mimeType": "application/vnd.google-apps.folder",
+      "modifiedTime": null,
+      "name": "example doc title",
+      "parents": [
+        "root"
+      ],
+      "size": null,
+      "trashed": false,
+      "webViewLink": "https://docs.superhuman.com/d/_dDB19Al-hx7",
+      "platform": "coda",
+      "__platformCustom": {
+        "docId": "DB19Al-hx7",
+        "pageId": null,
+        "isDoc": true,
+        "isPage": false,
+        "isFolder": true,
+        "contentType": "folder",
+        "item": {
+          "id": "DB19Al-hx7",
+          "type": "doc",
+          "href": "https://coda.io/apis/v1/docs/DB19Al-hx7",
+          "browserLink": "https://docs.superhuman.com/d/_dDB19Al-hx7",
+          "name": "example doc title",
+          "owner": "bruce@mcpher.com",
+          "ownerName": "Bruce Mcpherson",
+          "createdAt": "2026-09-14T09:21:36.118Z",
+          "updatedAt": "2026-09-14T09:25:54.046Z",
+          "docSize": {
+            "totalRowCount": 3,
+            "tableAndViewCount": 1,
+            "pageCount": 2,
+            "overApiSizeLimit": false,
+            "baseTableCount": 1
+          },
+          "workspaceId": "ws-g2n-BQgmpN",
+          "folderId": "fl-Vn2t1pUvlj",
+          "workspace": {
+            "id": "ws-g2n-BQgmpN",
+            "type": "workspace",
+            "browserLink": "https://docs.superhuman.com/docs?workspaceId=ws-g2n-BQgmpN",
+            "name": "mcpher.com"
+          },
+          "folder": {
+            "id": "fl-Vn2t1pUvlj",
+            "type": "folder",
+            "browserLink": "https://docs.superhuman.com/folders/fl-Vn2t1pUvlj",
+            "name": "My docs"
+          }
+        }
+      },
+      "__rootRequested": false
+    },
+    "__gas_fake_service": "DriveApp",
+    "platform": "coda",
+    "folderApp": {}
+  },
+  {
+    "meta": {
+      "__rootRequested": false,
+      "platform": "coda",
+      "id": "DB19Al-hx7/canvas-AkHaDeNcya",
+      "name": "example doc title",
+      "mimeType": "application/vnd.google-apps.folder",
+      "kind": "drive#file",
+      "parents": [
+        "DB19Al-hx7"
+      ],
+      "trashed": false,
+      "webViewLink": "https://docs.superhuman.com/d/_dDB19Al-hx7/_suKO9QRn",
+      "__platformCustom": {
+        "docId": "DB19Al-hx7",
+        "pageId": "canvas-AkHaDeNcya",
+        "isDoc": false,
+        "isPage": true,
+        "isFolder": true,
+        "contentType": "folder",
+        "item": {
+          "id": "canvas-AkHaDeNcya",
+          "type": "page",
+          "href": "https://coda.io/apis/v1/docs/DB19Al-hx7/pages/canvas-AkHaDeNcya",
+          "name": "example doc title",
+          "subtitle": "",
+          "contentType": "canvas",
+          "isHidden": false,
+          "isEffectivelyHidden": false,
+          "browserLink": "https://docs.superhuman.com/d/_dDB19Al-hx7/_suKO9QRn",
+          "children": [],
+          "authors": [
+            {
+              "@context": "http://schema.org/",
+              "@type": "Person",
+              "name": "Bruce Mcpherson",
+              "email": "bruce@mcpher.com"
+            }
+          ],
+          "createdAt": "2026-09-14T09:21:36.175Z",
+          "updatedAt": "2026-09-14T09:25:54.046Z",
+          "createdBy": {
+            "@context": "http://schema.org/",
+            "@type": "Person",
+            "name": "Bruce Mcpherson",
+            "email": "bruce@mcpher.com"
+          },
+          "updatedBy": {
+            "@context": "http://schema.org/",
+            "@type": "Person",
+            "name": "Bruce Mcpherson",
+            "email": "bruce@mcpher.com"
+          }
+        }
+      }
+    },
+    "__gas_fake_service": "DriveApp",
+    "platform": "coda",
+    "folderApp": {}
+  },
+  {
+    "meta": {
+      "__rootRequested": false,
+      "platform": "coda",
+      "id": "DB19Al-hx7/canvas-UhxoRbO5jB",
+      "name": "this is a page",
+      "mimeType": "application/vnd.google-apps.folder",
+      "kind": "drive#file",
+      "parents": [
+        "DB19Al-hx7"
+      ],
+      "trashed": false,
+      "webViewLink": "https://docs.superhuman.com/d/_dDB19Al-hx7/_suRbO5jB",
+      "__platformCustom": {
+        "docId": "DB19Al-hx7",
+        "pageId": "canvas-UhxoRbO5jB",
+        "isDoc": false,
+        "isPage": true,
+        "isFolder": true,
+        "contentType": "folder",
+        "item": {
+          "id": "canvas-UhxoRbO5jB",
+          "type": "page",
+          "href": "https://coda.io/apis/v1/docs/DB19Al-hx7/pages/canvas-UhxoRbO5jB",
+          "name": "this is a page",
+          "subtitle": "",
+          "contentType": "canvas",
+          "isHidden": false,
+          "isEffectivelyHidden": false,
+          "browserLink": "https://docs.superhuman.com/d/_dDB19Al-hx7/_suRbO5jB",
+          "children": [],
+          "authors": [
+            {
+              "@context": "http://schema.org/",
+              "@type": "Person",
+              "name": "Bruce Mcpherson",
+              "email": "bruce@mcpher.com"
+            }
+          ],
+          "createdAt": "2026-09-14T09:22:33.338Z",
+          "updatedAt": "2026-09-14T09:24:16.719Z",
+          "createdBy": {
+            "@context": "http://schema.org/",
+            "@type": "Person",
+            "name": "Bruce Mcpherson",
+            "email": "bruce@mcpher.com"
+          },
+          "updatedBy": {
+            "@context": "http://schema.org/",
+            "@type": "Person",
+            "name": "Bruce Mcpherson",
+            "email": "bruce@mcpher.com"
+          }
+        }
+      }
+    },
+    "__gas_fake_service": "DriveApp",
+    "platform": "coda",
+    "folderApp": {}
+  }
+]
+
+[
+  {
+    "file": {
+      "meta": {
+        "__rootRequested": false,
+        "platform": "coda",
+        "id": "DB19Al-hx7/grid-5pYJctWhs8",
+        "name": "table at top level",
+        "kind": "drive#file",
+        "parents": [
+          "DB19Al-hx7/canvas-AkHaDeNcya"
+        ],
+        "trashed": false,
+        "webViewLink": "https://docs.superhuman.com/d/_dDB19Al-hx7#_tugrid-5pYJctWhs8",
+        "__platformCustom": {
+          "docId": "DB19Al-hx7",
+          "pageId": "canvas-AkHaDeNcya",
+          "isDoc": false,
+          "isPage": false,
+          "isFolder": false,
+          "contentType": "table",
+          "item": {
+            "id": "grid-5pYJctWhs8",
+            "type": "table",
+            "tableType": "table",
+            "href": "https://coda.io/apis/v1/docs/DB19Al-hx7/tables/grid-5pYJctWhs8",
+            "browserLink": "https://docs.superhuman.com/d/_dDB19Al-hx7#_tugrid-5pYJctWhs8",
+            "name": "table at top level",
+            "parent": {
+              "id": "canvas-AkHaDeNcya",
+              "type": "page",
+              "href": "https://coda.io/apis/v1/docs/DB19Al-hx7/pages/canvas-AkHaDeNcya",
+              "browserLink": "https://docs.superhuman.com/d/_dDB19Al-hx7/_suDeNcya",
+              "name": "example doc title"
+            }
+          }
+        }
+      },
+      "__gas_fake_service": "DriveApp",
+      "platform": "coda"
+    },
+    "parentFolderId": "DB19Al-hx7/canvas-AkHaDeNcya"
+  },
+  {
+    "file": {
+      "meta": {
+        "__rootRequested": false,
+        "platform": "coda",
+        "id": "DB19Al-hx7/canvas-AkHaDeNcya/_canvas",
+        "name": "example doc title.md",
+        "mimeType": "text/markdown",
+        "kind": "drive#file",
+        "parents": [
+          "DB19Al-hx7/canvas-AkHaDeNcya"
+        ],
+        "trashed": false,
+        "webViewLink": "https://coda.io/d/_dDB19Al-hx7/_sucanvas-AkHaDeNcya",
+        "__platformCustom": {
+          "docId": "DB19Al-hx7",
+          "pageId": "canvas-AkHaDeNcya",
+          "isDoc": false,
+          "isPage": false,
+          "isFolder": false,
+          "isSynthetic": true,
+          "syntheticType": "canvas",
+          "contentType": "canvas"
+        }
+      },
+      "__gas_fake_service": "DriveApp",
+      "platform": "coda"
+    },
+    "parentFolderId": "DB19Al-hx7/canvas-AkHaDeNcya"
+  },
+  {
+    "file": {
+      "meta": {
+        "__rootRequested": false,
+        "platform": "coda",
+        "id": "DB19Al-hx7/canvas-UhxoRbO5jB/_canvas",
+        "name": "this is a page.md",
+        "mimeType": "text/markdown",
+        "kind": "drive#file",
+        "parents": [
+          "DB19Al-hx7/canvas-UhxoRbO5jB"
+        ],
+        "trashed": false,
+        "webViewLink": "https://coda.io/d/_dDB19Al-hx7/_sucanvas-UhxoRbO5jB",
+        "__platformCustom": {
+          "docId": "DB19Al-hx7",
+          "pageId": "canvas-UhxoRbO5jB",
+          "isDoc": false,
+          "isPage": false,
+          "isFolder": false,
+          "isSynthetic": true,
+          "syntheticType": "canvas",
+          "contentType": "canvas"
+        }
+      },
+      "__gas_fake_service": "DriveApp",
+      "platform": "coda"
+    },
+    "parentFolderId": "DB19Al-hx7/canvas-UhxoRbO5jB"
+  }
+]
 
   unit.section("coda research and existing doc structure", (t) => {
     ScriptApp.__platform = "coda";
@@ -208,7 +672,7 @@ export const testCoda = (pack) => {
     console.log(`\n[RECREATION SUMMARY] Recreated ${targetFolderMap.size - 1} pages in new doc ${targetDocId}`);
     t.is(targetFolderMap.size, 11, "Successfully recreated root doc and all 10 subpage folder containers");
   });
-
+*/
   if (!pack) unit.report();
   ScriptApp.__platform = currentPlatform;
   return { unit, fixes };

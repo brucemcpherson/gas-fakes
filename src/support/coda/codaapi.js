@@ -69,6 +69,7 @@ const createItem = async ({
 
   return doc;
 };
+
 export class CodaAPI {
   constructor(key, options = {}) {
     if (!key) throw new Error("Coda API token is required.");
@@ -180,7 +181,7 @@ export class CodaAPI {
 
     if (!res.ok) {
       const message =
-        `${data?.message}` + `HTTP error ${res.status}: ${res.statusText}`;
+        `${data?.message || ""}` + ` HTTP error ${res.status}: ${res.statusText}`;
       throw new CodaAPIError(message, res.status, data);
     }
 
@@ -217,19 +218,12 @@ class DocsResource {
    */
   async list(params = {}) {
     const data = await this.client.get("docs", params);
-    // if we just had a workspace filder, it'll return files both inthe workspace and also in folders
-    // however, to emulate Drive we need to return only those that are not in folders
     if (data?.items && params.workspaceId && !params.folderId) {
       data.items = data.items.filter((f) => !f.folder);
     }
     return data;
   }
 
-  /**
-   * Create a doc
-   * @param {object} body - { title, name, sourceDoc, ... }
-   * @param {object} [params] - { folderId }
-   */
   create(body, params) {
     return this.client.post("docs", body, params);
   }
@@ -254,14 +248,6 @@ class DocsResource {
     return this.client.delete(`docs/${docId}/publish`);
   }
 
-  /**
-   * Creates a doc and initializes it with text/media content
-   * @param {object} options
-   * @param {string} options.name - File/doc title
-   * @param {string} [options.media] - Text/Markdown content
-   * @param {string} [options.folderId] - Optional destination folder ID (or 'root')
-   * @param {string} [options.workspaceId] - Optional workspace ID
-   */
   async createItem({ name, media, folderId, workspaceId }) {
     return createItem({
       name,
@@ -298,7 +284,6 @@ class PagesResource {
     return this._retryOperation(async () => {
       let pageObj = {};
 
-      // 1. Rename page if title/name provided
       if (payload.title || payload.name) {
         pageObj = await this.client.put(
           `docs/${docId}/pages/${pageId}`,
@@ -310,7 +295,6 @@ class PagesResource {
         pageObj = await this.get(docId, pageId, options);
       }
 
-      // 2. Set markdown canvas content using Coda REST API spec
       if (payload.content !== undefined) {
         await this.client.put(
           `docs/${docId}/pages/${pageId}`,
@@ -400,7 +384,6 @@ class PagesResource {
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        // Begin export job for markdown content
         const exportReq = await this.client.post(
           `docs/${docId}/pages/${pageId}/export`,
           { outputFormat: "markdown" },
@@ -408,14 +391,13 @@ class PagesResource {
           options,
         );
 
-        // Poll export status against official enum values
         let exportStatus = exportReq;
         let statusAttempts = 0;
 
         while (exportStatus.status === "inProgress" && statusAttempts < 10) {
           statusAttempts++;
           await new Promise((r) => setTimeout(r, 1000));
-          
+
           exportStatus = await this.client.get(
             `docs/${docId}/pages/${pageId}/export/${exportReq.id}`,
             null,
@@ -435,7 +417,6 @@ class PagesResource {
           slogger.log(`[CODA EXPORT] Page export ${exportStatus.status} for page ${pageId}`);
         }
       } catch (e) {
-        // Fallback to standard GET metadata if export endpoint errors out
         try {
           const page = await this.get(docId, pageId, options);
           const metadataContent =
@@ -474,9 +455,21 @@ class TablesResource {
     );
   }
 
-  /**
-   * Delete a table/grid from a doc if supported by endpoint/extension
-   */
+  getColumn(docId, tableIdOrName, columnIdOrName) {
+    return this.client.get(
+      `docs/${docId}/tables/${tableIdOrName}/columns/${columnIdOrName}`,
+    );
+  }
+
+  // Convenience delegates mapping table rows directly via this.tables
+  listRows(docId, tableIdOrName, params) {
+    return this.client.rows.list(docId, tableIdOrName, params);
+  }
+
+  getRow(docId, tableIdOrName, rowIdOrName, params) {
+    return this.client.rows.get(docId, tableIdOrName, rowIdOrName, params);
+  }
+
   delete(docId, tableIdOrName) {
     return this.client.delete(`docs/${docId}/tables/${tableIdOrName}`);
   }
@@ -493,19 +486,14 @@ class RowsResource {
       params,
     );
   }
+
   get(docId, tableIdOrName, rowIdOrName, params) {
     return this.client.get(
       `docs/${docId}/tables/${tableIdOrName}/rows/${rowIdOrName}`,
       params,
     );
   }
-  /**
-   * Insert or Upsert rows
-   * @param {string} docId
-   * @param {string} tableIdOrName
-   * @param {Array<{ cells: Array<{ column: string, value: any }> }>} rows
-   * @param {object} [params] - e.g. { disableParsing: boolean, keyColumns: string[] }
-   */
+
   insertOrUpsert(docId, tableIdOrName, rows, params) {
     return this.client.post(
       `docs/${docId}/tables/${tableIdOrName}/rows`,
@@ -513,6 +501,7 @@ class RowsResource {
       params,
     );
   }
+
   update(docId, tableIdOrName, rowIdOrName, row, params) {
     return this.client.put(
       `docs/${docId}/tables/${tableIdOrName}/rows/${rowIdOrName}`,
@@ -520,16 +509,19 @@ class RowsResource {
       params,
     );
   }
+
   delete(docId, tableIdOrName, rowIdOrName) {
     return this.client.delete(
       `docs/${docId}/tables/${tableIdOrName}/rows/${rowIdOrName}`,
     );
   }
+
   deleteMultiple(docId, tableIdOrName, rowIds) {
     return this.client.delete(`docs/${docId}/tables/${tableIdOrName}/rows`, {
       rowIds,
     });
   }
+
   pushButton(docId, tableIdOrName, rowIdOrName, columnIdOrName) {
     return this.client.post(
       `docs/${docId}/tables/${tableIdOrName}/rows/${rowIdOrName}/buttons/${columnIdOrName}`,
@@ -570,13 +562,8 @@ class AccountResource {
     return this.client.get("whoami");
   }
 
-  /**
-   * Helper to fetch the primary active workspace ID for the API token
-   */
   async getDefaultWorkspace() {
     const userInfo = await this.whoami();
-
-    // Coda whoami places workspace details directly in userInfo.workspace
     const primaryWs = userInfo.workspace;
 
     if (!primaryWs?.id) {
@@ -587,25 +574,18 @@ class AccountResource {
     return primaryWs;
   }
 }
-/**
- * create a new drive file instance
- * @param  {...any} args
- * @returns {CodaAPI}
- */
+
 export const newCodaAPI = (...args) => {
   return Proxies.guard(new CodaAPI(...args));
 };
 
-// this is because for folders, coda doesnt support folder or workspace params
 const checkListParams = (queryParams) => {
-  /// we know that workspace and parentfolder filtering don't work server side for folders, so drop them
   let { folderId, workspaceId, ...params } = queryParams;
   if (!workspaceId && !folderId) {
     throw new Error(
       "expected either a workspace id or parentfolderId for a list query",
     );
   }
-  // if we have a folderId, we never need a workspaceId
   if (folderId) workspaceId = undefined;
   return {
     folderId,
@@ -625,16 +605,12 @@ class FoldersResource {
   }
 
   async list(queryParams = {}) {
-    // now we need to do a filter on the returned list
     const { folderId, workspaceId, params } = checkListParams(queryParams);
     let data = await this.client.get("folders", params);
 
     if (data?.items) {
-      // its possible we dont have a folder so it being missing is ok.
       if (folderId)
         data.items = data.items.filter((f) => f.folder?.id === folderId);
-      // we only need to check the workspace if there was no folder filter as the folder will already have done that
-      // it should always have a workspace, but if it has a folder ID, we have to reject it too because the workspace is not its parent
       else if (workspaceId)
         data.items = data.items.filter((f) => {
           const id = f?.workspace?.id;
@@ -650,7 +626,6 @@ class FoldersResource {
 
   async get(folderId) {
     if (folderId === "root") {
-      // Retrieve workspace info via account endpoint instead of workspaces.list
       const primaryWs = await this.client.account.getDefaultWorkspace();
 
       return {
@@ -663,35 +638,14 @@ class FoldersResource {
     return this.client.get(`folders/${folderId}`);
   }
 
-  /**
-   * Creates a folder or subfolder.
-   * Auto-resolves workspaceId from parent folder or default workspace if omitted.
-   *
-   * @param {object} params
-   * @param {string} params.name - Folder name
-   * @param {string} [params.folderId] - Parent folder ID (for subfolders)
-   * @param {string} [params.workspaceId] - Explicit workspace ID
-   */
   async createItem({ name, folderId, workspaceId }) {
     return createItem({ name, folderId, thisResource: this, workspaceId });
   }
 
-  /**
-   * Update folder attributes (rename, re-parent, etc.)
-   * @param {string} folderId - ID of the folder to update
-   * @param {object} body - Payload with properties to update (e.g. { name, parentFolderId })
-   * @returns {Promise<object>} Updated folder object
-   */
   update(folderId, body) {
     return this.client.patch(`folders/${folderId}`, body);
   }
 
-  /**
-   * Moves a folder into a target parent folder (or to top-level root)
-   * @param {string} folderId - Folder ID to move
-   * @param {string|null} targetParentFolderId - Target parent folder ID, or null/'root' for top-level
-   * @returns {Promise<object>}
-   */
   move(folderId, targetParentFolderId) {
     const parentFolderId =
       !targetParentFolderId || targetParentFolderId === "root"
@@ -701,24 +655,13 @@ class FoldersResource {
     return this.update(folderId, { parentFolderId });
   }
 
-  /**
-   * Delete a folder
-   * @param {string} folderId
-   * @returns {Promise<null>}
-   */
   delete(folderId) {
     return this.client.delete(`folders/${folderId}`);
   }
 
-  /**
-   * Helper to retrieve only root/top-level folders (no parent)
-   * @param {object} [params] - Optional filters like { workspaceId, limit }
-   * @returns {Promise<Array<object>>}
-   */
   async listRootFolders(params = {}) {
     const rootFolders = [];
 
-    // Auto-paginates in case there are many folders
     for await (const folder of this.client.paginate("folders", params)) {
       if (!folder.parentFolder?.id && !folder.parentFolderId) {
         rootFolders.push(folder);
@@ -734,9 +677,6 @@ class WorkspacesResource {
     this.client = client;
   }
 
-  /**
-   * List workspaces the user has access to
-   */
   list(params) {
     return this.client.get("workspaces", params);
   }
@@ -745,9 +685,6 @@ class WorkspacesResource {
     return this.client.get(`workspaces/${workspaceId}`);
   }
 
-  /**
-   * List folders specifically inside a workspace
-   */
   listFolders(workspaceId, params) {
     return this.client.get(`workspaces/${workspaceId}/folders`, params);
   }
