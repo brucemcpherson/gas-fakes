@@ -13,7 +13,6 @@ const sanitizeId = (id) => {
 function matchesParent(file, rawFolderId) {
   if (!rawFolderId) return true;
 
-  // Extract bare canvas/doc IDs to support both "docId/pageId" and standalone "pageId" or "docId"
   const bareFolderId = rawFolderId.includes("/")
     ? rawFolderId.split("/")[1]
     : rawFolderId;
@@ -31,6 +30,7 @@ function matchesParent(file, rawFolderId) {
     );
   });
 }
+
 export function createPageBlob(codaApi, docId, pageId) {
   return {
     getDataAsString: async () => {
@@ -45,14 +45,23 @@ export function createPageBlob(codaApi, docId, pageId) {
 }
 
 /**
- * Parses raw compound or simple IDs without duplicating prefixes:
- * - "TmgNizuV_9/canvas-zwCx5rIC5p" => { docId: "TmgNizuV_9", pageId: "canvas-zwCx5rIC5p", isRoot: false }
- * - "TmgNizuV_9"                   => { docId: "TmgNizuV_9", pageId: null, isRoot: false }
- * - "root"                         => { docId: null, pageId: null, isRoot: true }
+ * Parses raw compound or simple IDs, including synthetic child identifiers & native IDs:
+ * - "docId/pageId/_canvas" => { docId, pageId, childId: "_canvas", isSyntheticCanvas: true, isTable: false }
+ * - "docId/grid-123"      => { docId, pageId: null, childId: "grid-123", isSyntheticCanvas: false, isTable: true }
+ * - "docId/pageId"        => { docId, pageId, childId: null, isSyntheticCanvas: false, isTable: false }
+ * - "docId"               => { docId, pageId: null, childId: null, isSyntheticCanvas: false, isTable: false }
+ * - "root"                => { docId: null, pageId: null, isRoot: true }
  */
 function parseCodaId(rawId) {
   if (!rawId || rawId === "root") {
-    return { docId: null, pageId: null, isRoot: true };
+    return {
+      docId: null,
+      pageId: null,
+      isRoot: true,
+      isSyntheticCanvas: false,
+      isTable: false,
+      childId: null,
+    };
   }
 
   const str = String(rawId).trim();
@@ -61,20 +70,49 @@ function parseCodaId(rawId) {
       .split("/")
       .map((p) => p.trim())
       .filter(Boolean);
-    const docPart = parts[0];
-    const pagePart = parts[parts.length - 1]; // Pick actual leaf page ID if nested
+
+    const docId = parts[0];
+    const secondPart = parts.length > 1 ? parts[1] : null;
+    const thirdPart = parts.length > 2 ? parts[2] : null;
+
+    const isSyntheticCanvas = thirdPart === "_canvas";
+    const isTable =
+      (secondPart && (secondPart.startsWith("grid-") || secondPart.startsWith("table-"))) ||
+      (thirdPart && (thirdPart.startsWith("grid-") || thirdPart.startsWith("table-")));
+
+    let pageId = null;
+    let childId = null;
+
+    if (isSyntheticCanvas) {
+      pageId = secondPart;
+      childId = "_canvas";
+    } else if (isTable) {
+      childId = thirdPart || secondPart;
+      pageId = thirdPart ? secondPart : null;
+    } else {
+      pageId = secondPart !== docId ? secondPart : null;
+      childId = thirdPart;
+    }
 
     return {
-      docId: docPart,
-      pageId: pagePart !== docPart ? pagePart : null,
+      docId,
+      pageId,
       isRoot: false,
+      isSyntheticCanvas,
+      isTable,
+      childId,
     };
   }
 
+  const isTableDirect = str.startsWith("grid-") || str.startsWith("table-");
+
   return {
-    docId: str,
+    docId: isTableDirect ? null : str,
     pageId: null,
     isRoot: false,
+    isSyntheticCanvas: false,
+    isTable: isTableDirect,
+    childId: isTableDirect ? str : null,
   };
 }
 
@@ -142,7 +180,6 @@ const translateCodaResource = (
     };
   }
 
-  // Extract base leaf ID if item.id is compound to avoid constructing duplicate prefixes
   const rawItemIdStr = sanitizeId(item.id);
   const leafItemId = rawItemIdStr.includes("/")
     ? rawItemIdStr.split("/").pop()
@@ -158,19 +195,20 @@ const translateCodaResource = (
     (item.type === "doc" ? leafItemId : null);
 
   const isCodaDoc = item.type === "doc" || (!item.parent && !actualDocId);
+  const isCodaTable = item.type === "table" || item.type === "view" || leafItemId.startsWith("grid-") || leafItemId.startsWith("table-");
   const isCodaPage =
-    item.type === "page" ||
-    Boolean(item.children) ||
-    Boolean(item.parent) ||
-    Boolean(actualDocId && leafItemId !== actualDocId);
+    !isCodaTable &&
+    (item.type === "page" ||
+      Boolean(item.children) ||
+      Boolean(item.parent) ||
+      Boolean(actualDocId && leafItemId !== actualDocId));
   const isExplicitFolder = item.isFolder === true || item.type === "folder";
 
   const isLeafContent =
-    item.isLeaf === true || item.type === "table" || item.type === "canvas";
+    item.isLeaf === true || isCodaTable || item.type === "canvas" || item.type === "control" || item.type === "formula";
   const isFolder =
     !isLeafContent && (isExplicitFolder || isCodaDoc || isCodaPage);
 
-  // Prevent duplicate prefixes: construct `docId/pageId` directly
   const finalId =
     isCodaDoc || !actualDocId ? leafItemId : `${actualDocId}/${leafItemId}`;
 
@@ -186,14 +224,14 @@ const translateCodaResource = (
   if (!mimeType) {
     if (isFolder) {
       mimeType = CodaConstants.TYPES.folder;
-    } else if (item.type === "table") {
+    } else if (isCodaTable) {
       mimeType = CodaConstants.TYPES.spreadsheet;
     } else {
       mimeType = CodaConstants.TYPES.doc;
     }
   }
 
-  const result = {
+  return {
     id: finalId,
     name,
     mimeType,
@@ -207,7 +245,7 @@ const translateCodaResource = (
     platform: "coda",
     __platformCustom: {
       docId: actualDocId,
-      pageId: isCodaDoc ? null : leafItemId,
+      pageId: isCodaDoc ? null : (isCodaPage ? leafItemId : item.parent?.id || null),
       isDoc: isCodaDoc,
       isPage: isCodaPage,
       isFolder,
@@ -215,21 +253,84 @@ const translateCodaResource = (
       item,
     },
   };
-
-  console.log(
-    `[CODA TRANSLATE] Raw Item ID: "${item.id}" | Output ID: "${result.id}" | Parent ID: "${calculatedParentId}"`,
-  );
-  return result;
 };
 
 /**
- * Triggers Coda's asynchronous page export process to convert page content into Markdown
- * and retrieves the raw string body.
+ * Constructs a synthetic file representation for a page's markdown canvas content.
+ */
+function createSyntheticCanvasFile(docId, pageId, pageName, parentId) {
+  const syntheticId = `${docId}/${pageId}/_canvas`;
+  return {
+    id: syntheticId,
+    name: `${pageName || "Canvas"}.md`,
+    mimeType: "text/markdown",
+    kind: "drive#file",
+    parents: [parentId],
+    trashed: false,
+    webViewLink: `https://coda.io/d/_d${docId}/_su${pageId}`,
+    platform: "coda",
+    __platformCustom: {
+      docId,
+      pageId,
+      isDoc: false,
+      isPage: false,
+      isFolder: false,
+      isSynthetic: true,
+      syntheticType: "canvas",
+      contentType: "canvas",
+    },
+  };
+}
+
+/**
+ * Fetches table rows and formats them into a CSV string.
+ */
+async function fetchTableContentAsCSV(coda, docId, tableId) {
+  if (!docId || !tableId) return "";
+  try {
+    let rowsRes;
+    if (typeof coda.tables?.listRows === "function") {
+      rowsRes = await coda.tables.listRows(docId, tableId, { useColumnNames: true });
+    } else if (coda.client && typeof coda.client.get === "function") {
+      rowsRes = await coda.client.get(`docs/${docId}/tables/${tableId}/rows`, {
+        params: { useColumnNames: true },
+      });
+    }
+
+    const rows = Array.isArray(rowsRes) ? rowsRes : rowsRes?.items || rowsRes?.data || [];
+    if (!rows.length) return "";
+
+    const headers = new Set();
+    rows.forEach((r) => {
+      const vals = r.values || {};
+      Object.keys(vals).forEach((k) => headers.add(k));
+    });
+
+    const headerArray = Array.from(headers);
+    const csvLines = [headerArray.map((h) => `"${h.replace(/"/g, '""')}"`).join(",")];
+
+    rows.forEach((r) => {
+      const vals = r.values || {};
+      const rowLine = headerArray.map((h) => {
+        const val = vals[h] !== undefined && vals[h] !== null ? String(vals[h]) : "";
+        return `"${val.replace(/"/g, '""')}"`;
+      });
+      csvLines.push(rowLine.join(","));
+    });
+
+    return csvLines.join("\n");
+  } catch (err) {
+    console.error(`[CODA ERROR] Failed to fetch table CSV rows for ${tableId}:`, err);
+    return "";
+  }
+}
+
+/**
+ * Triggers Coda's asynchronous page export process to convert page content into Markdown.
  */
 async function fetchPageContentWithRetry(coda, docId, pageId, maxRetries = 10) {
   if (!docId || !pageId) return "";
 
-  // 1. Direct API client call for Coda Page Export
   if (coda.client && typeof coda.client.post === "function") {
     try {
       const exportReq = await coda.client.post(
@@ -256,7 +357,6 @@ async function fetchPageContentWithRetry(coda, docId, pageId, maxRetries = 10) {
     } catch (_) {}
   }
 
-  // 2. Fallback attempt using SDK helper methods if configured
   if (typeof coda.pages?.getContent === "function") {
     try {
       const res = await coda.pages.getContent(docId, pageId);
@@ -266,7 +366,6 @@ async function fetchPageContentWithRetry(coda, docId, pageId, maxRetries = 10) {
     } catch (_) {}
   }
 
-  // 3. Last fallback: Check page metadata properties
   try {
     const pageData = await coda.pages.get(docId, pageId);
     const metadataContent =
@@ -282,7 +381,7 @@ async function fetchPageContentWithRetry(coda, docId, pageId, maxRetries = 10) {
 }
 
 /**
- * Updates a Coda page title and/or canvas content using Coda's official payload schema.
+ * Updates a Coda page title and/or canvas content.
  */
 async function writeCodaPageContent(coda, docId, pageId, { title, content }) {
   const payload = {};
@@ -310,6 +409,22 @@ async function writeCodaPageContent(coda, docId, pageId, { title, content }) {
   }
 }
 
+/**
+ * Helper to safely fetch child Coda resources (tables)
+ */
+async function fetchCodaChildResources(coda, docId, resourceType) {
+  try {
+    if (coda[resourceType] && typeof coda[resourceType].list === "function") {
+      const res = await coda[resourceType].list(docId);
+      return Array.isArray(res) ? res : res?.items || res?.data || [];
+    } else if (coda.client && typeof coda.client.get === "function") {
+      const res = await coda.client.get(`docs/${docId}/${resourceType}`);
+      return Array.isArray(res) ? res : res?.items || res?.data || [];
+    }
+  } catch (_) {}
+  return [];
+}
+
 export const handleCodaDrive = async (
   Auth,
   {
@@ -330,42 +445,43 @@ export const handleCodaDrive = async (
   const targetId = fileId || params.fileId || resource?.id;
   const parsedTarget = parseCodaId(targetId);
 
-  console.log(
-    `\n[CODA REQ] ${prop}.${method} | Raw Target: "${targetId}" | Parsed Doc: "${parsedTarget.docId}" | Parsed Page: "${parsedTarget.pageId}" | Root: ${parsedTarget.isRoot}`,
-  );
-
   // ------------------------------------------------------------------
-  // MEDIA / CONTENT DOWNLOAD REQUEST
+  // MEDIA / CONTENTDOWNLOAD REQUEST
   // Handles getBlob(), alt=media, or method=download
   // ------------------------------------------------------------------
   if (method === "download" || params?.alt === "media") {
-    if (!parsedTarget.docId || !parsedTarget.pageId) {
-      return {
-        data: [],
-        response: { status: 200 },
-      };
+    if (!parsedTarget.docId) {
+      return { data: [], response: { status: 200 } };
     }
 
     try {
-      // Use fetchPageContentWithRetry to execute the full Coda markdown export polling loop
-      const textContent = await fetchPageContentWithRetry(
-        coda,
-        parsedTarget.docId,
-        parsedTarget.pageId,
-      );
+      let content = "";
+      let contentType = "text/markdown; charset=utf-8";
 
-      const byteArray = Array.from(Buffer.from(textContent || "", "utf-8"));
+      if (parsedTarget.isTable) {
+        const tableId = parsedTarget.childId || parsedTarget.pageId;
+        content = await fetchTableContentAsCSV(coda, parsedTarget.docId, tableId);
+        contentType = "text/csv; charset=utf-8";
+      } else if (parsedTarget.pageId) {
+        content = await fetchPageContentWithRetry(
+          coda,
+          parsedTarget.docId,
+          parsedTarget.pageId,
+        );
+      }
+
+      const byteArray = Array.from(Buffer.from(content || "", "utf-8"));
 
       return {
         data: byteArray,
         response: {
           status: 200,
-          headers: { "content-type": "text/markdown; charset=utf-8" },
+          headers: { "content-type": contentType },
         },
       };
     } catch (err) {
       console.error(
-        `[CODA ERROR] Failed to fetch media content for doc "${parsedTarget.docId}" page "${parsedTarget.pageId}":`,
+        `[CODA ERROR] Failed to fetch media content for target "${targetId}":`,
         err,
       );
       return {
@@ -389,38 +505,58 @@ export const handleCodaDrive = async (
             };
           }
 
-          // Case A: Target is a Coda Doc (Folder/Container)
-          if (parsedTarget.docId && !parsedTarget.pageId) {
+          // Case A: Synthetic Canvas File requested directly
+          if (parsedTarget.isSyntheticCanvas) {
             try {
-              const docObj = await coda.docs.get(parsedTarget.docId);
-              let pageContent = "";
-              let primaryPageId = null;
+              const page = await coda.pages.get(
+                parsedTarget.docId,
+                parsedTarget.pageId,
+              );
+              const parentFolderId = `${parsedTarget.docId}/${parsedTarget.pageId}`;
+              const syntheticFile = createSyntheticCanvasFile(
+                parsedTarget.docId,
+                parsedTarget.pageId,
+                page?.name || page?.title || "Canvas",
+                parentFolderId,
+              );
 
-              try {
-                const pagesList = await coda.pages.list(parsedTarget.docId);
-                const firstPage = pagesList?.items?.[0];
-                if (firstPage) {
-                  primaryPageId = sanitizeId(firstPage.id).split("/").pop();
-                  pageContent = await fetchPageContentWithRetry(
-                    coda,
-                    parsedTarget.docId,
-                    firstPage.id,
-                  );
-                }
-              } catch (err) {}
+              const pageContent = await fetchPageContentWithRetry(
+                coda,
+                parsedTarget.docId,
+                parsedTarget.pageId,
+              );
+              syntheticFile.content = pageContent;
+
+              return { data: syntheticFile, response: { status: 200 } };
+            } catch (e) {
+              return {
+                data: null,
+                response: { status: 404, statusText: "Not Found" },
+              };
+            }
+          }
+
+          // Case B: Table/View Requested Directly
+          if (parsedTarget.isTable) {
+            try {
+              const tableId = parsedTarget.childId || parsedTarget.pageId;
+              let tableObj;
+              if (typeof coda.tables?.get === "function") {
+                tableObj = await coda.tables.get(parsedTarget.docId, tableId);
+              } else if (coda.client && typeof coda.client.get === "function") {
+                tableObj = await coda.client.get(`docs/${parsedTarget.docId}/tables/${tableId}`);
+              }
+
+              const parentFolderId = tableObj?.parent?.id
+                ? `${parsedTarget.docId}/${tableObj.parent.id}`
+                : parsedTarget.docId;
 
               const translated = translateCodaResource(
-                docObj,
-                "root",
-                null,
+                { ...tableObj, type: "table" },
+                parentFolderId,
+                CodaConstants.TYPES.spreadsheet,
                 parsedTarget.docId,
               );
-              if (translated) {
-                translated.content = pageContent;
-                if (primaryPageId) {
-                  translated.__platformCustom.pageId = primaryPageId;
-                }
-              }
 
               return { data: translated, response: { status: 200 } };
             } catch (e) {
@@ -431,15 +567,30 @@ export const handleCodaDrive = async (
             }
           }
 
-          // Case B: Target is a Coda Page (File)
+          // Case C: Target is a Coda Doc (Folder/Container)
+          if (parsedTarget.docId && !parsedTarget.pageId) {
+            try {
+              const docObj = await coda.docs.get(parsedTarget.docId);
+              const translated = translateCodaResource(
+                docObj,
+                "root",
+                null,
+                parsedTarget.docId,
+              );
+
+              return { data: translated, response: { status: 200 } };
+            } catch (e) {
+              return {
+                data: null,
+                response: { status: 404, statusText: "Not Found" },
+              };
+            }
+          }
+
+          // Case D: Target is a Coda Page (Folder Container)
           if (parsedTarget.docId && parsedTarget.pageId) {
             try {
               const page = await coda.pages.get(
-                parsedTarget.docId,
-                parsedTarget.pageId,
-              );
-              const pageContent = await fetchPageContentWithRetry(
-                coda,
                 parsedTarget.docId,
                 parsedTarget.pageId,
               );
@@ -450,7 +601,7 @@ export const handleCodaDrive = async (
                 null,
                 parsedTarget.docId,
               );
-              if (translated) translated.content = pageContent;
+
               return { data: translated, response: { status: 200 } };
             } catch (e) {
               return {
@@ -513,7 +664,7 @@ export const handleCodaDrive = async (
             };
           }
 
-          // Listing inside a specific Doc -> Return Pages
+          // Fetch all Coda pages within doc
           let pagesRes;
           try {
             if (typeof coda.pages?.list === "function") {
@@ -521,18 +672,8 @@ export const handleCodaDrive = async (
                 parsedFolder.docId,
                 codaApiParams,
               );
-            } else if (typeof coda.pages?.listPages === "function") {
-              pagesRes = await coda.pages.listPages(
-                parsedFolder.docId,
-                codaApiParams,
-              );
             } else if (coda.client && typeof coda.client.get === "function") {
               pagesRes = await coda.client.get(
-                `docs/${parsedFolder.docId}/pages`,
-                { params: codaApiParams },
-              );
-            } else {
-              pagesRes = await coda.api.request(
                 `docs/${parsedFolder.docId}/pages`,
                 { params: codaApiParams },
               );
@@ -549,9 +690,8 @@ export const handleCodaDrive = async (
             ? pagesRes
             : pagesRes?.items || pagesRes?.data || [];
 
-          // 1. Translate pages using the page's actual parent (if present) or defaulting to docId
-          const items = rawPages.map((page) => {
-            // If page has a parent property in Coda API, map parent ID accordingly
+          // Translate page folder containers
+          const folderItems = rawPages.map((page) => {
             const actualParentId = page.parent?.id
               ? `${parsedFolder.docId}/${page.parent.id}`
               : parsedFolder.docId;
@@ -564,22 +704,67 @@ export const handleCodaDrive = async (
             );
           });
 
-          // 2. Apply matchesParent filtering + mimeType filtering
-          let filteredItems = items.filter((item) =>
+          // Fetch Tables and Views only (exclude controls/formulas)
+          const rawTables = await fetchCodaChildResources(coda, parsedFolder.docId, "tables");
+
+          const nonFolderFiles = [];
+
+          // Translate Tables/Views (Spreadsheets)
+          rawTables.forEach((tbl) => {
+            const parentPageId = tbl.parent?.id
+              ? `${parsedFolder.docId}/${tbl.parent.id}`
+              : parsedFolder.docId;
+            nonFolderFiles.push(
+              translateCodaResource(
+                { ...tbl, type: "table" },
+                parentPageId,
+                CodaConstants.TYPES.spreadsheet,
+                parsedFolder.docId,
+              ),
+            );
+          });
+
+          // If listing inside a specific subpage folder container, add synthetic canvas file
+          if (parsedFolder.docId && parsedFolder.pageId) {
+            const matchingPageObj = rawPages.find((p) => {
+              const cleanP = sanitizeId(p.id).split("/").pop();
+              return cleanP === parsedFolder.pageId;
+            });
+
+            const pageName =
+              matchingPageObj?.name || matchingPageObj?.title || "Canvas";
+            const currentFolderId = `${parsedFolder.docId}/${parsedFolder.pageId}`;
+
+            nonFolderFiles.push(
+              createSyntheticCanvasFile(
+                parsedFolder.docId,
+                parsedFolder.pageId,
+                pageName,
+                currentFolderId,
+              ),
+            );
+          }
+
+          // Combine folder pages and non-folder child files
+          let combinedItems = [...folderItems, ...nonFolderFiles];
+
+          // Filter results matching the target folder scope
+          combinedItems = combinedItems.filter((item) =>
             matchesParent(item, rawFolderId),
           );
 
+          // Apply MIME type query filtering
           if (q && q.includes("mimeType !=")) {
-            filteredItems = filteredItems.filter(
+            combinedItems = combinedItems.filter(
               (item) => item.mimeType !== CodaConstants.TYPES.folder,
             );
           } else if (q && q.includes("mimeType =")) {
-            filteredItems = filteredItems.filter(
+            combinedItems = combinedItems.filter(
               (item) => item.mimeType === CodaConstants.TYPES.folder,
             );
           }
 
-          return { data: { files: filteredItems }, response: { status: 200 } };
+          return { data: { files: combinedItems }, response: { status: 200 } };
         }
 
         case "create": {
@@ -670,10 +855,17 @@ export const handleCodaDrive = async (
             resource?.mimeType || params?.mimeType || requestMimeType;
 
           if (isTrashedExplicit) {
-            if (parsedTarget.docId && !parsedTarget.pageId) {
+            if (parsedTarget.docId && !parsedTarget.pageId && !parsedTarget.isTable) {
               await coda.docs.delete(parsedTarget.docId);
-            } else if (parsedTarget.docId && parsedTarget.pageId) {
-              await coda.pages.delete(parsedTarget.docId, parsedTarget.pageId);
+            } else if (parsedTarget.docId && (parsedTarget.pageId || parsedTarget.isTable)) {
+              if (parsedTarget.isTable) {
+                const tableId = parsedTarget.childId || parsedTarget.pageId;
+                if (typeof coda.tables?.delete === "function") {
+                  await coda.tables.delete(parsedTarget.docId, tableId);
+                }
+              } else {
+                await coda.pages.delete(parsedTarget.docId, parsedTarget.pageId);
+              }
             }
             const trashedResource = translateCodaResource(
               { id: targetId, trashed: true },
@@ -685,7 +877,7 @@ export const handleCodaDrive = async (
             return { data: trashedResource, response: { status: 200 } };
           }
 
-          if (parsedTarget.docId && !parsedTarget.pageId) {
+          if (parsedTarget.docId && !parsedTarget.pageId && !parsedTarget.isTable) {
             let updatedDoc = {};
             if (name && typeof coda.docs?.update === "function") {
               updatedDoc = await coda.docs.update(parsedTarget.docId, {
@@ -725,6 +917,18 @@ export const handleCodaDrive = async (
               { title: name, content: contentStr },
             );
 
+            if (parsedTarget.isSyntheticCanvas) {
+              const parentFolderId = `${parsedTarget.docId}/${parsedTarget.pageId}`;
+              const syntheticFile = createSyntheticCanvasFile(
+                parsedTarget.docId,
+                parsedTarget.pageId,
+                name || "Canvas",
+                parentFolderId,
+              );
+              if (contentStr !== null) syntheticFile.content = contentStr;
+              return { data: syntheticFile, response: { status: 200 } };
+            }
+
             const translated = translateCodaResource(
               { ...updatedPage, ...(name ? { title: name, name } : {}) },
               parsedTarget.docId,
@@ -750,12 +954,32 @@ export const handleCodaDrive = async (
             throw new Error("Cannot delete root container");
           }
 
+          if (parsedTarget.isTable) {
+            const tableId = parsedTarget.childId || parsedTarget.pageId;
+            if (typeof coda.tables?.delete === "function") {
+              await coda.tables.delete(parsedTarget.docId, tableId);
+            } else if (coda.client && typeof coda.client.delete === "function") {
+              await coda.client.delete(`docs/${parsedTarget.docId}/tables/${tableId}`);
+            }
+            return { data: {}, response: { status: 200 } };
+          }
+
           if (parsedTarget.docId && !parsedTarget.pageId) {
             await coda.docs.delete(parsedTarget.docId);
             return { data: {}, response: { status: 200 } };
           }
 
           if (parsedTarget.docId && parsedTarget.pageId) {
+            if (parsedTarget.isSyntheticCanvas) {
+              await writeCodaPageContent(
+                coda,
+                parsedTarget.docId,
+                parsedTarget.pageId,
+                { content: "" },
+              );
+              return { data: {}, response: { status: 200 } };
+            }
+
             await coda.pages.delete(parsedTarget.docId, parsedTarget.pageId);
             return { data: {}, response: { status: 200 } };
           }

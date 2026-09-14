@@ -21,7 +21,7 @@ import is from "@sindresorhus/is";
 import { callSync } from "./workersync/synchronizer.js";
 
 const debugLog = (...args) => {
-  console.log(`[DEBUG-MAIN-SYNC] ${new Date().toISOString()}`, ...args);
+  // console.log(`[DEBUG-MAIN-SYNC] ${new Date().toISOString()}`, ...args);
 };
 
 const manifestDefaultPath = "./appsscript.json";
