@@ -12,37 +12,41 @@ export const convertDriveQueryToCoda = (driveQuery, extraOptions = {}) => {
     return codaOptions;
   }
 
-  // 1. Extract Parent ID: 'folder_id' in parents
+  // 1. Parent traversal
   const parentMatch = driveQuery.match(/['"]([^'"]+)['"]\s+in\s+parents/i);
   if (parentMatch) {
     const rawTarget = parentMatch[1];
-    
     if (rawTarget === "root") {
       codaOptions.isRoot = true;
     } else if (rawTarget.includes('/')) {
-      // Handles subpage traversal: "docId/pageId"
       const [docId, pageId] = rawTarget.split('/');
       codaOptions.docId = docId;
       codaOptions.pageId = pageId;
-      codaOptions.folderId = rawTarget; // Preserved for DriveApp compatibility
+      codaOptions.folderId = rawTarget;
     } else {
-      // Handles top-level doc traversal: "docId"
       codaOptions.docId = rawTarget;
       codaOptions.folderId = rawTarget;
     }
   }
 
-  // 2. Extract Text Search Query
-  const queryMatch = driveQuery.match(/(?:name|fullText)\s+contains\s+['"]([^'"]+)['"]/i);
-  if (queryMatch) {
-    codaOptions.query = queryMatch[1];
+  // 2. Extract Name Match
+  const nameMatch = driveQuery.match(/(?:name|title)\s*(?:=|\bcontains\b)\s*['"]([^'"]+)['"]/i);
+  if (nameMatch) {
+    codaOptions.name = nameMatch[1];
   }
 
-  // 3. Extract mimeType filter (to distinguish folder vs file requests)
-  const mimeMatch = driveQuery.match(/mimeType\s*=\s*['"]([^'"]+)['"]/i);
+  // 3. Extract mimeType Filter (handles both = and !=)
+  const mimeMatch = driveQuery.match(/mimeType\s*(=|!=)\s*['"]([^'"]+)['"]/i);
   if (mimeMatch) {
-    codaOptions.mimeType = mimeMatch[1];
-    codaOptions.isFolderQuery = mimeMatch[1] === 'application/vnd.google-apps.folder';
+    const operator = mimeMatch[1];
+    const mimeType = mimeMatch[2];
+    
+    codaOptions.mimeType = mimeType;
+    if (operator === '=') {
+      codaOptions.isFolderQuery = mimeType === 'application/vnd.google-apps.folder';
+    } else if (operator === '!=') {
+      codaOptions.isFileOnlyQuery = mimeType === 'application/vnd.google-apps.folder';
+    }
   }
 
   return codaOptions;

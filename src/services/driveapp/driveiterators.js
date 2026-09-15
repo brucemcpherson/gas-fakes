@@ -187,44 +187,7 @@ export const getParentsIterator = ({
  * @param {boolean} fileTypes whether to get fileTypes 
  * @returns {object} a collection of files {response, data}
  */
-const xxxxxfileLister = ({
-  qob, parentId, fields, folderTypes, fileTypes, pageToken = null
-}) => {
-  // enhance any already supplied query params
-  qob = Utils.arrify(qob) || []
-  qob = [...qob]
-  if (parentId) {
-    ScriptApp.__behavior.isAccessible(parentId) // will throw if not accessible
-    qob.push(`'${parentId}' in parents`)
-  }
 
-  // wheteher we're getting files,folders or both
-  if (!(folderTypes || fileTypes)) {
-    throw new Error(`Must specify either folder type,file type or both`)
-  }
-
-  // exclusive xor - if they're both true we dont need to do any extra q filtering
-  if (folderTypes !== fileTypes) {
-    qob.push(`mimeType ${fileTypes ? "!" : ""}= '${folderType}'`)
-  }
-
-  const q = qob.map(f => `${f}`).join(" and ")
-  let params = { q, fields }
-  if (pageToken) {
-    params.pageToken = pageToken
-  }
-
-
-  // this will have be synced from async
-  try {
-    const result = Drive.Files.list(params)
-    return result
-  } catch (err) {
-    console.error('...failed iterating over ${JSON.stringify(params)}', err)
-    throw new Error(err)
-  }
-
-}
 const fileLister = ({
   qob, parentId, fields, folderTypes, fileTypes, pageToken = null
 }) => {
