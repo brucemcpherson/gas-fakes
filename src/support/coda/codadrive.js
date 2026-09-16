@@ -7,7 +7,12 @@ import { spreadsheetType } from "../helpers.js";
 import { syncError } from "../workersync/synclogger.js";
 
 /**
- * Helper to generate synthetic canvas files for array of pages
+ * Creates and appends synthetic canvas file entries for an array of Coda page objects.
+ *
+ * @param {Array<Object>} pages - List of raw Coda page objects.
+ * @param {string} docId - Parent Coda Document ID.
+ * @param {Array<Object>} targetList - Target array to receive constructed synthetic files.
+ * @returns {void}
  */
 function appendSyntheticCanvasFiles(pages, docId, targetList) {
   pages.forEach((page) => {
@@ -27,12 +32,24 @@ function appendSyntheticCanvasFiles(pages, docId, targetList) {
     );
   });
 }
-
+/**
+ * Trims whitespace and ensures the identifier is formatted as a valid string.
+ *
+ * @param {string|number|null|undefined} id - The raw ID to sanitize.
+ * @returns {string} The cleaned, trimmed string representation of the ID.
+ */
 const sanitizeId = (id) => {
   if (!id) return "";
   return String(id).trim();
 };
-
+/**
+ * Checks whether a given Coda resource file object belongs to a specified parent directory.
+ *
+ * @param {Object} file - The translated Drive file object to test.
+ * @param {Array<string>} [file.parents] - List of parent IDs associated with the file.
+ * @param {string|null|undefined} rawFolderId - The target folder or document ID container.
+ * @returns {boolean} True if the file matches the target parent container.
+ */
 function matchesParent(file, rawFolderId) {
   if (!rawFolderId) return true;
 
@@ -53,7 +70,14 @@ function matchesParent(file, rawFolderId) {
     );
   });
 }
-
+/**
+ * Creates a lazy-evaluating Blob wrapper for a page's Markdown content.
+ *
+ * @param {Object} codaApi - The initialized Coda API client instance.
+ * @param {string} docId - The target Coda Document ID.
+ * @param {string} pageId - The target Coda Page ID.
+ * @returns {Object} A blob object with methods to retrieve content as a string or byte Buffer.
+ */
 export function createPageBlob(codaApi, docId, pageId) {
   return {
     getDataAsString: async () => {
@@ -140,7 +164,12 @@ export function parseCodaId(rawId) {
     childId: isTableDirect ? str : null,
   };
 }
-
+/**
+ * Extracts a Coda document ID from API endpoints or web browser URLs.
+ *
+ * @param {string|null|undefined} url - The URL string to inspect.
+ * @returns {string|null} The extracted Coda Document ID, or null if no pattern matches.
+ */
 function extractDocIdFromUrl(url) {
   if (!url || typeof url !== "string") return null;
 
@@ -152,7 +181,12 @@ function extractDocIdFromUrl(url) {
 
   return null;
 }
-
+/**
+ *Safely decodes byte data into a UTF-8 string, handling various input types.
+ *
+ * @param {Uint8Array|Buffer|Array<number>|ArrayBuffer|DataView|string|null|undefined} input - The input data to decode.
+ * @returns {string} The decoded UTF-8 string representation.
+ */
 function safeDecodeBytes(input) {
   if (!input) return "";
   if (typeof input === "string") return input;
@@ -162,7 +196,15 @@ function safeDecodeBytes(input) {
   }
   return String(input);
 }
-
+/**
+ * Prepares a unified fake blob representation for media/file uploads.
+ *
+ * @param {Object} params - File creation parameters.
+ * @param {string} params.mimeType - The target MIME type.
+ * @param {string|Buffer|Array} params.bytes - Raw byte payload or text content.
+ * @param {string} params.name - File name.
+ * @returns {Object} Initialized fake blob payload wrapper.
+ */
 export const prepareMediaBlob = ({ mimeType, bytes, name }) => {
   const decodedText = safeDecodeBytes(bytes);
   const isTableMime =
@@ -176,7 +218,15 @@ export const prepareMediaBlob = ({ mimeType, bytes, name }) => {
     return newFakeBlob(decodedText || "", mimeType, name);
   }
 };
-
+/**
+ * Translates a raw Coda API resource item into a unified Drive API resource representation.
+ *
+ * @param {Object} item - The raw Coda resource item from the API.
+ * @param {string} parentId - The parent folder ID for this item.
+ * @param {string|null} overrideMimeType - Optional MIME type to force on the resulting resource.
+ * @param {string|null} forcedDocId - Optional Document ID to force on the resource, overriding any ID found in the item.
+ * @returns {Object|null} The translated resource in Drive API format.
+ */
 export const translateCodaResource = (
   item,
   parentId = "root",
@@ -302,7 +352,13 @@ export const translateCodaResource = (
 };
 
 /**
- * Constructs a synthetic file representation for a page's markdown canvas content.
+ * Constructs a synthetic file metadata object representing a page's Markdown canvas content.
+ *
+ * @param {string} docId - Parent Coda Document ID.
+ * @param {string} pageId - Parent Coda Page ID.
+ * @param {string} pageName - Display name of the parent page.
+ * @param {string} parentId - Compound parent container ID.
+ * @returns {Object} Synthetic Drive file metadata object.
  */
 export function createSyntheticCanvasFile(docId, pageId, pageName, parentId) {
   const syntheticId = `${docId}/${pageId}/_canvas`;
@@ -329,7 +385,12 @@ export function createSyntheticCanvasFile(docId, pageId, pageName, parentId) {
 }
 
 /**
- * Fetches table rows and formats them into a CSV string.
+ * Fetches all rows from a Coda table and formats them into a CSV string.
+ *
+ * @param {Object} coda - Initialized Coda API client.
+ * @param {string} docId - Target Coda Document ID.
+ * @param {string} tableId - Target Coda Table/Grid ID.
+ * @returns {Promise<string>} Formatted CSV string.
  */
 export async function fetchTableContentAsCSV(coda, docId, tableId) {
   if (!docId || !tableId) return "";
@@ -382,7 +443,13 @@ export async function fetchTableContentAsCSV(coda, docId, tableId) {
 }
 
 /**
- * Triggers Coda's asynchronous page export process to convert page content into Markdown.
+ * Initiates an asynchronous page export in Coda and polls until Markdown content is returned.
+ *
+ * @param {Object} coda - Initialized Coda API client.
+ * @param {string} docId - Target Coda Document ID.
+ * @param {string} pageId - Target Coda Page ID.
+ * @param {number} [maxRetries=10] - Maximum polling attempts before falling back.
+ * @returns {Promise<string>} Markdown text content.
  */
 export async function fetchPageContentWithRetry(
   coda,
@@ -442,7 +509,15 @@ export async function fetchPageContentWithRetry(
 }
 
 /**
- * Updates a Coda page title and/or canvas content.
+ * Updates a Coda page's title and/or replaces its canvas Markdown content.
+ *
+ * @param {Object} coda - Initialized Coda API client.
+ * @param {string} docId - Target Coda Document ID.
+ * @param {string} pageId - Target Coda Page ID.
+ * @param {Object} updatePayload - Content update metadata.
+ * @param {string} [updatePayload.title] - New title for the page.
+ * @param {string} [updatePayload.content] - Replacement Markdown content.
+ * @returns {Promise<Object>} Response object from the Coda API.
  */
 export async function writeCodaPageContent(
   coda,
@@ -476,7 +551,12 @@ export async function writeCodaPageContent(
 }
 
 /**
- * Helper to safely fetch child Coda resources (tables)
+ * Safely fetches child sub-resources (e.g., tables or grids) for a specified Coda Document.
+ *
+ * @param {Object} coda - Initialized Coda API client.
+ * @param {string} docId - Target Coda Document ID.
+ * @param {string} resourceType - Resource key to fetch (e.g., "tables").
+ * @returns {Promise<Array<Object>>} List of child resource objects.
  */
 export async function fetchCodaChildResources(coda, docId, resourceType) {
   try {
@@ -490,7 +570,23 @@ export async function fetchCodaChildResources(coda, docId, resourceType) {
   } catch (_) {}
   return [];
 }
-
+/**
+ * Main Drive bridge router. Maps incoming Google Drive API operations (get, list, create, update, download)
+ * to Coda API calls and returns standardized results.
+ *
+ * @param {Object} Auth - Authentication provider supplying access tokens.
+ * @param {Object} requestParams - Execution context and API call arguments.
+ * @param {string} [requestParams.prop="files"] - Target Drive API resource category (e.g., "files").
+ * @param {string} requestParams.method - HTTP execution verb/method (e.g., "get", "list", "create", "download").
+ * @param {Object} [requestParams.params] - Query options and parameters (`q`, `fileId`, `folderId`).
+ * @param {string|Buffer} [requestParams.bytes] - Binary or string data payload.
+ * @param {string} [requestParams.mimeType] - Incoming MIME type header or request parameter.
+ * @param {Object} [requestParams.resource] - Metadata payload for write operations.
+ * @param {Object} [requestParams.options] - Custom environment and runtime options.
+ * @param {string} [requestParams.fileId] - Explicit target file identifier.
+ * @returns {Promise<{ data: Object|Array|null, response: { status: number, headers?: Object, statusText?: string } }>}
+ * Standardized Drive endpoint response object.
+ */
 export const handleCodaDrive = async (
   Auth,
   {
