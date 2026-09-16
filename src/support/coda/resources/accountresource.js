@@ -1,6 +1,9 @@
 /**
  * Handles operations related to Coda Account and authenticated token context.
  */
+
+import { Proxies } from "../../proxies.js";
+
 export class AccountResource {
   /**
    * @param {Object} client - Main CodaAPI client instance.
@@ -33,3 +36,7 @@ export class AccountResource {
     return primaryWs;
   };
 }
+
+export const newAccountResource = (...args) => {
+  return Proxies.guard(new AccountResource(...args));
+};

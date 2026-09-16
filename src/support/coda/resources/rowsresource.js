@@ -1,6 +1,8 @@
 /**
  * Handles operations related to Coda Table Rows.
  */
+
+import { Proxies } from "../../proxies.js";
 export class RowsResource {
   /**
    * @param {Object} client - Main CodaAPI client instance.
@@ -108,3 +110,7 @@ export class RowsResource {
       `docs/${docId}/tables/${tableIdOrName}/rows/${rowIdOrName}/buttons/${columnIdOrName}`
     );
 }
+
+export const newRowsResource = (...args) => {
+  return Proxies.guard(new RowsResource(...args));
+};

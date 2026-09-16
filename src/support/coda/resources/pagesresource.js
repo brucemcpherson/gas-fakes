@@ -1,8 +1,10 @@
-import { slogger } from "../slogger.js";
+import { slogger } from "../../slogger.js";
 
 /**
  * Handles operations related to Coda Pages within Documents.
  */
+
+import { Proxies } from "../../proxies.js";
 export class PagesResource {
   /**
    * @param {Object} client - Main CodaAPI client instance.
@@ -65,7 +67,7 @@ export class PagesResource {
           `docs/${docId}/pages/${pageId}`,
           { name: payload.title || payload.name },
           null,
-          options
+          options,
         );
       } else {
         pageObj = await this.get(docId, pageId, options);
@@ -84,7 +86,7 @@ export class PagesResource {
             },
           },
           null,
-          options
+          options,
         );
       }
 
@@ -131,7 +133,7 @@ export class PagesResource {
           slogger.log(
             `...waiting ${delay / 1000}s to retry page operation (Coda item initializing/indexing - HTTP ${
               error.status || error.statusCode
-            }, attempt ${attempt}/${maxAttempts})`
+            }, attempt ${attempt}/${maxAttempts})`,
           );
           await new Promise((resolve) => setTimeout(resolve, delay));
           delay *= 2;
@@ -157,13 +159,13 @@ export class PagesResource {
   createWithContent = async (
     docId,
     { name, parentPageId, content },
-    options = {}
+    options = {},
   ) => {
     const page = await this.client.post(
       `docs/${docId}/pages`,
       { name, parentPageId },
       null,
-      options
+      options,
     );
 
     if (content) {
@@ -203,7 +205,7 @@ export class PagesResource {
           `docs/${docId}/pages/${pageId}/export`,
           { outputFormat: "markdown" },
           null,
-          options
+          options,
         );
 
         let exportStatus = exportReq;
@@ -216,7 +218,7 @@ export class PagesResource {
           exportStatus = await this.client.get(
             `docs/${docId}/pages/${pageId}/export/${exportReq.id}`,
             null,
-            options
+            options,
           );
         }
 
@@ -233,7 +235,7 @@ export class PagesResource {
           exportStatus.status === "canceled"
         ) {
           slogger.log(
-            `[CODA EXPORT] Page export ${exportStatus.status} for page ${pageId}`
+            `[CODA EXPORT] Page export ${exportStatus.status} for page ${pageId}`,
           );
         }
       } catch (e) {
@@ -252,3 +254,7 @@ export class PagesResource {
     return "";
   };
 }
+
+export const newPagesResource = (...args) => {
+  return Proxies.guard(new PagesResource(...args));
+};

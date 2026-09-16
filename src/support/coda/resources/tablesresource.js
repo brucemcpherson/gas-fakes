@@ -1,6 +1,8 @@
 /**
  * Handles operations related to Coda Tables and Grids.
  */
+
+import { Proxies } from "../../proxies.js";
 export class TablesResource {
   /**
    * @param {Object} client - Main CodaAPI client instance.
@@ -85,3 +87,7 @@ export class TablesResource {
   delete = (docId, tableIdOrName) =>
     this.client.delete(`docs/${docId}/tables/${tableIdOrName}`);
 }
+
+export const newTablesResource = (...args) => {
+  return Proxies.guard(new TablesResource(...args));
+};  

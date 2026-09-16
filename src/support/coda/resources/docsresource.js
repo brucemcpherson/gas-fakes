@@ -1,8 +1,10 @@
-import { createItem } from "./codautils.js";
+import { createItem } from "../codautils.js";
 
 /**
  * Handles operations related to Coda Documents.
  */
+
+import { Proxies } from "../../proxies.js";
 export class DocsResource {
   /**
    * @param {Object} client - Main CodaAPI client instance.
@@ -97,3 +99,6 @@ export class DocsResource {
     });
   };
 }
+export const newDocsResource = (...args) => {
+  return Proxies.guard(new DocsResource(...args));
+};

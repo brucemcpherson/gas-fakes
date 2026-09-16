@@ -1,6 +1,8 @@
 /**
  * Handles operations related to Coda Workspaces.
  */
+
+import { Proxies } from "../../proxies.js";
 export class WorkspacesResource {
   /**
    * @param {Object} client - Main CodaAPI client instance.
@@ -35,3 +37,7 @@ export class WorkspacesResource {
   listFolders = (workspaceId, params) =>
     this.client.get(`workspaces/${workspaceId}/folders`, params);
 }
+
+export const newWorkspacesResource = (...args) => {
+  return Proxies.guard(new WorkspacesResource(...args));
+};

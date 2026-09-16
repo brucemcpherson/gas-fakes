@@ -1,6 +1,9 @@
 /**
  * Handles operations related to Coda Controls.
  */
+
+import { Proxies } from "../../proxies.js";
+
 export class ControlsResource {
   /**
    * @param {Object} client - Main CodaAPI client instance.
@@ -28,3 +31,6 @@ export class ControlsResource {
   get = (docId, controlIdOrName) =>
     this.client.get(`docs/${docId}/controls/${controlIdOrName}`);
 }
+export const newControlsResource = (...args) => {
+  return Proxies.guard(new ControlsResource(...args));
+};

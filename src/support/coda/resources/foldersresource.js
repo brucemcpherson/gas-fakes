@@ -1,8 +1,10 @@
-import { createItem, checkListParams } from "./codautils.js";
+import { createItem, checkListParams } from "../codautils.js";
 
 /**
  * Handles operations related to Coda Folders.
  */
+
+import { Proxies } from "../../proxies.js";
 export class FoldersResource {
   /**
    * @param {Object} client - Main CodaAPI client instance.
@@ -38,7 +40,7 @@ export class FoldersResource {
           const id = f?.workspace?.id;
           if (!id) {
             throw new Error(
-              `could not establish workspace id in ${JSON.stringify(f)}`
+              `could not establish workspace id in ${JSON.stringify(f)}`,
             );
           }
           return id === workspaceId && !f.folder;
@@ -132,3 +134,8 @@ export class FoldersResource {
     return rootFolders;
   };
 }
+
+export const newFoldersResource = (...args) => {
+  return Proxies.guard(new FoldersResource(...args));
+};
+

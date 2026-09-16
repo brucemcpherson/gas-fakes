@@ -1,6 +1,8 @@
 /**
  * Handles operations related to Coda Formulas.
  */
+
+import { Proxies } from "../../proxies.js";
 export class FormulasResource {
   /**
    * @param {Object} client - Main CodaAPI client instance.
@@ -28,3 +30,6 @@ export class FormulasResource {
   get = (docId, formulaIdOrName) =>
     this.client.get(`docs/${docId}/formulas/${formulaIdOrName}`);
 }
+export const newFormulasResource = (...args) => {
+  return Proxies.guard(new FormulasResource(...args));
+};

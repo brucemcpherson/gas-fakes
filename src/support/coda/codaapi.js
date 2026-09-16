@@ -1,17 +1,17 @@
-import { Proxies } from "../proxies.js";
 import { CodaConstants } from "./constants.js";
-import { slogger } from "../slogger.js";
 import { CodaAPIError } from "./codaapierror.js";
+import { slogger } from "../slogger.js";
+import { Proxies } from "../proxies.js";
 
-import { DocsResource } from "./docsresource.js";
-import { PagesResource } from "./pagesresource.js";
-import { TablesResource } from "./tablesresource.js";
-import { RowsResource } from "./rowsresource.js";
-import { FormulasResource } from "./formulasresource.js";
-import { ControlsResource } from "./controlsresource.js";
-import { AccountResource } from "./accountresource.js";
-import { FoldersResource } from "./foldersresource.js";
-import { WorkspacesResource } from "./workspacesresource.js";
+import { newDocsResource } from "./resources/docsresource.js";
+import { newPagesResource } from "./resources/pagesresource.js";
+import { newTablesResource } from "./resources/tablesresource.js";
+import { newRowsResource } from "./resources/rowsresource.js";
+import { newFormulasResource } from "./resources/formulasresource.js";
+import { newControlsResource } from "./resources/controlsresource.js";
+import { newAccountResource } from "./resources/accountresource.js";
+import { newFoldersResource } from "./resources/foldersresource.js";
+import { newWorkspacesResource } from "./resources/workspacesresource.js";
 
 export { CodaAPIError } from "./codaapierror.js";
 
@@ -32,20 +32,20 @@ export class CodaAPI {
     this.key = key;
     this.baseUrl = (options.baseUrl || CodaConstants?.END_POINT).replace(
       /\/+$/,
-      ""
+      "",
     );
     this.maxRetries = options.maxRetries ?? 7;
 
     // Attach domain namespaces
-    this.docs = new DocsResource(this);
-    this.pages = new PagesResource(this);
-    this.tables = new TablesResource(this);
-    this.rows = new RowsResource(this);
-    this.formulas = new FormulasResource(this);
-    this.controls = new ControlsResource(this);
-    this.account = new AccountResource(this);
-    this.folders = new FoldersResource(this);
-    this.workspaces = new WorkspacesResource(this);
+    this.docs = newDocsResource(this);
+    this.pages = newPagesResource(this);
+    this.tables = newTablesResource(this);
+    this.rows = newRowsResource(this);
+    this.formulas = newFormulasResource(this);
+    this.controls = newControlsResource(this);
+    this.account = newAccountResource(this);
+    this.folders = newFoldersResource(this);
+    this.workspaces = newWorkspacesResource(this);
   }
 
   /**
@@ -64,7 +64,7 @@ export class CodaAPI {
   request = async (
     method,
     path,
-    { params, body, headers = {}, retryCount = 0, initialDelay = 0 } = {}
+    { params, body, headers = {}, retryCount = 0, initialDelay = 0 } = {},
   ) => {
     // Apply initial delay if specified (useful right after doc creation to avoid 409 locks)
     if (initialDelay > 0 && retryCount === 0) {
@@ -118,7 +118,7 @@ export class CodaAPI {
       slogger.log(
         `...waiting ${retryAfter}s to retry ${method} ${path} (${reason} - HTTP ${res.status}, attempt ${
           retryCount + 1
-        }/${this.maxRetries})`
+        }/${this.maxRetries})`,
       );
       await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
 
