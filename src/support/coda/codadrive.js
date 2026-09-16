@@ -4,6 +4,29 @@ import { isTextMimeType } from "../googlemimetypes.js";
 import { convertDriveQueryToCoda } from "./codaquery.js";
 import { newFakeBlob } from "../../services/utilities/fakeblob.js";
 import { spreadsheetType } from "../helpers.js";
+import { syncError } from "../workersync/synclogger.js";
+
+/**
+ * Helper to generate synthetic canvas files for array of pages
+ */
+function appendSyntheticCanvasFiles(pages, docId, targetList) {
+  pages.forEach((page) => {
+    const rawPageId = sanitizeId(page.id).split("/").pop();
+    const pageName = page.name || page.title || "Canvas";
+    const parentFolderId = page.parent?.id
+      ? `${docId}/${sanitizeId(page.parent.id).split("/").pop()}`
+      : docId;
+
+    targetList.push(
+      createSyntheticCanvasFile(
+        docId,
+        rawPageId,
+        pageName,
+        `${docId}/${rawPageId}`,
+      ),
+    );
+  });
+}
 
 const sanitizeId = (id) => {
   if (!id) return "";
@@ -760,6 +783,17 @@ export const handleCodaDrive = async (
                 }
               });
 
+              // Generate synthetic canvas files for matching pages during global search
+              const matchingPagesForCanvas = pages.filter((page) => {
+                const pName = page.name || page.title;
+                return pName === targetName;
+              });
+              appendSyntheticCanvasFiles(
+                matchingPagesForCanvas,
+                doc.id,
+                combinedItems,
+              );
+
               // Search tables/grids inside doc
               const rawTables = await fetchCodaChildResources(
                 coda,
@@ -783,18 +817,20 @@ export const handleCodaDrive = async (
             }
           } else {
             // ------------------------------------------------------------------
-            // SCOPED FOLDER LISTING (Inside specific Coda Doc/Page)
+            // SCOPED FOLDER LISTING SECTION
             // ------------------------------------------------------------------
             let pagesRes = [];
             try {
-              if (typeof coda.pages?.list === "function") {
-                pagesRes = await coda.pages.list(
-                  parsedFolder.docId,
-                  codaApiParams,
-                );
-              }
+              pagesRes = await coda.pages.list(
+                parsedFolder.docId,
+                codaApiParams,
+              );
             } catch (err) {
-              pagesRes = [];
+              syncError(
+                `...failed to fetch pages for doc ${parsedFolder?.docId}`,
+              );
+              syncError("...coda params: " + JSON.stringify(codaApiParams));
+              throw new Error(err);
             }
 
             const rawPages = Array.isArray(pagesRes)
@@ -830,19 +866,18 @@ export const handleCodaDrive = async (
               );
             });
 
-            if (parsedFolder.docId && parsedFolder.pageId) {
-              const matchingPageObj = rawPages.find((p) =>
-                sanitizeId(p.id).endsWith(parsedFolder.pageId),
-              );
-              const pageName =
-                matchingPageObj?.name || matchingPageObj?.title || "Canvas";
-              nonFolderFiles.push(
-                createSyntheticCanvasFile(
-                  parsedFolder.docId,
-                  parsedFolder.pageId,
-                  pageName,
-                  `${parsedFolder.docId}/${parsedFolder.pageId}`,
-                ),
+            // Attach synthetic canvas files for ALL valid pages in doc scope
+            if (parsedFolder.docId) {
+              const targetPages = parsedFolder.pageId
+                ? rawPages.filter((p) =>
+                    sanitizeId(p.id).endsWith(parsedFolder.pageId),
+                  )
+                : rawPages;
+
+              appendSyntheticCanvasFiles(
+                targetPages,
+                parsedFolder.docId,
+                nonFolderFiles,
               );
             }
 

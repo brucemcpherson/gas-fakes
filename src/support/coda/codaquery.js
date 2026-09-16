@@ -41,10 +41,11 @@ export const convertDriveQueryToCoda = (driveQuery, extraOptions = {}) => {
     const operator = mimeMatch[1];
     const mimeType = mimeMatch[2];
     
-    codaOptions.mimeType = mimeType;
     if (operator === '=') {
+      codaOptions.mimeType = mimeType;
       codaOptions.isFolderQuery = mimeType === 'application/vnd.google-apps.folder';
     } else if (operator === '!=') {
+      codaOptions.excludeMimeType = mimeType;
       codaOptions.isFileOnlyQuery = mimeType === 'application/vnd.google-apps.folder';
     }
   }

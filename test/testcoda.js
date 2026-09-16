@@ -344,13 +344,13 @@ export const testCoda = (pack) => {
 │
 ├── DB19Al-hx7/canvas-AkHaDeNcya (Folder / Page: "example doc title")
 │   └── DB19Al-hx7/canvas-AkHaDeNcya/_canvas (File / Content)
-│       ├── Name: "example doc title.md"
+│       ├── Name: "example doc title"
 │       ├── MimeType: text/markdown
 │       └── Content: [Doc Canvas Text + Embedded Table Render]
 │
 └── DB19Al-hx7/canvas-UhxoRbO5jB (Folder / Page: "this is a page")
     └── DB19Al-hx7/canvas-UhxoRbO5jB/_canvas (File / Content)
-        ├── Name: "this is a page.md"
+        ├── Name: "this is a page"
         ├── MimeType: text/markdown
         └── Content: [Subpage Canvas Text + Embedded Table Render]
         */

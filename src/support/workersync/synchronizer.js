@@ -1,13 +1,15 @@
 
 import path from 'node:path';
 import fs from 'node:fs';
-const { Worker, isMainThread, threadId } = await import('worker_threads');
+import { Worker, isMainThread, threadId } from 'worker_threads';
+import { isDebugging } from '../nodehelpers.js';
 /// process.stdout.write(`[synchronizer.js] EVALUATING module. pid=${process.pid} tid=${threadId} isMainThread=${isMainThread} GF_WORKER=${process.env.GF_WORKER}\nstack=${new Error().stack}\n`);
 
 const { fileURLToPath } = await import('url');
 const { slogger } = await import('../slogger.js')
 const { Auth } = await import('../auth.js');
-
+const WORKER_INIT_TIMEOUT = 10000 // 10 seconds
+const WORKER_TIMEOUT = isDebugging() ? Infinity : 15 * 60 * 1000 // 15 minutes in released code - this imposes a safety net for a single worker operation to timeout on failure
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -93,8 +95,7 @@ worker.on('exit', (code) => {
 Atomics.store(control, CONTROL_INDICES.STATUS, 2); // Set status to "worker_init"
 worker.postMessage({ controlBuf, dataBuf });
 
-// Pass a timeout (e.g. 10,000ms) to Atomics.wait so it never hangs forever
-const WORKER_INIT_TIMEOUT = 10000 // 10 seconds
+// Pass a timeout (e.g. 10,000ms) to Atomics.wait so it never hangs forever - this will handle errors in import statements
 const initResult = Atomics.wait(control, CONTROL_INDICES.STATUS, 2, WORKER_INIT_TIMEOUT);
 
 if (initResult === 'timed-out') {
@@ -173,7 +174,7 @@ export function callSync(method, ...args) {
   // 3. Block and wait for the worker to finish.
   // It's "busy" (1) until the worker sets it back to "free" (0).
   // This is a true blocking wait, consuming minimal CPU.
-  const WORKER_TIMEOUT = 100000 //  seconds for testing - change to long number in released code
+
   const result = Atomics.wait(control, CONTROL_INDICES.STATUS, 1, WORKER_TIMEOUT);
   if (result === 'timed-out') {
     worker.terminate();
