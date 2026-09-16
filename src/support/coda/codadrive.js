@@ -14,7 +14,7 @@ import { syncError } from "../workersync/synclogger.js";
  * @param {Array<Object>} targetList - Target array to receive constructed synthetic files.
  * @returns {void}
  */
-function appendSyntheticCanvasFiles(pages, docId, targetList) {
+const appendSyntheticCanvasFiles = (pages, docId, targetList) => {
   pages.forEach((page) => {
     const rawPageId = sanitizeId(page.id).split("/").pop();
     const pageName = page.name || page.title || "Canvas";
@@ -360,7 +360,7 @@ export const translateCodaResource = (
  * @param {string} parentId - Compound parent container ID.
  * @returns {Object} Synthetic Drive file metadata object.
  */
-export function createSyntheticCanvasFile(docId, pageId, pageName, parentId) {
+const createSyntheticCanvasFile = (docId, pageId, pageName, parentId) => {
   const syntheticId = `${docId}/${pageId}/_canvas`;
   return {
     id: syntheticId,
@@ -382,7 +382,7 @@ export function createSyntheticCanvasFile(docId, pageId, pageName, parentId) {
       contentType: "canvas",
     },
   };
-}
+};
 
 /**
  * Fetches all rows from a Coda table and formats them into a CSV string.
@@ -392,7 +392,7 @@ export function createSyntheticCanvasFile(docId, pageId, pageName, parentId) {
  * @param {string} tableId - Target Coda Table/Grid ID.
  * @returns {Promise<string>} Formatted CSV string.
  */
-export async function fetchTableContentAsCSV(coda, docId, tableId) {
+const fetchTableContentAsCSV = async (coda, docId, tableId) => {
   if (!docId || !tableId) return "";
   try {
     let rowsRes;
@@ -440,7 +440,7 @@ export async function fetchTableContentAsCSV(coda, docId, tableId) {
     );
     return "";
   }
-}
+};
 
 /**
  * Initiates an asynchronous page export in Coda and polls until Markdown content is returned.
@@ -451,48 +451,43 @@ export async function fetchTableContentAsCSV(coda, docId, tableId) {
  * @param {number} [maxRetries=10] - Maximum polling attempts before falling back.
  * @returns {Promise<string>} Markdown text content.
  */
-export async function fetchPageContentWithRetry(
+const fetchPageContentWithRetry = async (
   coda,
   docId,
   pageId,
   maxRetries = 10,
-) {
+) => {
   if (!docId || !pageId) return "";
+  try {
+    const exportReq = await coda.client.post(
+      `docs/${docId}/pages/${pageId}/export`,
+      { outputFormat: "markdown" },
+    );
 
-  if (coda.client && typeof coda.client.post === "function") {
-    try {
-      const exportReq = await coda.client.post(
-        `docs/${docId}/pages/${pageId}/export`,
-        { outputFormat: "markdown" },
+    let exportStatus = exportReq;
+    let attempts = 0;
+
+    while (exportStatus?.status !== "completed" && attempts < maxRetries) {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      exportStatus = await coda.client.get(
+        `docs/${docId}/pages/${pageId}/export/${exportReq.id}`,
       );
+      attempts++;
+    }
 
-      let exportStatus = exportReq;
-      let attempts = 0;
-
-      while (exportStatus?.status !== "completed" && attempts < maxRetries) {
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        exportStatus = await coda.client.get(
-          `docs/${docId}/pages/${pageId}/export/${exportReq.id}`,
-        );
-        attempts++;
-      }
-
-      if (exportStatus?.downloadUrl) {
-        const downloadRes = await fetch(exportStatus.downloadUrl);
-        const text = await downloadRes.text();
-        if (text && text.trim()) return text;
-      }
-    } catch (_) {}
-  }
-
-  if (typeof coda.pages?.getContent === "function") {
-    try {
-      const res = await coda.pages.getContent(docId, pageId);
-      const text =
-        typeof res === "string" ? res : res?.content || res?.text || "";
+    if (exportStatus?.downloadUrl) {
+      const downloadRes = await fetch(exportStatus.downloadUrl);
+      const text = await downloadRes.text();
       if (text && text.trim()) return text;
-    } catch (_) {}
-  }
+    }
+  } catch (_) {}
+
+  try {
+    const res = await coda.pages.getContent(docId, pageId);
+    const text =
+      typeof res === "string" ? res : res?.content || res?.text || "";
+    if (text && text.trim()) return text;
+  } catch (_) {}
 
   try {
     const pageData = await coda.pages.get(docId, pageId);
@@ -506,7 +501,7 @@ export async function fetchPageContentWithRetry(
   } catch (_) {}
 
   return "";
-}
+};
 
 /**
  * Updates a Coda page's title and/or replaces its canvas Markdown content.
@@ -519,12 +514,7 @@ export async function fetchPageContentWithRetry(
  * @param {string} [updatePayload.content] - Replacement Markdown content.
  * @returns {Promise<Object>} Response object from the Coda API.
  */
-export async function writeCodaPageContent(
-  coda,
-  docId,
-  pageId,
-  { title, content },
-) {
+const writeCodaPageContent = async (coda, docId, pageId, { title, content }) => {
   const payload = {};
   if (title) payload.title = title;
 
@@ -558,7 +548,7 @@ export async function writeCodaPageContent(
  * @param {string} resourceType - Resource key to fetch (e.g., "tables").
  * @returns {Promise<Array<Object>>} List of child resource objects.
  */
-export async function fetchCodaChildResources(coda, docId, resourceType) {
+const fetchCodaChildResources = async (coda, docId, resourceType) => {
   try {
     if (coda[resourceType] && typeof coda[resourceType].list === "function") {
       const res = await coda[resourceType].list(docId);
